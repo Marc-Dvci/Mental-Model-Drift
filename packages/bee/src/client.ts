@@ -7,11 +7,15 @@
  *   `@beeai/cli`      the `bee` binary, every command with --json
  *   `bee mcp serve`   the same tools over MCP
  *
- * This client prefers the proxy where the proxy has an endpoint, and shells out
- * to the CLI for the reads the proxy does not expose (`conversations related`,
- * `conversations transcript --since`, `now`, `today --context`). That split is
- * not an accident of implementation: it is the smallest set of calls that gets
- * all four of the capabilities this product needs out of Bee.
+ * The proxy is not a subset of the CLI. It forwards *every* path under `/v1`
+ * upstream rather than exposing a hand-written route list, so anything the CLI
+ * can read the proxy can read -- including `/v1/conversations/:id/related`,
+ * which only the `conversations related` subcommand advertises. This client
+ * therefore runs proxy-only when a proxy is configured, and shells out to the
+ * `bee` binary solely when there is no proxy at all. One transport, one code
+ * path, no capability that quietly disappears depending on how it was started.
+ *
+ * Four capabilities are what this product needs out of Bee:
  *
  *   CAPTURE    stream(new-utterance)      ambient assertions, as spoken
  *   RECALL     search --neural --since    has this belief been held before
@@ -53,6 +57,12 @@ export class BeeUnavailableError extends Error {
     this.name = 'BeeUnavailableError';
   }
 }
+
+/**
+ * A parsed frame and, when the transport carried it, its SSE `event:` name.
+ * The name is the frame's authoritative type; see `events.ts`.
+ */
+export type BeeFrameSink = (frame: BeeStreamFrame, name?: string) => void | Promise<void>;
 
 export interface StreamHandlers {
   onEvent: (event: BeeEvent) => void | Promise<void>;
@@ -140,9 +150,9 @@ export class BeeClient {
         const downSince = Date.now();
         try {
           controller = new AbortController();
-          await this.consumeStream(types, controller.signal, (frame) => {
+          await this.consumeStream(types, controller.signal, (frame, name) => {
             backoff = 500;
-            return handlers.onEvent(classifyEvent(frame));
+            return handlers.onEvent(classifyEvent(frame, name));
           }, handlers.onConnect);
           if (stopped) return;
           handlers.onDisconnect?.({ reason: 'stream closed by peer', downSince });
@@ -161,18 +171,25 @@ export class BeeClient {
   private async consumeStream(
     types: string[],
     signal: AbortSignal,
-    onFrame: (frame: BeeStreamFrame) => void | Promise<void>,
+    onFrame: BeeFrameSink,
     onConnect?: () => void,
   ): Promise<void> {
     if (this.proxyUrl) return this.consumeSse(types, signal, onFrame, onConnect);
     return this.consumeCliStream(types, signal, onFrame, onConnect);
   }
 
-  /** `GET /v1/stream` -- server-sent events from `bee proxy`. */
+  /**
+   * `GET /v1/stream` -- server-sent events from `bee proxy`.
+   *
+   * The `event:` line is the frame's type and is passed through to the caller.
+   * Dropping it and inferring the type from the payload -- which is what an
+   * SSE reader that filters for `data:` alone ends up doing -- misreads real
+   * event types whose payloads are not disjoint; see `events.ts`.
+   */
   private async consumeSse(
     types: string[],
     signal: AbortSignal,
-    onFrame: (frame: BeeStreamFrame) => void | Promise<void>,
+    onFrame: BeeFrameSink,
     onConnect?: () => void,
   ): Promise<void> {
     const url = `${this.proxyUrl}/v1/stream?types=${encodeURIComponent(types.join(','))}`;
@@ -195,14 +212,24 @@ export class BeeClient {
       while ((sep = indexOfFrameEnd(buffer)) !== -1) {
         const rawFrame = buffer.slice(0, sep);
         buffer = buffer.slice(sep).replace(/^(\r?\n){2}/, '');
-        const data = rawFrame
-          .split(/\r?\n/)
-          .filter((l) => l.startsWith('data:'))
-          .map((l) => l.slice(5).trimStart())
-          .join('\n');
-        if (!data || data === '[DONE]') continue;
+        let name: string | undefined;
+        const data: string[] = [];
+        for (const line of rawFrame.split(/\r?\n/)) {
+          // A line opening with ':' is a comment -- servers send them as
+          // keep-alive pings. It is not a field and carries no colon-separated
+          // value, so it has to be skipped before the field split below.
+          if (line.startsWith(':')) continue;
+          const colon = line.indexOf(':');
+          if (colon === -1) continue;
+          const field = line.slice(0, colon);
+          const value = line.slice(colon + 1).replace(/^ /, '');
+          if (field === 'event') name = value;
+          else if (field === 'data') data.push(value);
+        }
+        const body = data.join('\n');
+        if (!body || body === '[DONE]') continue;
         try {
-          await onFrame(JSON.parse(data) as BeeStreamFrame);
+          await onFrame(JSON.parse(body) as BeeStreamFrame, name);
         } catch {
           /* a malformed frame must not tear down a live capture session */
         }
@@ -210,11 +237,19 @@ export class BeeClient {
     }
   }
 
-  /** `bee stream --json` -- one JSON object per line on stdout. */
+  /**
+   * `bee stream --json` -- one JSON object per line on stdout.
+   *
+   * This transport is lossy in one specific way: `--json` prints the SSE
+   * frame's `data` payload alone and discards the `event:` name that carried
+   * its type, so every frame arriving here has to be classified by shape. That
+   * is why the proxy is the preferred transport, and why `classifyEvent` marks
+   * what it inferred. `describeTransport()` reports which path is live.
+   */
   private async consumeCliStream(
     types: string[],
     signal: AbortSignal,
-    onFrame: (frame: BeeStreamFrame) => void | Promise<void>,
+    onFrame: BeeFrameSink,
     onConnect?: () => void,
   ): Promise<void> {
     if (!this.allowCli) throw new BeeUnavailableError('no Bee transport configured');
@@ -331,15 +366,20 @@ export class BeeClient {
     return id;
   }
 
-  /** Verbatim utterances. Preferred over summaries: summaries are generated. */
-  async transcript(id: string, sinceEpochMs?: number): Promise<BeeUtterance[]> {
+  /**
+   * Verbatim utterances. Preferred over summaries: summaries are generated.
+   *
+   * There is no server-side time filter here. `bee conversations transcript`
+   * takes an id and `--json` and nothing else, and `/v1/conversations/:id`
+   * returns the whole utterance array, so "since" is a caller-side concern; the
+   * reconciler slices by utterance index, which is stable, rather than by a
+   * timestamp the transcript is not obliged to carry.
+   */
+  async transcript(id: string): Promise<BeeUtterance[]> {
+    if (this.proxyUrl) return (await this.getConversation(id)).utterances ?? [];
     if (this.allowCli) {
       try {
-        const body = await this.cli<unknown>([
-          'conversations', 'transcript', id,
-          ...(sinceEpochMs ? ['--since', String(sinceEpochMs)] : []),
-          '--json',
-        ]);
+        const body = await this.cli<unknown>(['conversations', 'transcript', id, '--json']);
         const arr = asArray<BeeUtterance>(body, 'utterances');
         if (arr.length) return arr;
       } catch {
@@ -350,8 +390,25 @@ export class BeeClient {
     return convo.utterances ?? [];
   }
 
-  /** `bee conversations related` -- Bee's own notion of adjacent discussions. */
+  /**
+   * Bee's own notion of adjacent discussions -- server-side, precomputed from
+   * AI-extracted keywords, and the reason a "related" list is worth asking for
+   * rather than recomputing locally.
+   *
+   * Reachable over both transports. `bee proxy` forwards every `/v1` path
+   * upstream rather than exposing a fixed route list, so the endpoint the
+   * `conversations related` subcommand reads -- `/v1/conversations/:id/related`
+   * -- is reachable through the proxy too, and no CLI process is needed.
+   */
   async related(id: string, limit = 5): Promise<BeeConversation[]> {
+    if (this.proxyUrl) {
+      try {
+        const body = await this.http<unknown>('GET', `/v1/conversations/${encodeURIComponent(id)}/related`);
+        return asArray<BeeConversation>(body, 'conversations').slice(0, limit);
+      } catch {
+        return [];
+      }
+    }
     if (!this.allowCli) return [];
     try {
       const body = await this.cli<unknown>(['conversations', 'related', id, '--limit', String(limit), '--json']);

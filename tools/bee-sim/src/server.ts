@@ -148,6 +148,15 @@ export class BeeSim {
       if (!c || c.revealed === 0) return json(res, 404, { error: 'not found' });
       return json(res, 200, publicConversation(c, true));
     }
+    // Reachable through `bee proxy` as well as through `bee conversations
+    // related`: the proxy forwards every /v1 path rather than exposing a route
+    // list, so the endpoint behind the subcommand is the endpoint here.
+    const relatedMatch = /^\/v1\/conversations\/([^/]+)\/related$/.exec(path);
+    if (relatedMatch && method === 'GET') {
+      const c = this.conversations.get(relatedMatch[1]!);
+      if (!c || c.revealed === 0) return json(res, 404, { error: 'not found' });
+      return json(res, 200, { conversations: this.relatedTo(c) });
+    }
     if (path === '/v1/search/conversations' && method === 'POST') {
       const body = await readJson<{ query: string; limit?: number; since?: number }>(req);
       return json(res, 200, { results: this.search(body.query, body.limit ?? 20, false, body.since) });
@@ -294,6 +303,42 @@ export class BeeSim {
       }));
   }
 
+  /**
+   * `GET /v1/conversations/:id/related`.
+   *
+   * Bee computes these server-side from AI-extracted keywords and persists
+   * them; this ranks other conversations by IDF-weighted overlap with the
+   * subject's own text, which produces the same *shape* of answer -- a ranked
+   * `conversations` array -- from the same input. Note it returns conversation
+   * records, not the `{id, score}` hits `/v1/search/*` returns; that difference
+   * is real and the client has to handle both.
+   */
+  private relatedTo(subject: SimConversation) {
+    const others = this.listConversations().filter((c) => String(c.id) !== String(subject.id));
+    const seed = new Set(tokens(conversationText(subject)));
+    if (seed.size === 0) return [];
+
+    const df = new Map<string, number>();
+    for (const c of others) {
+      for (const t of new Set(tokens(conversationText(c)))) df.set(t, (df.get(t) ?? 0) + 1);
+    }
+    const n = Math.max(1, others.length);
+
+    return others
+      .map((c) => {
+        const docTokens = new Set(tokens(conversationText(c)));
+        let score = 0;
+        for (const t of seed) {
+          if (docTokens.has(t)) score += Math.log(1 + n / (1 + (df.get(t) ?? 0)));
+        }
+        return { c, score };
+      })
+      .filter((s) => s.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 10)
+      .map(({ c }) => publicConversation(c));
+  }
+
   // ------------------------------------------------------------------ stream
 
   private stream(req: IncomingMessage, res: ServerResponse, types: string[]): void {
@@ -308,7 +353,7 @@ export class BeeSim {
       connection: 'keep-alive',
     });
     (res as ServerResponse & { simTypes?: string[] }).simTypes = types;
-    res.write(`data: ${JSON.stringify({ connected: true, types })}\n\n`);
+    this.emitTo(res, { connected: true, types }, 'connected');
     this.clients.add(res);
     this.log(`[bee-sim] subscriber connected (${this.clients.size} total)`);
     req.on('close', () => {
@@ -317,13 +362,28 @@ export class BeeSim {
     });
   }
 
+  /**
+   * Write one frame in Bee's wire format.
+   *
+   * The `event:` line is the frame's type and is not optional: `bee stream`'s
+   * SSE parser only emits an event once it has seen both an `event` field and a
+   * `data` field, so a frame written as `data:` alone is silently dropped by
+   * Bee's own client. Emitting it here is what lets `tests/conformance` run
+   * this simulator's bytes through that parser and get the frames back.
+   */
+  private emitTo(client: ServerResponse, frame: unknown, type: string): void {
+    client.write(`event: ${type}\ndata: ${JSON.stringify(frame)}\n\n`);
+  }
+
   private emit(frame: unknown, type: string): void {
     if (!this.networkUp) return;
-    const payload = `data: ${JSON.stringify(frame)}\n\n`;
     for (const client of this.clients) {
       const wanted = (client as ServerResponse & { simTypes?: string[] }).simTypes;
-      if (wanted && wanted.length > 0 && !wanted.includes(type)) continue;
-      client.write(payload);
+      // `all` is Bee's wildcard, not an event name: `bee stream --types all`
+      // omits the query parameter entirely and subscribes to everything.
+      const filtered = wanted && wanted.length > 0 && !wanted.includes('all');
+      if (filtered && !wanted!.includes(type)) continue;
+      this.emitTo(client, frame, type);
     }
   }
 
@@ -338,9 +398,30 @@ export class BeeSim {
   }
 
   private emitUtterance(c: SimConversation, u: SimUtterance): void {
-    // Exactly the documented shape: an `utterance` object and a conversation
-    // uuid, with no top-level event discriminator.
-    this.emit({ utterance: { text: u.text, speaker: u.speaker ?? 'speaker_1' }, conversation_uuid: c.uuid ?? String(c.id) }, 'new-utterance');
+    // The payload `bee stream` reads for this event type: an `utterance` object
+    // carrying `text` and `speaker`, and a top-level `conversation_uuid`.
+    this.emit(
+      { utterance: { text: u.text, speaker: u.speaker ?? 'speaker_1' }, conversation_uuid: c.uuid ?? String(c.id) },
+      'new-utterance',
+    );
+  }
+
+  /**
+   * The other event types, in the shapes `bee stream`'s formatter reads them.
+   *
+   * Nothing in the product subscribes to these -- it asks for `new-utterance`
+   * and nothing else -- but the simulator emits them on demand so the
+   * conformance tests can prove the client classifies the whole documented
+   * event set, including the three types whose payloads a structural reader
+   * gets wrong.
+   */
+  emitEvent(type: string, frame: unknown): void {
+    this.emit(frame, type);
+  }
+
+  /** Speak one utterance into a conversation, as `POST /_sim/append` does. */
+  appendUtterance(conversationId: string, text: string, speaker = 'speaker_1'): boolean {
+    return this.append(conversationId, text, speaker, true);
   }
 
   private async play(conversationId: string, speedMs: number, count?: number): Promise<number> {

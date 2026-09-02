@@ -66,33 +66,58 @@ export interface BeeChangeFeed {
 }
 
 /**
- * A realtime stream frame.
+ * The JSON body of a realtime frame -- the SSE `data:` line, parsed.
  *
- * Bee's stream carries no top-level `event` discriminator; the docs instruct
- * clients to distinguish frames by structural keys. `classifyEvent` does that.
+ * The frame's *type* is not in here: it travels in the SSE `event:` line beside
+ * it. `events.ts` is the only place allowed to decide what a frame is.
  */
 export type BeeStreamFrame = Record<string, unknown>;
 
-export interface BeeNewUtteranceEvent {
+/**
+ * Every event type Bee's stream emits, plus the transport's own `connected`
+ * handshake and the `unknown` this build reports rather than guessing.
+ */
+export type BeeEventKind =
+  | 'connected'
+  | 'new-conversation'
+  | 'update-conversation'
+  | 'update-conversation-summary'
+  | 'delete-conversation'
+  | 'update-location'
+  | 'new-utterance'
+  | 'todo-created'
+  | 'todo-updated'
+  | 'todo-deleted'
+  | 'journal-created'
+  | 'journal-updated'
+  | 'journal-deleted'
+  | 'journal-text'
+  | 'unknown';
+
+interface BeeEventBase {
+  /**
+   * The SSE event name as it arrived, when the transport carried one. Absent
+   * only for a frame that reached this build through a transport dropping it.
+   */
+  name?: string;
+  /**
+   * True when `kind` was deduced from the payload's shape because the transport
+   * did not carry the name. Anything that acts rather than displays should
+   * treat an inferred kind as lower confidence.
+   */
+  nameWasInferred?: boolean;
+  raw: BeeStreamFrame;
+}
+
+export interface BeeNewUtteranceEvent extends BeeEventBase {
   kind: 'new-utterance';
   utterance: BeeUtterance;
   conversationUuid?: string;
   conversationId?: string;
-  raw: BeeStreamFrame;
 }
 
-export interface BeeOtherEvent {
-  kind:
-    | 'connected'
-    | 'new-conversation'
-    | 'update-conversation'
-    | 'update-conversation-summary'
-    | 'delete-conversation'
-    | 'update-location'
-    | 'todo'
-    | 'journal'
-    | 'unknown';
-  raw: BeeStreamFrame;
+export interface BeeOtherEvent extends BeeEventBase {
+  kind: Exclude<BeeEventKind, 'new-utterance'>;
 }
 
 export type BeeEvent = BeeNewUtteranceEvent | BeeOtherEvent;

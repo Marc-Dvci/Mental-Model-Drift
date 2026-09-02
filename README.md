@@ -52,8 +52,20 @@ dashboard's **Heard** tab shows the survey so it is measured rather than claimed
 | **CORRECT** | `facts create` / `update` | the correction has to land where the wearer's assistant will read it next |
 
 `packages/bee/src/client.ts` is the only file that talks to Bee. It uses the documented surface and
-nothing else: `bee proxy`'s `/v1/*` endpoints and SSE stream, plus the `bee` CLI for the reads the
-proxy does not expose (`conversations related`, `conversations transcript --since`).
+nothing else: `bee proxy`'s `/v1/*` endpoints and its SSE stream, with the `bee` CLI as the fallback
+for machines with no proxy running.
+
+Two details in there are worth a reviewer's thirty seconds, because both were bugs first:
+
+- **A realtime frame's type is its SSE `event:` name.** Bee's own client discards any frame that
+  arrives without one, and three real event types have payloads that a shape-guesser reads as each
+  other. The name is now read as authoritative, and anything inferred is marked as inferred.
+- **`bee proxy` is a transparent pass-through, not a subset of the CLI.** Every `/v1` path is
+  forwarded upstream, so `GET /v1/conversations/:id/related` works over the proxy and no capability
+  quietly disappears on a machine without the CLI installed.
+
+Neither is stated in Bee's published documentation; both came out of reading `@beeai/cli`'s source,
+and both are written up in [`docs/friction-log.md`](docs/friction-log.md).
 
 ## Quick start
 
@@ -149,15 +161,33 @@ being dropped. See `docs/friction-log.md`.
 ## Run everything
 
 ```bash
-pnpm verify        # typecheck, 205 tests, evaluation harness
-pnpm test          # 205 tests: unit, adapter failure matrix, 12 golden scenarios, MCP,
-                   #            the corpus gate, the server over real HTTP
+pnpm verify        # typecheck, 220 tests, evaluation harness
+pnpm test          # 220 tests: unit, adapter failure matrix, 12 golden scenarios, MCP,
+                   #            wire conformance, the corpus gate, the server over real HTTP
+pnpm doctor        # exercise all four Bee capabilities against whichever Bee is configured
 pnpm eval          # extraction metrics against the golden corpus
 pnpm corpus        # dry-run the registry over recorded conversations: what would this speak about?
 pnpm corpus --bee  # ...the same, read from a live Bee instead of the fixtures
 pnpm demo          # the whole thing, end to end
 pnpm tour          # the same, narrated in the browser at /?tour=1
 pnpm mcp           # the Assumption Firewall over MCP
+```
+
+`pnpm doctor` is the preflight. It runs the real client over the configured transport and prints one
+row per capability — including whether the last realtime frame arrived carrying its SSE event name,
+which is the difference between reading Bee's stream and guessing at it:
+
+```
+transport: proxy http://127.0.0.1:8787
+
+  ok    IDENTITY   GET /v1/me                             Bee owner
+  ok    CAPTURE    GET /v1/stream                         connected
+  ok    CAPTURE    SSE event name                         new-utterance (authoritative, not inferred)
+  ok    RECONCILE  GET /v1/changes (cursor)               1 conversation(s), next_cursor present
+  ok    RECALL     POST /v1/search/conversations/neural   5 hit(s)
+  ok    RECALL     GET /v1/conversations/:id/related      5 related to conversation 10743
+  ok    RECALL     transcript (verbatim utterances)       1 utterance(s)
+  ok    CORRECT    GET /v1/facts                          3 fact(s) readable
 ```
 
 ## The Assumption Firewall (MCP)
@@ -191,6 +221,37 @@ Five tools: `check_assumption`, `belief_history`, `list_verifiable_properties`, 
 `MMD_MCP_ALLOW_WRITES=1`; it also refuses any belief that could not be attributed to the wearer.
 14 tests drive it through a real MCP client.
 
+## Three surfaces, one engine
+
+Bee's own integration story is three doors — the CLI, MCP, and Agent Skills — and the same question
+is worth asking through all three, because the audiences are different and they arrive at different
+moments.
+
+| surface | who it is for | when |
+|---|---|---|
+| the **dashboard** | the person | after the fact, with the timeline and the evidence |
+| the **MCP server** | an agent that speaks MCP | mid-task, before it writes the patch |
+| **`mmd`** + the **Agent Skill** | an agent with a shell, or a shell script | mid-task, with no transport and no session |
+
+```bash
+mmd check "the checkout worker retries three times, so a slow consumer isn't the problem"
+# DRIFTED -- Checkout retry attempts ...
+echo $?   # 1
+```
+
+The exit code is the contract: `0` supported or nothing checkable, `1` drifted, `2` inconclusive.
+Those are three codes rather than two on purpose — a connector that could not be read must never
+look like a person being wrong, and an agent trusting `!= 0` would conflate them. `tests/e2e/cli.test.ts`
+asserts each from outside the process, where an agent would see it.
+
+[`skills/mental-model-drift/SKILL.md`](skills/mental-model-drift/SKILL.md) is the Agent Skill: it
+composes with [`bee-computer/bee-skill`](https://github.com/bee-computer/bee-skill) over the same
+`bee login` session, and most of it is about *how to say it*. Silently substituting the right number
+is the worst outcome — the person keeps the old one and repeats it in an hour, next to someone
+else, where nothing is checking. And they were usually not wrong: four of the five earlier times
+they said "three retries", three was the correct answer. The software moved. Nobody told them. The
+skill's job is to get an agent to say that, in one sentence, and then carry on with the real value.
+
 ## AWS
 
 | service | used for | where |
@@ -202,8 +263,8 @@ Five tools: `check_assumption`, `belief_history`, `list_verifiable_properties`, 
 | **SQS**, **Lambda**, **API Gateway**, **Secrets Manager** | the deployed topology | `infrastructure/cdk/` |
 
 `cd infrastructure/cdk && npx cdk synth` synthesizes 35 resources and bundles the handlers with
-esbuild from the same `packages/` source the tests run against. **It has not been deployed** — see
-"What is not done" below.
+esbuild from the same `packages/` source the tests run against. What has and has not been run against
+a live account is in [`docs/limitations.md`](docs/limitations.md).
 
 ## Layout
 
@@ -218,11 +279,15 @@ apps/dashboard/           drift cards, evidence panel, mental-model timeline, "H
 apps/relay/               the local process that sits next to `bee proxy`
 apps/mcp/                 the Assumption Firewall
 apps/dashboard/src/Tour.tsx   the guided tour: /?tour=1, and the demo video's script
-tools/bee-sim/            a faithful local `bee proxy` emulator, with failure injection
+tools/bee-sim/            a local `bee proxy`, wire-conformant, with failure injection
+tools/doctor/             the Bee preflight: every capability, over the live transport
+tools/cli/                `mmd` -- the command the Agent Skill drives; verdict in the exit code
+skills/mental-model-drift/    the Agent Skill, composing with bee-computer/bee-skill
 tools/eval/               the golden corpus and the metrics harness
 tools/demo/               one-command demo, corpus audit, repo seeding
 infrastructure/           CDK stack and Lambda handlers
-tests/                    205 tests
+tests/conformance/        the emulator's bytes, through Bee's own SSE parser
+tests/                    220 tests
 ```
 
 `packages/drift-spec` has no I/O, no model and no Bee: it is the portable half, and it is the piece
@@ -243,20 +308,9 @@ screen cannot disagree; the visuals are paced to the measured length of each spo
 - [`docs/source-registry.md`](docs/source-registry.md) — how to point it at your own systems
 - [`docs/demo-script.md`](docs/demo-script.md) — the two-minute walkthrough, beat by beat, and how it is recorded
 - [`docs/friction-log.md`](docs/friction-log.md) — building against Bee, AWS and MCP: what worked, what did not
+- [`docs/conformance.md`](docs/conformance.md) — how the local Bee is held to Bee's own wire format
+- [`docs/limitations.md`](docs/limitations.md) — **what this build does not do, and what has not been run**
 - [`docs/product-feedback.md`](docs/product-feedback.md) — the submission's feedback answers
-
-## What is not done
-
-Stated plainly, because a reviewer will find it anyway:
-
-- **No physical Bee device.** Every Bee call is written against the documented surface and exercised
-  against `tools/bee-sim`, a local emulator that implements `/v1/me`, `/v1/changes`, `/v1/stream`,
-  `/v1/conversations`, `/v1/search/conversations{,/neural}` and `/v1/facts`, including deliberate
-  stream loss. Switching to a real device is one environment variable.
-- **AWS is synthesized, not deployed.** The adapters, the store and the Bedrock proposer are written
-  against the real SDKs, and `cdk synth` succeeds, but nothing has been run against a live account.
-- **Bedrock has not been run.** The evaluation numbers above are the grammar proposer alone, which
-  is the honest floor. `MMD_PROPOSERS=grammar,bedrock` adds the second opinion.
 
 ## Licence
 

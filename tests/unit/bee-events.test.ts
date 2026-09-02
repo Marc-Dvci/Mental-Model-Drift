@@ -1,33 +1,72 @@
 /**
- * Bee's realtime frames carry no top-level event discriminator and no global
- * event id. Both facts are load-bearing for this product -- one forces
- * structural classification, the other forces derived fingerprints -- so both
- * are pinned here rather than assumed at three call sites.
+ * A realtime frame's type is the SSE `event:` name, and Bee carries no global
+ * event id. Both facts are load-bearing -- one decides how a frame is read, the
+ * other forces derived fingerprints -- so both are pinned here rather than
+ * assumed at three call sites.
  */
 import { describe, expect, it } from 'vitest';
-import { classifyEvent, contentKey, normaliseText, realtimeFingerprint, reconciledFingerprint } from '#bee';
+import {
+  BEE_STREAM_EVENTS,
+  classifyEvent,
+  contentKey,
+  normaliseText,
+  realtimeFingerprint,
+  reconciledFingerprint,
+} from '#bee';
 
 describe('classifyEvent', () => {
-  it('recognises a new utterance by structure, not by a type field', () => {
-    const e = classifyEvent({
-      utterance: { text: 'the checkout worker retries three times', speaker: 'speaker_1' },
-      conversation_uuid: '9a41c2fe-52b8-4d77-b0e3-6f18cd4a2b55',
-    });
+  it('reads a new utterance named by the stream', () => {
+    const e = classifyEvent(
+      {
+        utterance: { text: 'the checkout worker retries three times', speaker: 'speaker_1' },
+        conversation_uuid: '9a41c2fe-52b8-4d77-b0e3-6f18cd4a2b55',
+      },
+      'new-utterance',
+    );
     expect(e.kind).toBe('new-utterance');
     if (e.kind !== 'new-utterance') throw new Error('unreachable');
     expect(e.conversationUuid).toBe('9a41c2fe-52b8-4d77-b0e3-6f18cd4a2b55');
     expect(e.utterance.text).toMatch(/retries three times/);
+    expect(e.nameWasInferred).toBeUndefined();
   });
 
-  it('separates a summary update from a new conversation', () => {
-    expect(classifyEvent({ conversation: { id: 1, short_summary: 'Debugging the queue' } }).kind).toBe('update-conversation-summary');
-    expect(classifyEvent({ conversation: { id: 1 } }).kind).toBe('new-conversation');
+  it('accepts every event name `bee stream` documents', () => {
+    for (const name of BEE_STREAM_EVENTS) {
+      expect(classifyEvent({}, name).kind).toBe(name);
+    }
+    expect(classifyEvent({ connected: true }, 'connected').kind).toBe('connected');
   });
 
-  it('classifies the other documented frames', () => {
-    expect(classifyEvent({ connected: true }).kind).toBe('connected');
-    expect(classifyEvent({ todo: { id: 1 } }).kind).toBe('todo');
-    expect(classifyEvent({ journal: { id: 1 } }).kind).toBe('journal');
+  /**
+   * The three payloads a shape-based reader gets wrong. Each is the reason the
+   * name is read rather than the body:
+   *
+   *   - the summary update is flat, with no `conversation` key at all
+   *   - a delete is byte-identical in shape to a new conversation
+   *   - a journal delete carries `journalId`, not `journal`
+   */
+  it('reads the payloads whose shapes are not disjoint', () => {
+    expect(classifyEvent({ conversation_id: 1, short_summary: 'Debugging the queue' }, 'update-conversation-summary').kind)
+      .toBe('update-conversation-summary');
+
+    const deleted = { conversation: { id: 1, title: 'Standup' } };
+    expect(classifyEvent(deleted, 'delete-conversation').kind).toBe('delete-conversation');
+    expect(classifyEvent(deleted, 'new-conversation').kind).toBe('new-conversation');
+
+    expect(classifyEvent({ journalId: 7, reason: 'user' }, 'journal-deleted').kind).toBe('journal-deleted');
+    expect(classifyEvent({ todo: { id: 1 } }, 'todo-created').kind).toBe('todo-created');
+  });
+
+  it('falls back to the payload shape only when the transport dropped the name', () => {
+    // `bee stream --json` prints the data payload alone. Capture still has to
+    // work, so shape reading survives -- but every result it produces is
+    // marked, because a guess must not be mistaken for something Bee said.
+    const e = classifyEvent({ utterance: { text: 'it retries three times' }, conversation_uuid: 'u1' });
+    expect(e.kind).toBe('new-utterance');
+    expect(e.nameWasInferred).toBe(true);
+
+    expect(classifyEvent({ conversation_id: 1, short_summary: 'x' }).kind).toBe('update-conversation-summary');
+    expect(classifyEvent({ journalId: 7 }).kind).toBe('journal-deleted');
     expect(classifyEvent({ location: { lat: 0, lng: 0 } }).kind).toBe('update-location');
   });
 
@@ -35,6 +74,14 @@ describe('classifyEvent', () => {
     // A new Bee event type must degrade capture, never crash the subscriber.
     expect(classifyEvent({ somethingNew: {} }).kind).toBe('unknown');
     expect(classifyEvent(null as never).kind).toBe('unknown');
+  });
+
+  it('trusts an unrecognised name over a shape that looks familiar', () => {
+    // Bee adding `archive-conversation` must not be silently processed as a new
+    // conversation just because the payload happens to match.
+    const e = classifyEvent({ conversation: { id: 1 } }, 'archive-conversation');
+    expect(e.kind).toBe('unknown');
+    expect(e.name).toBe('archive-conversation');
   });
 });
 

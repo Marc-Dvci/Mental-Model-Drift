@@ -12,30 +12,86 @@ Severity is what it cost *this* project: **high** means it silently produced wro
 
 ## Bee
 
-### B1 — Realtime frames carry no event type and no event id
+### B1 — The event type is the SSE `event:` line, and nothing in the docs says so
 
-**Severity: high** (silently wrong behaviour if you assume otherwise)
+**Severity: high** (I built the wrong thing, believed it, and caught it only by reading Bee's source)
 
 **Task.** Subscribe to `new-utterance` and process each frame exactly once.
 
 **Steps.** Connected to `GET /v1/stream?types=new-utterance` on `bee proxy`, read the SSE frames,
-tried to switch on an event-type field.
+looked in the JSON payload for a discriminator and did not find one. The payload really is
+`{ utterance: {…}, conversation_uuid: "…" }`, with no type field anywhere in it. So I concluded
+there was no discriminator, wrote a classifier that guesses the event type from which keys are
+present, put it in one tested module, and moved on.
 
-**Expected.** A discriminator — `{"type": "new-utterance", ...}` — and a stable id per event, the
-way most event streams are shaped.
+**Expected.** Either a `type` field in the payload, or a documented statement that there is none.
 
-**Actual.** Frames are payload-shaped: an utterance frame is `{ utterance: {...},
-conversation_uuid: "..." }` with no top-level type and no id anywhere. Clients have to discriminate
-structurally, and there is no identifier to deduplicate on.
+**Actual.** Both wrong. The discriminator exists and it is the SSE frame's own `event:` line:
 
-**Workaround.** All classification lives in one tested module (`packages/bee/src/events.ts`) rather
-than being repeated at call sites, and event identity is *derived*: a realtime fingerprint over
-conversation + speaker + normalised text + a coarse 10-second time bucket, so the same physical
-utterance arriving twice collapses while two genuinely repeated sentences minutes apart stay
-distinct.
+```
+event: new-utterance
+data: {"utterance":{"text":"…","speaker":"speaker_1"},"conversation_uuid":"…"}
+```
 
-**Suggestion.** Add a stable `event_id` and a `type` field to stream frames. Both are cheap, and
-without them every serious client re-implements the same fingerprint, differently.
+I found it only by reading `@beeai/cli` 0.7.3, `sources/commands/stream/index.ts`. Its
+`parseSSEBuffer` requires **both** an `event` field and a `data` field before it emits anything, and
+`formatEvent` switches on the name across a fixed list of thirteen types. So the name is not
+incidental — it is how Bee's own client reads Bee's own stream. I could not find it stated in the
+developer documentation, in `bee-skill`'s SKILL.md, or in `bee stream --help`; the Skill's
+capability map does not mention `bee stream` at all.
+
+Guessing from the payload is not merely inelegant, it is **wrong**, because the payloads are not
+disjoint. Three real cases:
+
+| event | payload | what a shape-guesser does |
+|---|---|---|
+| `update-conversation-summary` | `{conversation_id, short_summary}` | misses it entirely — there is no `conversation` key to look inside |
+| `delete-conversation` | `{conversation:{…}}` | indistinguishable from `new-conversation` |
+| `journal-deleted` | `{journalId, reason}` | does not match the other journal events, which carry `journal` |
+
+**Workaround.** `packages/bee/src/events.ts` now reads the `event:` line and treats it as
+authoritative; the structural reader survives only as a fallback for transports that drop the name,
+and anything it produces is marked `nameWasInferred`, so a guess is never mistaken downstream for
+something Bee actually said. `tests/conformance/bee-wire.test.ts` pins it by copying Bee's own
+`parseSSEBuffer` verbatim and running the local emulator's literal socket bytes through it.
+Reintroducing the bug makes that parser return **zero** events, which is the whole danger: a client
+that drops the name and a server that never sends it agree perfectly with each other, and produce
+nothing at all against a real device.
+
+There is still no event **id**, so identity stays derived: a fingerprint over conversation + speaker
++ normalised text + a coarse 10-second bucket, so the same utterance arriving twice collapses while
+two genuinely repeated sentences minutes apart stay distinct.
+
+**Suggestion.** Two things, in order. (1) State in the streaming documentation that the event type
+is the SSE event name, and list the thirteen names — `SUPPORTED_EVENT_TYPES` is already in the CLI
+source, it is just not in anything a client author reads. This is the single highest-value paragraph
+Bee could add for integrators. (2) Add a stable `event_id`; without one, every serious client
+re-implements the same fingerprint, differently.
+
+---
+
+### B1b — `bee stream --json` discards the event name
+
+**Severity: medium** (the machine-readable mode is the one that cannot tell you what it received)
+
+**Task.** Support the CLI as a transport on a machine with no proxy running.
+
+**Steps.** Piped `bee stream --json --types new-utterance` and parsed one JSON object per line.
+
+**Expected.** The same information the SSE stream carries.
+
+**Actual.** `--json` prints `event.data` and nothing else, so the `event:` name — the frame's type,
+per B1 — is dropped. `--agent` keeps the name, but only inside English prose
+(`"Event new-utterance: …"`), and `pretty` colourises it for a human. The one mode meant for
+programs is the one mode that loses the type.
+
+**Workaround.** The proxy is now the preferred transport and the CLI is the fallback. Frames
+arriving through the CLI are marked `nameWasInferred`, and `pnpm doctor` reports which transport is
+live and whether the last frame arrived named.
+
+**Suggestion.** Have `--json` emit the envelope — `{"event":"new-utterance","data":{…}}` — or add a
+`--json-envelope` flag. It is a small change in `handleEvent` and it makes the mode usable for the
+purpose it exists for.
 
 ---
 
@@ -90,27 +146,46 @@ frames.
 
 ---
 
-### B4 — `bee proxy` exposes a strict subset of the CLI
+### B4 — `bee proxy` forwards everything, and I assumed it was a subset
 
-**Severity: medium**
+**Severity: medium** (self-inflicted, but the documentation invites it)
 
 **Task.** Use one transport for everything.
 
-**Steps.** Moved the client onto `bee proxy`, then went looking for `conversations related` and
-`conversations transcript --since`.
+**Steps.** Moved the client onto `bee proxy`, then went looking for a proxy endpoint behind
+`bee conversations related`. The Skill's capability map presents Bee as a list of *commands*, and
+lists `bee proxy` at the bottom under "Utility Commands" with a one-line signature and no
+description of what it forwards. Reading that, `related` looks like a CLI feature. I built the
+client as a hybrid — proxy where the proxy "has an endpoint", CLI for the rest — and gave `related()`
+an early return of `[]` whenever the `bee` binary was absent.
 
-**Expected.** The proxy to cover the CLI's read surface.
+**Expected.** A documented route list for the proxy.
 
-**Actual.** Neither has a proxy endpoint. `related` is useful precisely for this product (adjacent
-discussions of the same system), and `transcript --since` is the cheap way to page a long
-conversation.
+**Actual.** There is no route list, because there is no routing. `startProxy` is a transparent
+pass-through: anything whose path starts with `/v1` gets the owner's bearer token attached and is
+forwarded upstream verbatim, and anything else is a 404. So the proxy's surface is *the API's*
+surface, which is a superset of what the CLI exposes as subcommands.
+`GET /v1/conversations/:id/related` — the endpoint the `related` subcommand reads — works through
+the proxy exactly as it works through the CLI.
 
-**Workaround.** The client is a hybrid: the proxy where the proxy has an endpoint, the CLI for the
-rest, with `BeeClient.describeTransport()` reporting which paths are live so the dashboard can show
-it honestly. Containers without the CLI set `BEE_ALLOW_CLI=0` and lose only those two reads.
+The cost was real and silent: a proxy-only deployment (a container, a judge's laptop, the demo)
+lost Bee's related-conversations capability entirely, and returned an empty list rather than an
+error, so nothing looked broken.
 
-**Suggestion.** Bring the proxy to parity with the CLI's read commands, or document the gap so
-nobody discovers it after committing to a transport.
+The `transcript --since` half of my original assumption was wrong in a different way: that flag does
+not exist on the CLI either. `bee conversations transcript` takes an id and `--json`, nothing else.
+I had invented it.
+
+**Workaround.** The client is now proxy-only whenever a proxy is configured, and shells out to the
+binary only when there is no proxy at all. One transport, one code path, no capability that
+disappears depending on how the process was started. `pnpm doctor` exercises every endpoint over
+whichever transport is configured and prints a table, so this class of silent gap shows up as a row
+rather than as an empty array.
+
+**Suggestion.** One sentence where `bee proxy` is documented: *"the proxy forwards every `/v1` path
+to the Bee API with your token attached; it is not limited to the endpoints the CLI has subcommands
+for."* Presenting the surface as commands rather than as an API is what made me draw the wrong
+boundary, and a published OpenAPI document for `/v1` would have prevented all of it.
 
 ---
 
@@ -374,3 +449,19 @@ Kept here because a friction log that only blames tooling is not a useful docume
   cards and no trace of the reasoning that produced them — which is the half of the interface that
   justifies the other half. The server now keeps the last 250 events and replays them, marked as
   history.
+- **I documented two limitations of Bee that were not real** (B1 and B4 above), and built around
+  both. Each began the same way: I looked for something, did not find it, and wrote down that it
+  does not exist. Neither conclusion survived twenty minutes with `@beeai/cli`'s source, which is
+  MIT-licensed and one `gh repo clone` away. The stream *does* carry an event discriminator; the
+  proxy *is* a full pass-through. Both of my workarounds were real code, shipped, with tests
+  asserting the wrong behaviour — and one of those tests asserted a payload shape
+  (`{conversation: {short_summary}}` for a summary update) that Bee never sends, so it was green and
+  meaningless.
+
+  The general lesson, and the reason this entry is here rather than in the Bee section: **an
+  integration test against your own simulator proves your client agrees with your simulator.** It
+  says nothing about the real service, and it is at its most convincing exactly when both sides
+  share a misconception. What fixed it was `tests/conformance/bee-wire.test.ts`, which runs the
+  emulator's literal socket bytes through Bee's own SSE parser, copied verbatim. That test is worth
+  more than the other 213 combined for the one question that matters here, because it is the only
+  one whose failure mode is "the real thing would not accept this".
