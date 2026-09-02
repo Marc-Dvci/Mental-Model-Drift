@@ -86,7 +86,7 @@ remote control to the browser:
 pnpm tour            # then open http://127.0.0.1:4310/?tour=1
 ```
 
-Fourteen beats, two minutes, and it is the real pipeline throughout: the tour plays conversations
+Sixteen beats, two and a half minutes, and it is the real pipeline throughout: the tour plays conversations
 into Bee, cuts the stream, clicks the product's own buttons. It is also exactly what the demo video
 is a recording of — see [`docs/demo-script.md`](docs/demo-script.md).
 
@@ -295,7 +295,7 @@ intended to be useful to anyone building this kind of verification for a differe
 
 ## The demo video
 
-`demo_video/mmd-demo.mp4` — 2:15, and every frame of it is the product. The narration is the guided
+`demo_video/mmd-demo.mp4` — 2:36, and every frame of it is the product. The narration is the guided
 tour's own captions, read out of the running page so the words a viewer hears and the words on
 screen cannot disagree; the visuals are paced to the measured length of each spoken sentence.
 `docs/demo-script.md` has the beat sheet and the three commands that reproduce it.

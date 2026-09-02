@@ -20,7 +20,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 export interface TourControls {
-  setTab: (tab: 'drift' | 'heard' | 'sources') => void;
+  setTab: (tab: 'drift' | 'heard' | 'agent' | 'sources') => void;
   setSelected: (id: string | null) => void;
   refresh: () => Promise<void> | void;
 }
@@ -170,6 +170,32 @@ const BEATS: Beat[] = [
       t.setTab('heard');
       await t.waitFor('.coverage-bar', 25000);
       await t.sleep(500);
+    },
+  },
+  {
+    // The other consumer. Everything before this beat is the person; this is
+    // the agent working beside them, handed the same sentence with no way to
+    // tell a fact from a memory. The panel really calls POST /api/check, with
+    // the same registry and the same gate -- it is not a mock.
+    caption:
+      'And the person is not the only one who needs this. A coding agent is handed the same sentence, and cannot tell a fact from a memory.',
+    ms: 9200,
+    focus: '.agent-input',
+    run: async (t) => {
+      t.setTab('agent');
+      await t.waitFor('.agent-input', 10000);
+      await t.sleep(400);
+    },
+  },
+  {
+    caption:
+      'It asks the same registry, over MCP or one command, and gets the same verdict — told to say what changed, rather than quietly correcting someone who was right until August.',
+    ms: 13200,
+    focus: '.agent-answer',
+    run: async (t) => {
+      await t.click('[data-tour="agent-run"]');
+      await t.waitFor('.agent-answer', 20000);
+      await t.sleep(600);
     },
   },
   {

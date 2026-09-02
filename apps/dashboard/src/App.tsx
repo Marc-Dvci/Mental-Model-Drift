@@ -10,10 +10,11 @@ import {
   type Status,
   type Timeline as TimelineData,
 } from './api.ts';
+import { AgentPanel } from './Agent.tsx';
 import { Timeline } from './Timeline.tsx';
 import { Tour } from './Tour.tsx';
 
-type Tab = 'drift' | 'heard' | 'sources';
+type Tab = 'drift' | 'heard' | 'agent' | 'sources';
 
 export interface Notice {
   tone: 'ok' | 'bad';
@@ -93,6 +94,7 @@ export function App() {
               [
                 ['drift', `Drift${open.length ? ` (${open.length})` : ''}`],
                 ['heard', `Heard (${claims.length})`],
+                ['agent', 'Agent'],
                 ['sources', 'Sources'],
               ] as [Tab, string][]
             ).map(([key, label]) => (
@@ -117,6 +119,7 @@ export function App() {
             </>
           )}
           {tab === 'heard' && <HeardList claims={claims} />}
+          {tab === 'agent' && <AgentPanel />}
           {tab === 'sources' && <Sources status={status} />}
         </main>
 

@@ -50,7 +50,9 @@ number is four, and the product had been saying four on screen the whole time.
 | 10 | 1:34 | cuts the stream, then plays conversation 10744 into a Bee nobody is listening to | *Eleven forty. The stream drops. Bee documents realtime delivery as at most once, so the corridor conversation happening now is never replayed.* |
 | 11 | 1:44 | restores the stream; cursor reconciliation recovers the corridor sentence and checks it | *On reconnect the cursor closes the gap, and the sentence nobody was listening to comes back: the stale number has just been handed to another team.* |
 | 12 | 1:53 | switches to the **Heard** tab; the coverage survey renders | *And most of the time it says nothing. Across seven weeks and one hundred and fifteen utterances, seventeen were about something this registry can settle. The other ninety-eight produce nothing. Silence is the feature.* |
-| 13 | 2:07 | closing card | *Observability tells you when your systems drift. This tells you when your understanding does.* |
+| 13 | 2:07 | switches to the **Agent** tab; the firewall panel | *And the person is not the only one who needs this. A coding agent is handed the same sentence, and cannot tell a fact from a memory.* |
+| 14 | 2:16 | clicks **Check**; a real `POST /api/check` returns the same verdict, with the instruction | *It asks the same registry, over MCP or one command, and gets the same verdict — told to say what changed, rather than quietly correcting someone who was right until August.* |
+| 15 | 2:29 | closing card | *Observability tells you when your systems drift. This tells you when your understanding does.* |
 
 ---
 
@@ -66,6 +68,13 @@ the same argument at the scale of seven weeks.
 **Beat 5 is the conceptual reveal.** Not "you are wrong" but "you were right, and then the software
 moved and nobody told you". Everything else in the product is in service of being able to say that
 sentence with a commit hash attached.
+
+**Beats 13 and 14 are the second consumer, and they are last for a reason.** The whole product has
+to be believable for a person before it is worth pointing at an agent. The panel is not a mockup: it
+posts to `/api/check`, which runs the same registry, the same grounding gate and the same
+comparator, and the count on screen reads *six* earlier conversations rather than five — because the
+corridor sentence recovered in beat 11 has, by then, become part of the history. The demo learned
+something during the demo.
 
 **Beat 11 is the reliability claim, and it is the one that is easy to fake and hard to do.** The
 stream is genuinely cut. The conversation genuinely happens with no subscriber attached. The

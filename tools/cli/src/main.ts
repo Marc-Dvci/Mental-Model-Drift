@@ -23,13 +23,7 @@
  *   1  drifted -- the human's premise does not match the source
  *   2  inconclusive -- a source could not be read; do not act as if checked
  */
-import { buildEngine } from '#engine';
-import { checkAssumption } from '../../../apps/mcp/src/server.ts';
-
-type Structured = {
-  content: { type: 'text'; text: string }[];
-  structuredContent?: Record<string, unknown>;
-};
+import { buildEngine, checkAssumption, renderFindings, verdictCode } from '#engine';
 
 const USAGE = `mmd -- verify what someone believes about a system against what it is
 
@@ -73,9 +67,9 @@ async function main(): Promise<void> {
         return;
       }
 
-      const result = (await checkAssumption(built, statement, context, true)) as Structured;
-      emit(result, json);
-      process.exitCode = verdictExitCode(result);
+      const result = await checkAssumption(built, statement, context, true);
+      console.log(json ? JSON.stringify(result, null, 2) : renderFindings(result, { unsupportedHint: 'Run `mmd properties` to see what is in the registry.' }));
+      process.exitCode = verdictCode(result);
       return;
     }
 
@@ -154,24 +148,6 @@ async function main(): Promise<void> {
       console.error(`Unknown command: ${command}\n\n${USAGE}`);
       process.exitCode = 2;
   }
-}
-
-/**
- * The verdict decides the exit code, so `mmd check … || handle-it` works in a
- * script and an agent gets a signal it cannot misread. INCONCLUSIVE is its own
- * code rather than a failure, because "the source could not be read" and "the
- * human is wrong" must never collapse into each other.
- */
-function verdictExitCode(result: Structured): number {
-  const findings = (result.structuredContent?.findings ?? []) as { verdict: string }[];
-  if (findings.some((f) => f.verdict === 'DRIFTED')) return 1;
-  if (findings.some((f) => f.verdict === 'INCONCLUSIVE')) return 2;
-  return 0;
-}
-
-function emit(result: Structured, json: boolean): void {
-  if (json) console.log(JSON.stringify(result.structuredContent ?? {}, null, 2));
-  else console.log(result.content.map((c) => c.text).join('\n'));
 }
 
 function fmt(v: unknown): string {

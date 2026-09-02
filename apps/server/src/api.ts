@@ -17,6 +17,9 @@ import {
   Reconciler,
   renderPullRequestBody,
   surveyCoverage,
+  checkAssumption,
+  renderFindings,
+  verdictCode,
   type BuiltEngine,
   type PipelineEvent,
 } from '#engine';
@@ -212,10 +215,29 @@ export async function getTimeline(ctx: ApiContext, subject: string, property: st
   };
 }
 
+/**
+ * The Assumption Firewall over HTTP -- the same call the MCP tool and `mmd`
+ * make, so an agent that has neither can still ask.
+ *
+ * Read-only by construction: it verifies a sentence and returns the answer. It
+ * records no claim and opens no drift card, because a question an agent asked
+ * is not something the wearer said, and letting one become the other would put
+ * words in their mouth.
+ */
+export async function checkStatement(ctx: ApiContext, statement: string, context: string[] = []) {
+  const result = await checkAssumption(ctx.built, statement, context, true);
+  return { ...result, rendered: renderFindings(result), code: verdictCode(result) };
+}
+
 // ----------------------------------------------------------------- write side
 
-export async function ingestBeeFrame(ctx: ApiContext, frame: BeeStreamFrame, origin: 'realtime' | 'reconciled' = 'realtime') {
-  const event = classifyEvent(frame);
+export async function ingestBeeFrame(
+  ctx: ApiContext,
+  frame: BeeStreamFrame,
+  origin: 'realtime' | 'reconciled' = 'realtime',
+  eventName?: string,
+) {
+  const event = classifyEvent(frame, eventName);
   if (event.kind !== 'new-utterance') return { ignored: event.kind };
   const ref = event.conversationId ?? event.conversationUuid ?? 'unknown';
   const conversationId = await ctx.built.bee.resolveConversationId(ref).catch(() => ref);

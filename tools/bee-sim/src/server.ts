@@ -3,18 +3,25 @@
  *
  * WHAT THIS IS AND IS NOT
  *
- * Mental Model Drift talks to Bee through one client, and that client only ever
- * uses the documented surface: `/v1/*` on the local proxy, the SSE stream, the
- * cursor changefeed, and the CLI for the reads the proxy does not expose. This
- * simulator implements that same surface over fixture conversations so the whole
- * product can be developed, tested and demonstrated without a device on the
- * table -- and so the reliability behaviour that matters can be *provoked* on
- * demand rather than waited for.
+ * Mental Model Drift talks to Bee through one client, over `/v1/*` on the local
+ * proxy: the SSE stream, the cursor changefeed, conversation reads, neural
+ * search and facts. This simulator implements that same surface over fixture
+ * conversations, so the whole product can be developed and tested without a
+ * device on the table -- and so the reliability behaviour that matters can be
+ * *provoked* on demand rather than waited for.
  *
  * It is not a reimplementation of Bee. It has no transcription, no diarisation,
  * no fact extraction, and its "neural" search is token overlap with IDF
  * weighting rather than an embedding model. Nothing in the product depends on
- * any of that; it depends only on the response shapes.
+ * any of that; it depends only on the wire format and the response shapes.
+ *
+ * Which is why those are not merely believed. `tests/conformance/bee-wire.test.ts`
+ * reads this server's literal socket bytes and parses them with `parseSSEBuffer`
+ * copied verbatim out of `@beeai/cli`, so the format is checked against Bee's
+ * own code rather than against a careful reading of the documentation. That test
+ * has already caught two defects here that every other test agreed with: frames
+ * written with no `event:` line, which Bee's parser silently discards, and the
+ * `all` wildcard treated as a literal event name.
  *
  * Point BEE_PROXY_URL at a real `bee proxy` instead and every code path is the
  * same one.

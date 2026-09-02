@@ -26,12 +26,9 @@
  * writes is off unless it is explicitly enabled, because a server that reads
  * your conversations should not also edit your assistant's memory by default.
  */
-import { randomUUID } from 'node:crypto';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import type { BuiltEngine } from '#engine';
-import type { RecurrenceResult } from '#engine/recurrence';
-import { adjudicateAll, scoreSeverity, type Claim, type Evidence, type HistoricalChange } from '#spec';
+import { checkAssumption, renderFindings, type BuiltEngine } from '#engine';
 
 export interface McpOptions {
   /** Enables record_understanding, the one tool that writes to Bee. */
@@ -73,7 +70,15 @@ export function createMcpServer(built: BuiltEngine, opts: McpOptions = {}): McpS
       },
       annotations: { readOnlyHint: true, openWorldHint: true },
     },
-    async ({ statement, context, includeHistory }) => checkAssumption(built, statement, context ?? [], includeHistory ?? true),
+    async ({ statement, context, includeHistory }) => {
+      const result = await checkAssumption(built, statement, context ?? [], includeHistory ?? true);
+      return structured(
+        result.unsupported
+          ? { verdict: 'UNSUPPORTED', statement, reason: result.unsupported.reason, checkable: false }
+          : { statement: result.statement, findings: result.findings },
+        renderFindings(result, { unsupportedHint: 'Call list_verifiable_properties to see what is in the registry.' }),
+      );
+    },
   );
 
   server.registerTool(
@@ -235,158 +240,6 @@ export function createMcpServer(built: BuiltEngine, opts: McpOptions = {}): McpS
 }
 
 // ---------------------------------------------------------------------------
-
-/**
- * The firewall itself.
- *
- * Same registry, same grounding gate, same deterministic comparator as the
- * wearable feed. An agent asking about a sentence gets exactly the answer the
- * dashboard would show for it, which is the property that makes having two
- * surfaces worth anything.
- */
-export async function checkAssumption(built: BuiltEngine, statement: string, context: string[], includeHistory: boolean) {
-  const extraction = await built.engine.extractOnly({ text: statement, window: context });
-
-  if (extraction.accepted.length === 0) {
-    const why = extraction.rejected[0]?.reason ?? 'no registry property is named in the statement';
-    return structured(
-      { verdict: 'UNSUPPORTED', statement, reason: why, checkable: false },
-      `UNSUPPORTED -- this statement is outside what can be verified.\n  ${why}\n` +
-        'Call list_verifiable_properties to see what is in the registry.',
-    );
-  }
-
-  const findings: Finding[] = [];
-  for (const accepted of extraction.accepted) {
-    const resolved = built.registry.resolve(accepted.proposal.subject, accepted.proposal.property)!;
-    const claim: Claim = {
-      id: randomUUID(),
-      userId: 'mcp',
-      sourceConversationId: 'mcp',
-      originalText: statement,
-      claimType: accepted.proposal.claimType,
-      subject: accepted.proposal.subject,
-      property: accepted.proposal.property,
-      ...(accepted.proposal.object ? { object: accepted.proposal.object } : {}),
-      ...(accepted.proposal.scope ? { scope: accepted.proposal.scope } : {}),
-      assertedValue: accepted.proposal.assertedValue,
-      valueType: resolved.property.type,
-      ownership: 'UNKNOWN',
-      extractionConfidence: accepted.confidence,
-      grounding: accepted.grounding,
-      capturedAt: new Date().toISOString(),
-      status: 'CANDIDATE',
-    };
-
-    const source = resolved.property.authoritative_source;
-    const verifier = built.verifiers.find((v) => v.canVerify(claim, source));
-    const evidence: Evidence[] = verifier ? [await verifier.verify(claim, source)] : [];
-    const adjudication = adjudicateAll(claim, evidence);
-
-    let change: HistoricalChange | undefined;
-    let recall: RecurrenceResult | undefined;
-    if (includeHistory && adjudication.verdict === 'DRIFTED') {
-      const historySource = resolved.property.historical_source ?? source;
-      const historyVerifier = built.verifiers.find((v) => v.canVerify(claim, historySource));
-      const changes = (await historyVerifier?.history?.(claim, historySource).catch(() => [])) ?? [];
-      change = changes.find((c) => String(c.from) === String(claim.assertedValue));
-      recall = await built.engine.recallOccurrences({
-        subject: claim.subject,
-        property: claim.property,
-        assertedValue: claim.assertedValue,
-        ...(claim.object ? { object: claim.object } : {}),
-        ...(claim.scope ? { scope: claim.scope } : {}),
-        ...(change ? { sourceChangeAt: change.at } : {}),
-      });
-    }
-
-    const now = new Date().toISOString();
-    const severity =
-      adjudication.verdict === 'DRIFTED'
-        ? scoreSeverity({
-            impact: resolved.property.impact,
-            priorOccurrences: recall?.occurrences ?? [],
-            detectedAt: now,
-            lastSpokenAt: now,
-            ...(change ? { sourceChangeAt: change.at } : {}),
-          })
-        : undefined;
-
-    findings.push({
-      verdict: adjudication.verdict,
-      reason: adjudication.reason,
-      subject: claim.subject,
-      property: claim.property,
-      label: resolved.property.label ?? claim.property,
-      ...(claim.scope ? { scope: claim.scope } : {}),
-      ...(claim.object ? { object: claim.object } : {}),
-      assertedValue: claim.assertedValue,
-      actualValue: adjudication.normalisedActual,
-      evidence: evidence.map((e) => ({
-        source: e.source,
-        locator: e.sourceLocator,
-        status: e.status,
-        value: e.value,
-        fetchedAt: e.fetchedAt,
-      })),
-      ...(change ? { changedAt: change.at, changedBy: change.commitSha ?? change.locator, changeMessage: change.message } : {}),
-      ...(recall ? { priorOccurrences: recall.occurrences, beeQuery: recall.query } : {}),
-      ...(severity ? { severity: severity.severity, severityFactors: severity.factors } : {}),
-      groundedOn: accepted.grounding,
-      confidence: accepted.confidence,
-    });
-  }
-
-  return structured({ statement, findings }, findings.map(renderFinding).join('\n\n'));
-}
-
-interface Finding {
-  verdict: string;
-  reason: string;
-  subject: string;
-  property: string;
-  label: string;
-  scope?: Record<string, string>;
-  object?: string;
-  assertedValue: unknown;
-  actualValue: unknown;
-  evidence: { source: string; locator: string; status: string; value: unknown; fetchedAt: string }[];
-  changedAt?: string;
-  changedBy?: string;
-  changeMessage?: string;
-  priorOccurrences?: { at: string; excerpt: string; afterSourceChange: boolean }[];
-  beeQuery?: string;
-  severity?: string;
-  severityFactors?: { name: string; points: number; because: string }[];
-  groundedOn: unknown;
-  confidence: number;
-}
-
-/**
- * The text an agent reads. Written as an instruction rather than a report: the
- * useful behaviour is not "know the value", it is "use the real one and tell
- * the human what moved".
- */
-function renderFinding(f: Finding): string {
-  const lines = [`${f.verdict} -- ${f.label}${f.scope ? ` (${Object.entries(f.scope).map(([k, v]) => `${k}=${v}`).join(', ')})` : ''}`];
-  if (f.verdict === 'DRIFTED') {
-    lines.push(`  stated ${fmt(f.assertedValue)}, actually ${fmt(f.actualValue)}`);
-    if (f.changedAt) lines.push(`  changed ${f.changedAt.slice(0, 10)}${f.changeMessage ? ` -- ${f.changeMessage}` : ''}`);
-    if (f.severity) lines.push(`  severity ${f.severity}`);
-    const after = (f.priorOccurrences ?? []).filter((o) => o.afterSourceChange).length;
-    if (f.priorOccurrences?.length) {
-      lines.push(`  restated in ${f.priorOccurrences.length} earlier conversation(s)${after ? `, ${after} of them after the change` : ''}`);
-    }
-    lines.push('  Act on the actual value, and tell the human what changed and when rather than silently correcting them.');
-  } else if (f.verdict === 'SUPPORTED') {
-    lines.push(`  ${fmt(f.actualValue)}, as stated. Safe to act on.`);
-  } else {
-    lines.push(`  ${f.reason}`);
-    lines.push('  Treat this as neither confirmed nor refuted; do not act as though it were checked.');
-  }
-  for (const e of f.evidence) lines.push(`  evidence: ${e.source} ${e.status} ${e.locator}`);
-  return lines.join('\n');
-}
 
 // ------------------------------------------------------------------ plumbing
 

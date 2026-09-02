@@ -118,8 +118,9 @@ describe('the server over HTTP', () => {
     const ingested = await fetch(`${base}/api/ingest`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      // The shape a Bee realtime frame actually has: no discriminator, an
-      // `utterance` object, and the conversation keyed by uuid.
+      // The shape a Bee realtime frame's payload actually has: an `utterance`
+      // object, and the conversation keyed by uuid. Sent bare, without the
+      // envelope, so the fallback path stays covered.
       body: JSON.stringify({
         conversation_uuid: '9a41c2fe-52b8-4d77-b0e3-6f18cd4a2b55',
         utterance: {
@@ -161,5 +162,76 @@ describe('the server over HTTP', () => {
     for (const path of ['/api/transcripts', '/api/conversations', '/api/utterances']) {
       expect((await fetch(base + path)).status).toBe(404);
     }
+  });
+
+  it('keeps the event name when a relay posts the enveloped frame', async () => {
+    // `bee stream --webhook-body '{"event":"{{event}}","data":{{{raw}}}}'` is
+    // the shape that preserves the SSE event name across the webhook hop. The
+    // bare-payload form is covered by the replay test above; this is the one
+    // that arrives already named, and it must not be read as an unknown type.
+    const res = await fetch(`${base}/api/ingest`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        event: 'new-utterance',
+        data: {
+          conversation_uuid: '9a41c2fe-52b8-4d77-b0e3-6f18cd4a2b55',
+          utterance: { text: 'And it backs off five seconds between attempts.', speaker: 'speaker_1' },
+        },
+      }),
+    });
+    expect(res.ok).toBe(true);
+    expect(await res.json()).not.toMatchObject({ ignored: 'unknown' });
+  }, 20_000);
+
+  it('ignores a named event it does not act on, rather than mis-reading it', async () => {
+    // A summary update is flat -- {conversation_id, short_summary} -- and a
+    // shape-guesser has nothing to go on. Named, it is unambiguously not an
+    // utterance, and the server says so instead of processing it as one.
+    const res = await fetch(`${base}/api/ingest`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        event: 'update-conversation-summary',
+        data: { conversation_id: 10743, short_summary: 'Debugging the checkout queue' },
+      }),
+    });
+    expect(res.ok).toBe(true);
+    expect(await res.json()).toMatchObject({ ignored: 'update-conversation-summary' });
+  }, 20_000);
+
+  describe('POST /api/check -- the firewall over HTTP', () => {
+    it('gives an agent the same verdict the drift card carries', async () => {
+      const res = await fetch(`${base}/api/check`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ statement: 'The checkout worker retries three times, so a slow consumer is not the problem.' }),
+      });
+      expect(res.ok).toBe(true);
+      const body = (await res.json()) as { code: number; rendered: string; findings: { verdict: string }[] };
+      expect(body.code).toBe(1);
+      expect(body.findings[0]!.verdict).toBe('DRIFTED');
+      expect(body.rendered).toContain('changed 2026-08-23');
+    }, 30_000);
+
+    it('records nothing: a question an agent asked is not something the wearer said', async () => {
+      const before = ((await (await fetch(`${base}/api/claims`)).json()) as unknown[]).length;
+      await fetch(`${base}/api/check`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ statement: 'The new checkout is still disabled in Europe.' }),
+      });
+      const after = ((await (await fetch(`${base}/api/claims`)).json()) as unknown[]).length;
+      expect(after).toBe(before);
+    }, 30_000);
+
+    it('rejects a request with no statement rather than checking an empty string', async () => {
+      const res = await fetch(`${base}/api/check`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: '{}',
+      });
+      expect(res.status).toBe(400);
+    });
   });
 });

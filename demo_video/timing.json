@@ -15,9 +15,11 @@
     9916,
     8860,
     13564,
+    9436,
+    11476,
     6556
   ],
-  "totalMs": 133680,
+  "totalMs": 154592,
   "captions": [
     "We monitor configuration drift, infrastructure drift and schema drift. This monitors the one system nobody instruments: the engineer\u2019s understanding.",
     "Nine oh two. An engineer is looking at an alert on the checkout worker, and decides not to investigate it.",
@@ -32,6 +34,8 @@
     "Eleven forty. The stream drops. Bee documents realtime delivery as at most once, so the corridor conversation happening now is never replayed.",
     "On reconnect the cursor closes the gap, and the sentence nobody was listening to comes back: the stale number has just been handed to another team.",
     "And most of the time it says nothing. Across seven weeks and one hundred and fifteen utterances, seventeen were about something this registry can settle. The other ninety-eight produce nothing. Silence is the feature.",
+    "And the person is not the only one who needs this. A coding agent is handed the same sentence, and cannot tell a fact from a memory.",
+    "It asks the same registry, over MCP or one command, and gets the same verdict \u2014 told to say what changed, rather than quietly correcting someone who was right until August.",
     "Observability tells you when your systems drift. This tells you when your understanding does."
   ]
 }

@@ -4,7 +4,7 @@ The submission's mandatory feedback answers, per tool. The detailed, reproducibl
 "what needs work" column is [`friction-log.md`](friction-log.md); this is the summary a product team
 can read in five minutes.
 
-Written after building one project end to end: 205 tests, a 204-utterance labelled corpus, an MCP
+Written after building one project end to end: 220 tests, a 204-utterance labelled corpus, an MCP
 server, a CDK stack and a recorded demo.
 
 ---
@@ -23,11 +23,17 @@ one of them is a notification relay and a project that uses all four is a produc
 | **RECONCILE** | `GET /v1/changes?cursor=`, `bee changed --cursor` | realtime is at-most-once, so it cannot be the record |
 | **CORRECT** | `POST /v1/facts`, `PUT /v1/facts/{id}` | the correction has to land where the wearer's assistant reads it next |
 
-Plus `bee proxy` as the transport, the `bee` CLI for the reads the proxy does not expose, and
-`GET /v1/me` and `/v1/conversations` for health and the coverage survey.
+Plus `bee proxy` as the transport, `GET /v1/conversations/{id}/related` for adjacent discussions, and
+`GET /v1/me` and `/v1/conversations` for health and the coverage survey. The `bee` CLI is the
+fallback transport for machines with no proxy running.
+
+And all three of Bee's integration doors, because they serve different audiences at different
+moments: the **CLI**, an **MCP server** for an agent that speaks MCP mid-task, and an **Agent
+Skill** (`skills/mental-model-drift/SKILL.md`) that composes with `bee-computer/bee-skill` over the
+same `bee login` session.
 
 One file talks to Bee: `packages/bee/src/client.ts`. `BeeClient.describeTransport()` reports which
-transport is live, and the dashboard shows it.
+transport is live, the dashboard shows it, and `pnpm doctor` exercises every capability over it.
 
 ### What worked well
 
@@ -38,7 +44,7 @@ transport is live, and the dashboard shows it.
 - **`bee proxy` is the right shape for a local integration.** A loopback HTTP surface means an
   integration does not hold the user's token, which for a product that reads someone's whole working
   day is exactly the boundary you want. It also made a faithful emulator possible, which is how this
-  project has 205 tests.
+  project has 220 tests.
 - **Neural search over conversations is the feature that makes this product exist.** Without it, the
   best this could say is "you are wrong". With it, it can say "you have said this in five
   conversations since July, and four of them were before the value changed", which is a completely
@@ -53,19 +59,36 @@ transport is live, and the dashboard shows it.
 
 Full detail with steps and severity in the friction log; five headlines:
 
-1. **Realtime frames carry no `type` and no event id.** Clients must discriminate on structural keys
-   and invent their own fingerprints. Every serious client will re-implement the same thing,
-   differently, and get the deduplication window wrong. *(friction log B1 — highest-value fix on this
-   list.)*
+1. **The stream's event type is the SSE `event:` name, and this is not written down anywhere a
+   client author reads.** It is not in the developer docs, not in `bee-skill`'s SKILL.md, and not in
+   `bee stream --help`; I found it in `@beeai/cli`'s source, after shipping a client that inferred
+   each frame's type from its payload instead. Inference is not merely inelegant, it is wrong:
+   `update-conversation-summary` is flat and has no `conversation` key to look inside,
+   `delete-conversation` is shape-identical to `new-conversation`, and `journal-deleted` carries
+   `journalId` rather than `journal`. And the failure is silent in both directions — `parseSSEBuffer`
+   discards any frame lacking an `event` line, so a client that ignores the name and a server that
+   never sends one agree perfectly and deliver nothing.
+
+   One paragraph in the streaming documentation, listing the thirteen names already present in
+   `SUPPORTED_EVENT_TYPES`, is the highest-value fix on this list. *(friction log B1.)* Relatedly,
+   `bee stream --json` prints the payload alone and drops the name, so the one mode intended for
+   programs is the one mode that cannot say what it received. *(B1b.)* There is still no event **id**,
+   so every client invents its own fingerprint and will get the deduplication window wrong
+   differently.
 2. **The reconnect obligation is not documented, and the wrong implementation looks right.**
    Reconciling on *disconnect* recovers nothing, because the conversation you are about to miss has
    not happened yet. I shipped that version and it passed all my tests. One sentence in the docs —
    "reconcile on reconnect, not on disconnect" — would save every integrator this bug. *(B2)*
 3. **Realtime frames key conversations by `uuid`; read endpoints key by `id`.** Every client needs a
    resolve step. *(B3)*
-4. **`bee proxy` is a strict subset of the CLI.** No `conversations related`, no
-   `transcript --since`. That forces a hybrid client that shells out for some reads, which
-   reintroduces the token boundary the proxy exists to remove. *(B4)*
+4. **Nothing says `bee proxy` is a full pass-through, and the docs' shape implies it is not.** It
+   forwards every `/v1` path upstream with the token attached; there is no route list because there
+   is no routing. But Bee is presented to integrators as a set of *commands*, with `bee proxy` a
+   one-line entry under "Utility Commands", so I read `conversations related` as a CLI feature and
+   built a hybrid client that shelled out for it — reintroducing exactly the token boundary the
+   proxy exists to remove, and silently losing the capability on any machine without the CLI. One
+   sentence would have prevented it, and a published OpenAPI document for `/v1` would prevent the
+   whole class. *(B4)*
 5. **Utterance text is re-punctuated between the live frame and the stored transcript.** Content-key
    deduplication has to normalise punctuation or the same sentence produces two identical cards.
    Worth a line in the docs. *(B5)*
@@ -77,13 +100,16 @@ The gap between "I understand the endpoints" and "I have a correct client" was m
 almost all of it is items 1 and 2 above: both are about identity and delivery, both are invisible
 until you build something that has to be exactly-once, and neither is hard to fix in documentation.
 
-**Honest caveat, and it is the main one in this submission: I do not own a Bee device.** Everything
-is written against the documented surface and exercised against `tools/bee-sim`, a local emulator
-that implements `/v1/me`, `/v1/changes`, `/v1/stream`, `/v1/conversations`,
-`/v1/search/conversations{,/neural}` and `/v1/facts`, including deliberate stream loss. Switching to
-a real device is one environment variable (`BEE_PROXY_URL`, or unsetting it to use the CLI). So the
-feedback above is the feedback of someone who read the contract carefully and implemented against
-it, not of someone who has worn the hardware for a month.
+The conditions this feedback was gathered under, and everything this build has and has not run
+against, are set out in [`limitations.md`](limitations.md).
+
+The one thing I would tell another integrator: **do not trust an integration test against your own
+simulator.** It proves your client agrees with your simulator, and it is most convincing exactly
+when both share a misconception — which is how items 1 and 4 above survived a full test suite. What
+caught them was copying `parseSSEBuffer` out of `@beeai/cli` and running my own wire bytes through
+Bee's parser ([`conformance.md`](conformance.md)). That the CLI is MIT-licensed and readable is,
+quietly, one of the most useful things about this platform, and it is doing work that documentation
+should be doing instead.
 
 ### Would I build with it again?
 
@@ -202,7 +228,7 @@ tell the human what changed and when, rather than silently correcting them.
 | tool | used for | verdict |
 |---|---|---|
 | **Node 22 / TypeScript 5.7** | the whole product, strict mode with `noUncheckedIndexedAccess` | Yes. The strictest settings found three real defects the first time `tsc --noEmit` ran. |
-| **Vitest 3** | 205 tests | Yes. Upgrading from 2.1 to 3.2 to clear a critical advisory took one command and broke nothing. |
+| **Vitest 3** | 220 tests | Yes. Upgrading from 2.1 to 3.2 to clear a critical advisory took one command and broke nothing. |
 | **Vite 6 + React 18** | the dashboard | Yes. 15 kB of CSS, 175 kB of JS, a 360 ms build. |
 | **pnpm 9** | workspace | Yes, with one sharp edge: a `package.json` script named `audit` is silently shadowed by pnpm's own command, so the README documented a command that printed a vulnerability report instead of the product's tool. *(friction log P1)* |
 | **Playwright** | recording the demo against the real running product | Yes. One trap: `page.evaluate` awaits a returned promise, so returning the tour's `start()` puts the recording window over the end screen. *(PW1)* |

@@ -11,6 +11,7 @@ import { extname, join, normalize, resolve } from 'node:path';
 import type { BeeStreamFrame } from '#bee';
 import { startCapture } from '#engine';
 import {
+  checkStatement,
   confirmDrift,
   createContext,
   getCoverage,
@@ -86,9 +87,24 @@ async function handle(req: IncomingMessage, res: ServerResponse): Promise<void> 
   // ------------------------------------------------------------------- write
   if (path === '/api/ingest' && method === 'POST') {
     // Accepts a raw Bee stream frame, so `bee stream --webhook-endpoint` can
-    // point straight at it with `--webhook-body '{{raw}}'`.
-    const frame = await readJson<BeeStreamFrame>(req);
-    return json(res, 200, await ingestBeeFrame(ctx, frame));
+    // point straight at it. Prefer the envelope form, which preserves the event
+    // name the SSE frame carried and is the frame's authoritative type:
+    //   --webhook-body '{"event":"{{event}}","data":{{{raw}}}}'
+    // A bare '{{raw}}' body still works, and falls back to shape inference.
+    const body = await readJson<BeeStreamFrame>(req);
+    const enveloped = typeof body.event === 'string' && typeof body.data === 'object' && body.data !== null;
+    const frame = enveloped ? (body.data as BeeStreamFrame) : body;
+    const name = enveloped ? (body.event as string) : undefined;
+    return json(res, 200, await ingestBeeFrame(ctx, frame, 'realtime', name));
+  }
+
+  // The Assumption Firewall over HTTP: the same check the MCP tool and `mmd`
+  // make. Read-only by construction -- it records no claim and opens no card,
+  // because a question an agent asked is not something the wearer said.
+  if (path === '/api/check' && method === 'POST') {
+    const body = await readJson<{ statement?: string; context?: string[] }>(req);
+    if (!body.statement) return json(res, 400, { error: 'statement is required' });
+    return json(res, 200, await checkStatement(ctx, body.statement, body.context ?? []));
   }
 
   if (path === '/api/reconcile' && method === 'POST') {

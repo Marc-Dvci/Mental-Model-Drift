@@ -51,5 +51,13 @@ On reconnect the cursor closes the gap, and the sentence nobody was listening to
 And most of the time it says nothing. Across seven weeks and one hundred and fifteen utterances, seventeen were about something this registry can settle. The other ninety-eight produce nothing. Silence is the feature.
 
 14
-00:02:07,124 --> 00:02:13,480
+00:02:07,124 --> 00:02:16,360
+And the person is not the only one who needs this. A coding agent is handed the same sentence, and cannot tell a fact from a memory.
+
+15
+00:02:16,560 --> 00:02:27,836
+It asks the same registry, over MCP or one command, and gets the same verdict — told to say what changed, rather than quietly correcting someone who was right until August.
+
+16
+00:02:28,036 --> 00:02:34,392
 Observability tells you when your systems drift. This tells you when your understanding does.

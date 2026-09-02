@@ -17,3 +17,4 @@ export * from './capture.ts';
 export * from './docs-pr.ts';
 export * from './config.ts';
 export * from './coverage.ts';
+export * from './firewall.ts';

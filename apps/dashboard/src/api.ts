@@ -153,6 +153,32 @@ async function req<T>(path: string, init?: RequestInit): Promise<T> {
   return body as T;
 }
 
+/** One verdict from the Assumption Firewall, as `POST /api/check` returns it. */
+export interface FirewallFinding {
+  verdict: Verdict | 'UNSUPPORTED';
+  reason: string;
+  subject: string;
+  property: string;
+  label: string;
+  scope?: Record<string, string>;
+  assertedValue: unknown;
+  actualValue: unknown;
+  evidence: { source: string; locator: string; status: string; value: unknown; fetchedAt: string }[];
+  changedAt?: string;
+  changeMessage?: string;
+  priorOccurrences?: PriorOccurrence[];
+  severity?: Severity;
+}
+
+export interface FirewallResult {
+  statement: string;
+  findings: FirewallFinding[];
+  unsupported?: { reason: string };
+  rendered: string;
+  /** 0 supported or not checkable, 1 drifted, 2 inconclusive. */
+  code: 0 | 1 | 2;
+}
+
 export const api = {
   status: () => req<Status>('/api/status'),
   drifts: () => req<DriftCard[]>('/api/drifts'),
@@ -172,6 +198,8 @@ export const api = {
     req<{ factText: string; factId?: string; error?: string }>(`/api/drifts/${id}/update-understanding`, { method: 'POST', body: '{}' }),
   openPr: (id: string) => req<{ url: string; number: number; branch: string }>(`/api/drifts/${id}/docs-pr`, { method: 'POST', body: '{}' }),
   reconcile: () => req<Record<string, unknown>>('/api/reconcile', { method: 'POST', body: '{}' }),
+  check: (statement: string, context: string[] = []) =>
+    req<FirewallResult>('/api/check', { method: 'POST', body: JSON.stringify({ statement, context }) }),
 };
 
 export function fmt(v: unknown): string {
