@@ -1,0 +1,9 @@
+{
+  "new_checkout": {
+    "regions": {
+      "EU": true,
+      "US": false,
+      "APAC": false
+    }
+  }
+}

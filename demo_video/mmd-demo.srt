@@ -1,0 +1,55 @@
+1
+00:00:00,000 --> 00:00:10,980
+We monitor configuration drift, infrastructure drift and schema drift. This monitors the one system nobody instruments: the engineer’s understanding.
+
+2
+00:00:11,180 --> 00:00:17,488
+Nine oh two. An engineer is looking at an alert on the checkout worker, and decides not to investigate it.
+
+3
+00:00:17,688 --> 00:00:31,196
+Bee hears the whole conversation. Eight sentences, and half of them produce nothing at all: a question, an opinion, an observation with no value in it, and a belief the speaker has already marked as past.
+
+4
+00:00:31,396 --> 00:00:42,288
+One is a flat assertion about a property the registry knows how to check. Every word of it has to appear in what was actually said, and then the value is read from AWS AppConfig.
+
+5
+00:00:42,488 --> 00:00:45,652
+Production says one, not three.
+
+6
+00:00:45,852 --> 00:00:57,440
+The engineer was not misremembering. Three was correct until the twenty-third of August, when retries were cut to one after a duplicate-charge incident. The software changed. Nobody told them.
+
+7
+00:00:57,640 --> 00:01:08,364
+Bee is what turns a slip into a mental model. The same sentence in five conversations since the fourteenth of July. Four of them were true when they were said. This one is not.
+
+8
+00:01:08,564 --> 00:01:18,928
+The evidence is a source, an address and a timestamp. No model is ever asked whether a statement is true. It is asked only which property the sentence is about.
+
+9
+00:01:19,128 --> 00:01:26,780
+Underneath, the mental-model timeline: what the system was, when it changed, and every time this person said otherwise.
+
+10
+00:01:26,980 --> 00:01:34,584
+One click writes the corrected value into Bee memory as a confirmed fact, which is where the wearer’s own assistant will read it next.
+
+11
+00:01:34,784 --> 00:01:44,500
+Eleven forty. The stream drops. Bee documents realtime delivery as at most once, so the corridor conversation happening now is never replayed.
+
+12
+00:01:44,700 --> 00:01:53,360
+On reconnect the cursor closes the gap, and the sentence nobody was listening to comes back: the stale number has just been handed to another team.
+
+13
+00:01:53,560 --> 00:02:06,924
+And most of the time it says nothing. Across seven weeks and one hundred and fifteen utterances, seventeen were about something this registry can settle. The other ninety-eight produce nothing. Silence is the feature.
+
+14
+00:02:07,124 --> 00:02:13,480
+Observability tells you when your systems drift. This tells you when your understanding does.

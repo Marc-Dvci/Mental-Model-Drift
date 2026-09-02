@@ -1,0 +1,41 @@
+{
+  "id": 10588,
+  "uuid": "d5a8adf3-72a2-5310-819e-8311ad87c298",
+  "short_summary": "Standup",
+  "state": "COMPLETED",
+  "start_time": "2026-08-31T09:28:00.000Z",
+  "end_time": "2026-08-31T09:28:50.000Z",
+  "created_at": "2026-08-31T09:28:00.000Z",
+  "utterances": [
+    {
+      "speaker": "speaker_1",
+      "text": "Demo prep yesterday, more of the same today.",
+      "created_at": "2026-08-31T09:28:00.000Z"
+    },
+    {
+      "speaker": "speaker_2",
+      "text": "Is the release out?",
+      "created_at": "2026-08-31T09:28:11.000Z"
+    },
+    {
+      "speaker": "speaker_1",
+      "text": "The checkout service is still running 4.12 in production.",
+      "created_at": "2026-08-31T09:28:17.000Z"
+    },
+    {
+      "speaker": "speaker_2",
+      "text": "I thought 4.13 went out on Saturday.",
+      "created_at": "2026-08-31T09:28:29.000Z"
+    },
+    {
+      "speaker": "speaker_1",
+      "text": "Maybe it did. I have not looked since Friday.",
+      "created_at": "2026-08-31T09:28:38.000Z"
+    },
+    {
+      "speaker": "speaker_1",
+      "text": "I will check before the demo.",
+      "created_at": "2026-08-31T09:28:50.000Z"
+    }
+  ]
+}

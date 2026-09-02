@@ -1,0 +1,37 @@
+{
+  "voice": "en-US-AndrewMultilingualNeural",
+  "rate": "+8%",
+  "durations": [
+    11180,
+    6508,
+    13708,
+    11092,
+    3364,
+    11788,
+    10924,
+    10564,
+    7852,
+    7804,
+    9916,
+    8860,
+    13564,
+    6556
+  ],
+  "totalMs": 133680,
+  "captions": [
+    "We monitor configuration drift, infrastructure drift and schema drift. This monitors the one system nobody instruments: the engineer\u2019s understanding.",
+    "Nine oh two. An engineer is looking at an alert on the checkout worker, and decides not to investigate it.",
+    "Bee hears the whole conversation. Eight sentences, and half of them produce nothing at all: a question, an opinion, an observation with no value in it, and a belief the speaker has already marked as past.",
+    "One is a flat assertion about a property the registry knows how to check. Every word of it has to appear in what was actually said, and then the value is read from AWS AppConfig.",
+    "Production says one, not three.",
+    "The engineer was not misremembering. Three was correct until the twenty-third of August, when retries were cut to one after a duplicate-charge incident. The software changed. Nobody told them.",
+    "Bee is what turns a slip into a mental model. The same sentence in five conversations since the fourteenth of July. Four of them were true when they were said. This one is not.",
+    "The evidence is a source, an address and a timestamp. No model is ever asked whether a statement is true. It is asked only which property the sentence is about.",
+    "Underneath, the mental-model timeline: what the system was, when it changed, and every time this person said otherwise.",
+    "One click writes the corrected value into Bee memory as a confirmed fact, which is where the wearer\u2019s own assistant will read it next.",
+    "Eleven forty. The stream drops. Bee documents realtime delivery as at most once, so the corridor conversation happening now is never replayed.",
+    "On reconnect the cursor closes the gap, and the sentence nobody was listening to comes back: the stale number has just been handed to another team.",
+    "And most of the time it says nothing. Across seven weeks and one hundred and fifteen utterances, seventeen were about something this registry can settle. The other ninety-eight produce nothing. Silence is the feature.",
+    "Observability tells you when your systems drift. This tells you when your understanding does."
+  ]
+}

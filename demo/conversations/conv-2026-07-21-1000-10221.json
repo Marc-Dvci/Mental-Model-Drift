@@ -1,0 +1,46 @@
+{
+  "id": 10221,
+  "uuid": "12a84bc6-7127-50a4-b5be-6e93dd893967",
+  "short_summary": "Pairing on the events pipeline",
+  "state": "COMPLETED",
+  "start_time": "2026-07-21T10:05:00.000Z",
+  "end_time": "2026-07-21T10:06:12.000Z",
+  "created_at": "2026-07-21T10:05:00.000Z",
+  "utterances": [
+    {
+      "speaker": "speaker_1",
+      "text": "So the events table is where every order event lands.",
+      "created_at": "2026-07-21T10:05:00.000Z"
+    },
+    {
+      "speaker": "speaker_2",
+      "text": "And analytics reads from that directly?",
+      "created_at": "2026-07-21T10:05:13.000Z"
+    },
+    {
+      "speaker": "speaker_1",
+      "text": "Through the warehouse job, every fifteen minutes.",
+      "created_at": "2026-07-21T10:05:21.000Z"
+    },
+    {
+      "speaker": "speaker_1",
+      "text": "The events table does not store the source IP yet.",
+      "created_at": "2026-07-21T10:05:35.000Z"
+    },
+    {
+      "speaker": "speaker_2",
+      "text": "Fraud asked for that in the last review.",
+      "created_at": "2026-07-21T10:05:47.000Z"
+    },
+    {
+      "speaker": "speaker_1",
+      "text": "It is on the list. Someone has to write the migration.",
+      "created_at": "2026-07-21T10:05:58.000Z"
+    },
+    {
+      "speaker": "speaker_1",
+      "text": "The order events are keyed by order id, so backfilling is fine.",
+      "created_at": "2026-07-21T10:06:12.000Z"
+    }
+  ]
+}

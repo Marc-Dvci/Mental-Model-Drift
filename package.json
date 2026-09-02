@@ -1,0 +1,60 @@
+{
+  "name": "mental-model-drift",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@9.15.9",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "eval": "tsx tools/eval/src/cli.ts",
+    "corpus": "tsx tools/demo/src/audit.ts",
+    "demo": "tsx tools/demo/src/run.ts",
+    "tour": "tsx tools/demo/src/run.ts --tour",
+    "demo:seed": "tsx tools/demo/seed-repo.ts --force",
+    "bee-sim": "tsx tools/bee-sim/src/cli.ts",
+    "server": "tsx apps/server/src/main.ts",
+    "relay": "tsx apps/relay/src/main.ts",
+    "mcp": "tsx apps/mcp/src/main.ts",
+    "dashboard:dev": "vite --config apps/dashboard/vite.config.ts",
+    "dashboard:build": "vite build --config apps/dashboard/vite.config.ts",
+    "build": "pnpm dashboard:build",
+    "verify": "pnpm typecheck && pnpm test && pnpm eval"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "vite": "^6.4.3",
+    "vitest": "^3.2.7"
+  },
+  "dependencies": {
+    "@anthropic-ai/bedrock-sdk": "^0.33.3",
+    "@aws-sdk/client-appconfig": "^3.723.0",
+    "@aws-sdk/client-appconfigdata": "^3.723.0",
+    "@aws-sdk/client-bedrock-runtime": "^3.723.0",
+    "@aws-sdk/client-cloudwatch": "^3.723.0",
+    "@aws-sdk/client-dynamodb": "^3.723.0",
+    "@aws-sdk/lib-dynamodb": "^3.723.0",
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "yaml": "^2.9.0",
+    "zod": "^4.5.4"
+  },
+  "imports": {
+    "#spec": "./packages/drift-spec/src/index.ts",
+    "#spec/*": "./packages/drift-spec/src/*.ts",
+    "#bee": "./packages/bee/src/index.ts",
+    "#bee/*": "./packages/bee/src/*.ts",
+    "#engine": "./packages/engine/src/index.ts",
+    "#engine/*": "./packages/engine/src/*.ts"
+  }
+}

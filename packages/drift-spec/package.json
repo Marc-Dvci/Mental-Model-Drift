@@ -1,0 +1,10 @@
+{
+  "name": "drift-spec",
+  "version": "0.1.0",
+  "description": "A portable schema for verifying human assertions about software systems against authoritative machine-readable sources.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "keywords": ["drift", "mental-model", "verification", "source-of-truth", "evidence"],
+  "files": ["src", "README.md", "LICENSE"]
+}

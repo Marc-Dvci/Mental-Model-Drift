@@ -1,0 +1,20 @@
+node_modules/
+dist/
+.env
+.env.local
+*.log
+.state/
+apps/dashboard/dist/
+demo/checkout-demo/
+coverage/
+
+# CDK synth output: reproducible with `npx cdk synth`, 5 MB of it
+infrastructure/cdk/cdk.out/
+
+# Demo video intermediates. The finished mp4 and its subtitles are committed;
+# the 50 MB of raw capture and per-sentence speech that produced them are not,
+# and `narrate.py` + `record.py` rebuild them in three minutes.
+demo_video/_raw/
+demo_video/_frames/
+demo_video/speech/
+demo_video/narration.wav

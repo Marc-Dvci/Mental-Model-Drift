@@ -1,0 +1,26 @@
+{
+  "id": 10551,
+  "uuid": "d66c50fc-f8d7-5710-954c-ac81650415ad",
+  "short_summary": "Standup chatter about the EU rollout",
+  "state": "COMPLETED",
+  "start_time": "2026-08-26T08:31:00.000Z",
+  "end_time": "2026-08-26T08:31:21.000Z",
+  "created_at": "2026-08-26T08:31:00.000Z",
+  "utterances": [
+    {
+      "speaker": "speaker_1",
+      "text": "Any idea whether the new checkout is live in the EU yet?",
+      "created_at": "2026-08-26T08:31:00.000Z"
+    },
+    {
+      "speaker": "speaker_2",
+      "text": "Not yet as far as I know, the rollout plan had it going out after the incident review.",
+      "created_at": "2026-08-26T08:31:08.000Z"
+    },
+    {
+      "speaker": "speaker_1",
+      "text": "Fine, I will check the flag before the demo.",
+      "created_at": "2026-08-26T08:31:21.000Z"
+    }
+  ]
+}

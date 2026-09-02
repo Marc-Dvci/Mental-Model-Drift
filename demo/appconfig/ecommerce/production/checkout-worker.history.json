@@ -1,0 +1,14 @@
+[
+  {
+    "version": 1,
+    "at": "2026-07-14T08:20:00.000Z",
+    "description": "Initial deployment",
+    "content": { "retry": { "max_attempts": 3, "backoff_seconds": 5 }, "dlq": { "enabled": true, "queue": "checkout-dlq" }, "concurrency": 8 }
+  },
+  {
+    "version": 2,
+    "at": "2026-08-23T09:41:00.000Z",
+    "description": "Reduce retries to 1 after duplicate-charge incident INC-2291",
+    "content": { "retry": { "max_attempts": 1, "backoff_seconds": 5 }, "dlq": { "enabled": true, "queue": "checkout-dlq" }, "concurrency": 8 }
+  }
+]

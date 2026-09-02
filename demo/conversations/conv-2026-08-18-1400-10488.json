@@ -1,0 +1,31 @@
+{
+  "id": 10488,
+  "uuid": "da8f479f-70fd-5aca-b210-f5b5e08fffd0",
+  "short_summary": "Onboarding walkthrough of the queue design",
+  "state": "COMPLETED",
+  "start_time": "2026-08-18T14:02:00.000Z",
+  "end_time": "2026-08-18T14:02:42.000Z",
+  "created_at": "2026-08-18T14:02:00.000Z",
+  "utterances": [
+    {
+      "speaker": "speaker_1",
+      "text": "Walking the new starter through the queue design.",
+      "created_at": "2026-08-18T14:02:00.000Z"
+    },
+    {
+      "speaker": "speaker_1",
+      "text": "The checkout worker retries three times, then the dead letter queue picks it up.",
+      "created_at": "2026-08-18T14:02:16.000Z"
+    },
+    {
+      "speaker": "speaker_1",
+      "text": "That is why the alert threshold is set where it is.",
+      "created_at": "2026-08-18T14:02:27.000Z"
+    },
+    {
+      "speaker": "speaker_1",
+      "text": "Everything downstream assumes the order events are idempotent.",
+      "created_at": "2026-08-18T14:02:42.000Z"
+    }
+  ]
+}

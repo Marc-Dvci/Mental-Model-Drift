@@ -1,0 +1,36 @@
+{
+  "id": 10203,
+  "uuid": "d89212a0-41c9-5845-8b60-d0f912b06e80",
+  "short_summary": "Lunch",
+  "state": "COMPLETED",
+  "start_time": "2026-07-16T11:40:00.000Z",
+  "end_time": "2026-07-16T11:40:38.000Z",
+  "created_at": "2026-07-16T11:40:00.000Z",
+  "utterances": [
+    {
+      "speaker": "speaker_1",
+      "text": "Is the place on the corner still doing the set menu?",
+      "created_at": "2026-07-16T11:40:00.000Z"
+    },
+    {
+      "speaker": "speaker_2",
+      "text": "I think so, they changed the hours though.",
+      "created_at": "2026-07-16T11:40:09.000Z"
+    },
+    {
+      "speaker": "speaker_1",
+      "text": "Fine, I will grab something on the way back.",
+      "created_at": "2026-07-16T11:40:18.000Z"
+    },
+    {
+      "speaker": "speaker_2",
+      "text": "Are you around for the retro on Thursday?",
+      "created_at": "2026-07-16T11:40:30.000Z"
+    },
+    {
+      "speaker": "speaker_1",
+      "text": "Should be, unless the deploy slips again.",
+      "created_at": "2026-07-16T11:40:38.000Z"
+    }
+  ]
+}

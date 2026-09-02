@@ -1,0 +1,36 @@
+{
+  "id": 10305,
+  "uuid": "6f9c569c-6c8c-5e5b-af4e-71961c66a782",
+  "short_summary": "Reviewing the source IP migration",
+  "state": "COMPLETED",
+  "start_time": "2026-08-02T16:22:00.000Z",
+  "end_time": "2026-08-02T16:22:46.000Z",
+  "created_at": "2026-08-02T16:22:00.000Z",
+  "utterances": [
+    {
+      "speaker": "speaker_1",
+      "text": "The fraud column went in this afternoon.",
+      "created_at": "2026-08-02T16:22:00.000Z"
+    },
+    {
+      "speaker": "speaker_1",
+      "text": "The events table stores the source IP now.",
+      "created_at": "2026-08-02T16:22:12.000Z"
+    },
+    {
+      "speaker": "speaker_2",
+      "text": "Nice. Is it backfilled?",
+      "created_at": "2026-08-02T16:22:25.000Z"
+    },
+    {
+      "speaker": "speaker_1",
+      "text": "Only forward, we agreed not to backfill.",
+      "created_at": "2026-08-02T16:22:33.000Z"
+    },
+    {
+      "speaker": "speaker_1",
+      "text": "The migration tool is Flyway, so it is in the usual place.",
+      "created_at": "2026-08-02T16:22:46.000Z"
+    }
+  ]
+}

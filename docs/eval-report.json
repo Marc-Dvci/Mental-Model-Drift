@@ -1,0 +1,2064 @@
+{
+  "proposers": [
+    "grammar"
+  ],
+  "utterances": 204,
+  "claims": 102,
+  "nonClaims": 102,
+  "truePositives": 91,
+  "falsePositives": 0,
+  "falseNegatives": 11,
+  "candidatePrecision": 1,
+  "recall": 0.8921568627450981,
+  "falsePositiveRate": 0,
+  "subjectPropertyAccuracy": 1,
+  "valueAccuracy": 1,
+  "verdictAccuracy": 1,
+  "msPerUtterance": 2.784313725490196,
+  "byCategory": {
+    "SUPPORTED_CLAIM": {
+      "n": 51,
+      "correct": 47,
+      "falsePositives": 0,
+      "missed": 4
+    },
+    "DRIFTED_CLAIM": {
+      "n": 51,
+      "correct": 44,
+      "falsePositives": 0,
+      "missed": 7
+    },
+    "UNVERIFIABLE": {
+      "n": 51,
+      "correct": 0,
+      "falsePositives": 0,
+      "missed": 0
+    },
+    "NON_CLAIM": {
+      "n": 51,
+      "correct": 0,
+      "falsePositives": 0,
+      "missed": 0
+    }
+  },
+  "outcomes": [
+    {
+      "id": "S001",
+      "category": "SUPPORTED_CLAIM",
+      "text": "The checkout worker retries once before the dead letter queue.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S002",
+      "category": "SUPPORTED_CLAIM",
+      "text": "Checkout retries a failed job one time and then gives up.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S003",
+      "category": "SUPPORTED_CLAIM",
+      "text": "The payment worker retries once on a 5xx.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S004",
+      "category": "SUPPORTED_CLAIM",
+      "text": "Max attempts on the checkout worker is 1 now.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": true,
+      "detail": "expected checkout-worker.retry.max_attempts=1, got nothing (threshold: confidence 0.79 below 0.8)"
+    },
+    {
+      "id": "S005",
+      "category": "SUPPORTED_CLAIM",
+      "text": "The checkout queue worker retries 1 time after the incident fix.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S006",
+      "category": "SUPPORTED_CLAIM",
+      "text": "The worker retries once, so a poison message fails out fast.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S007",
+      "category": "SUPPORTED_CLAIM",
+      "text": "Checkout retry attempts sit at 1 in production.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S008",
+      "category": "SUPPORTED_CLAIM",
+      "text": "The checkout worker redelivers a message once.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S009",
+      "category": "SUPPORTED_CLAIM",
+      "text": "Since August the checkout worker only retries once.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S010",
+      "category": "SUPPORTED_CLAIM",
+      "text": "The checkout worker retries a single time before parking the job.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": true,
+      "detail": "expected checkout-worker.retry.max_attempts=1, got nothing (no proposal)"
+    },
+    {
+      "id": "S011",
+      "category": "SUPPORTED_CLAIM",
+      "text": "The checkout worker has the dead letter queue enabled.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S012",
+      "category": "SUPPORTED_CLAIM",
+      "text": "The checkout worker DLQ is on in production.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S013",
+      "category": "SUPPORTED_CLAIM",
+      "text": "The dead letter queue is enabled for the payment worker.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S014",
+      "category": "SUPPORTED_CLAIM",
+      "text": "The checkout worker dead letter queue is turned on.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S015",
+      "category": "SUPPORTED_CLAIM",
+      "text": "The DLQ on the checkout worker is active.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S016",
+      "category": "SUPPORTED_CLAIM",
+      "text": "The checkout worker keeps its dead letter queue switched on.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S017",
+      "category": "SUPPORTED_CLAIM",
+      "text": "The new checkout is enabled in Europe.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S018",
+      "category": "SUPPORTED_CLAIM",
+      "text": "The new checkout is live in the EU.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S019",
+      "category": "SUPPORTED_CLAIM",
+      "text": "New checkout is rolled out in EMEA.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S020",
+      "category": "SUPPORTED_CLAIM",
+      "text": "The new checkout flow is turned on in Europe.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S021",
+      "category": "SUPPORTED_CLAIM",
+      "text": "Checkout v2 is enabled in Europe now.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S022",
+      "category": "SUPPORTED_CLAIM",
+      "text": "The new checkout is switched on for the EU.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S023",
+      "category": "SUPPORTED_CLAIM",
+      "text": "The new checkout is disabled in the US.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S024",
+      "category": "SUPPORTED_CLAIM",
+      "text": "New checkout is still dark in North America.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S025",
+      "category": "SUPPORTED_CLAIM",
+      "text": "Checkout v2 is turned off in the states.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S026",
+      "category": "SUPPORTED_CLAIM",
+      "text": "The new checkout flow is disabled in APAC.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S027",
+      "category": "SUPPORTED_CLAIM",
+      "text": "New checkout is still off in Asia.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": true,
+      "detail": "expected new-checkout.enabled=false, got nothing (no proposal)"
+    },
+    {
+      "id": "S028",
+      "category": "SUPPORTED_CLAIM",
+      "text": "The checkout service is running 4.13 in production.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S029",
+      "category": "SUPPORTED_CLAIM",
+      "text": "Checkout api is on 4.13.0 in production right now.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": true,
+      "detail": "expected checkout-service.deployed_version=4.13.0, got nothing (no proposal)"
+    },
+    {
+      "id": "S030",
+      "category": "SUPPORTED_CLAIM",
+      "text": "The checkout service deployed 4.13 last week.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S031",
+      "category": "SUPPORTED_CLAIM",
+      "text": "We shipped 4.13.0 of the checkout service.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S032",
+      "category": "SUPPORTED_CLAIM",
+      "text": "The checkout api release in production is 4.13.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S033",
+      "category": "SUPPORTED_CLAIM",
+      "text": "The checkout service version is 4.13.0.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S034",
+      "category": "SUPPORTED_CLAIM",
+      "text": "The events table stores the source IP.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S035",
+      "category": "SUPPORTED_CLAIM",
+      "text": "The events table records the source IP address for every row.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S036",
+      "category": "SUPPORTED_CLAIM",
+      "text": "Events has a source ip column.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S037",
+      "category": "SUPPORTED_CLAIM",
+      "text": "The events table captures the client IP.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S038",
+      "category": "SUPPORTED_CLAIM",
+      "text": "The event table keeps the originating IP.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S039",
+      "category": "SUPPORTED_CLAIM",
+      "text": "The events table logs the source IP on every insert.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S040",
+      "category": "SUPPORTED_CLAIM",
+      "text": "The events table contains the source ip.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S041",
+      "category": "SUPPORTED_CLAIM",
+      "text": "The events table includes the source IP for fraud review.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S042",
+      "category": "SUPPORTED_CLAIM",
+      "text": "The events table does not store the user agent.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S043",
+      "category": "SUPPORTED_CLAIM",
+      "text": "Events does not record the user agent string.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S044",
+      "category": "SUPPORTED_CLAIM",
+      "text": "The events table has no user agent column.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S045",
+      "category": "SUPPORTED_CLAIM",
+      "text": "The checkout worker retries once, because of the duplicate-charge incident.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S046",
+      "category": "SUPPORTED_CLAIM",
+      "text": "I'm pretty sure the checkout worker retries once now.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S047",
+      "category": "SUPPORTED_CLAIM",
+      "text": "Last I checked the new checkout was enabled in Europe.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S048",
+      "category": "SUPPORTED_CLAIM",
+      "text": "I think the checkout service is running 4.13 in production.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S049",
+      "category": "SUPPORTED_CLAIM",
+      "text": "The checkout worker retries once and the backlog clears quickly.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "S050",
+      "category": "SUPPORTED_CLAIM",
+      "text": "The DLQ is enabled on the checkout worker, so nothing is lost.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D001",
+      "category": "DRIFTED_CLAIM",
+      "text": "It's probably fine. Checkout retries failed jobs three times anyway.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D002",
+      "category": "DRIFTED_CLAIM",
+      "text": "The checkout worker retries three times before the DLQ.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D003",
+      "category": "DRIFTED_CLAIM",
+      "text": "Checkout retries a failed job three times.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D004",
+      "category": "DRIFTED_CLAIM",
+      "text": "The payment worker retries twice on a timeout.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D005",
+      "category": "DRIFTED_CLAIM",
+      "text": "Max attempts on the checkout worker is 5.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": true,
+      "detail": "expected checkout-worker.retry.max_attempts=5, got nothing (threshold: confidence 0.79 below 0.8)"
+    },
+    {
+      "id": "D006",
+      "category": "DRIFTED_CLAIM",
+      "text": "The checkout queue worker retries 3 times.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D007",
+      "category": "DRIFTED_CLAIM",
+      "text": "Told them the checkout worker retries three times, so a slow consumer is not the problem.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D008",
+      "category": "DRIFTED_CLAIM",
+      "text": "The checkout worker redelivers a message three times.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D009",
+      "category": "DRIFTED_CLAIM",
+      "text": "Checkout retry attempts are set to three in production.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D010",
+      "category": "DRIFTED_CLAIM",
+      "text": "The worker retries four times before anything is parked.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D011",
+      "category": "DRIFTED_CLAIM",
+      "text": "The checkout worker retries twice, which is why the backlog drains slowly.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D012",
+      "category": "DRIFTED_CLAIM",
+      "text": "The checkout worker retries three times, and that has not changed.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": true,
+      "detail": "expected checkout-worker.retry.max_attempts=3, got nothing (grounding: clause is NEGATED (\"not\"), not an assertion)"
+    },
+    {
+      "id": "D013",
+      "category": "DRIFTED_CLAIM",
+      "text": "The queue is slow, but the checkout worker retries three times.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D014",
+      "category": "DRIFTED_CLAIM",
+      "text": "I'm pretty sure the checkout worker retries three times.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D015",
+      "category": "DRIFTED_CLAIM",
+      "text": "The checkout worker has the dead letter queue disabled.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D016",
+      "category": "DRIFTED_CLAIM",
+      "text": "The checkout worker DLQ is off in production.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D017",
+      "category": "DRIFTED_CLAIM",
+      "text": "The dead letter queue is turned off on the payment worker.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D018",
+      "category": "DRIFTED_CLAIM",
+      "text": "The checkout worker dead letter queue is switched off.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D019",
+      "category": "DRIFTED_CLAIM",
+      "text": "The DLQ on the checkout worker is inactive.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D020",
+      "category": "DRIFTED_CLAIM",
+      "text": "The new checkout is still disabled in Europe.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D021",
+      "category": "DRIFTED_CLAIM",
+      "text": "New checkout is dark in the EU.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D022",
+      "category": "DRIFTED_CLAIM",
+      "text": "Checkout v2 is turned off in EMEA.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D023",
+      "category": "DRIFTED_CLAIM",
+      "text": "The new checkout flow is still off in Europe.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": true,
+      "detail": "expected new-checkout.enabled=false, got nothing (no proposal)"
+    },
+    {
+      "id": "D024",
+      "category": "DRIFTED_CLAIM",
+      "text": "The new checkout is not enabled in Europe.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D025",
+      "category": "DRIFTED_CLAIM",
+      "text": "The new checkout is live in the US.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D026",
+      "category": "DRIFTED_CLAIM",
+      "text": "Checkout v2 is enabled in North America.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D027",
+      "category": "DRIFTED_CLAIM",
+      "text": "The new checkout flow is rolled out in the states.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D028",
+      "category": "DRIFTED_CLAIM",
+      "text": "The new checkout is enabled in APAC.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D029",
+      "category": "DRIFTED_CLAIM",
+      "text": "New checkout is live in Asia already.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D030",
+      "category": "DRIFTED_CLAIM",
+      "text": "The checkout service is still running 4.12 in production.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D031",
+      "category": "DRIFTED_CLAIM",
+      "text": "Checkout api is on 4.12.0 in production.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": true,
+      "detail": "expected checkout-service.deployed_version=4.12.0, got nothing (no proposal)"
+    },
+    {
+      "id": "D032",
+      "category": "DRIFTED_CLAIM",
+      "text": "The checkout service deployed 4.11 and has not moved since.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": true,
+      "detail": "expected checkout-service.deployed_version=4.11, got nothing (grounding: clause is NEGATED (\"not\"), not an assertion)"
+    },
+    {
+      "id": "D033",
+      "category": "DRIFTED_CLAIM",
+      "text": "We are running 4.12 of the checkout service.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D034",
+      "category": "DRIFTED_CLAIM",
+      "text": "The checkout api release in production is 4.11.0.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D035",
+      "category": "DRIFTED_CLAIM",
+      "text": "The checkout service version is 4.12.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D036",
+      "category": "DRIFTED_CLAIM",
+      "text": "The checkout service is running 4.12, so the fix is not out yet.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D037",
+      "category": "DRIFTED_CLAIM",
+      "text": "The events table stores the user agent.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D038",
+      "category": "DRIFTED_CLAIM",
+      "text": "The events table records the user agent string.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D039",
+      "category": "DRIFTED_CLAIM",
+      "text": "Events has a user agent column.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D040",
+      "category": "DRIFTED_CLAIM",
+      "text": "The event table captures the user agent for every request.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D041",
+      "category": "DRIFTED_CLAIM",
+      "text": "The events table does not store the source IP.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D042",
+      "category": "DRIFTED_CLAIM",
+      "text": "Events does not record the client IP.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D043",
+      "category": "DRIFTED_CLAIM",
+      "text": "The events table has no source ip column.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D044",
+      "category": "DRIFTED_CLAIM",
+      "text": "The events table never logs the originating IP.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D045",
+      "category": "DRIFTED_CLAIM",
+      "text": "The checkout worker retries three times, because that is what the runbook says.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D046",
+      "category": "DRIFTED_CLAIM",
+      "text": "The new checkout is disabled in Europe, so the old flow is still serving.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D047",
+      "category": "DRIFTED_CLAIM",
+      "text": "Last I checked the checkout worker retried three times.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D048",
+      "category": "DRIFTED_CLAIM",
+      "text": "As far as I know the DLQ on the checkout worker is off.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": true,
+      "detail": "expected checkout-worker.dlq.enabled=false, got nothing (threshold: confidence 0.76 below 0.8)"
+    },
+    {
+      "id": "D049",
+      "category": "DRIFTED_CLAIM",
+      "text": "The checkout worker retries three times before it gives up.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D050",
+      "category": "DRIFTED_CLAIM",
+      "text": "The checkout service is on 4.12 in production and the alert is expected.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": true,
+      "detail": "expected checkout-service.deployed_version=4.12, got nothing (no proposal)"
+    },
+    {
+      "id": "U001",
+      "category": "UNVERIFIABLE",
+      "text": "The checkout worker runs eight consumers in production.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U002",
+      "category": "UNVERIFIABLE",
+      "text": "Checkout backs off five seconds between attempts.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U003",
+      "category": "UNVERIFIABLE",
+      "text": "The checkout worker is deployed on three nodes.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U004",
+      "category": "UNVERIFIABLE",
+      "text": "The events table is partitioned by month.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U005",
+      "category": "UNVERIFIABLE",
+      "text": "The events table has about forty million rows.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U006",
+      "category": "UNVERIFIABLE",
+      "text": "The checkout service sits behind the shared load balancer.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U007",
+      "category": "UNVERIFIABLE",
+      "text": "Kafka is probably a better fit than SQS for this.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U008",
+      "category": "UNVERIFIABLE",
+      "text": "Postgres handles this workload fine at our size.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U009",
+      "category": "UNVERIFIABLE",
+      "text": "The order service owns the idempotency key.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U010",
+      "category": "UNVERIFIABLE",
+      "text": "Redis is where we keep the session state.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U011",
+      "category": "UNVERIFIABLE",
+      "text": "The new checkout uses the same payment provider as the old one.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U012",
+      "category": "UNVERIFIABLE",
+      "text": "Our p99 on checkout is around four hundred milliseconds.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U013",
+      "category": "UNVERIFIABLE",
+      "text": "The billing team owns the invoice pipeline.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U014",
+      "category": "UNVERIFIABLE",
+      "text": "We run the migration during the Sunday maintenance window.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U015",
+      "category": "UNVERIFIABLE",
+      "text": "The checkout worker logs to CloudWatch in production.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U016",
+      "category": "UNVERIFIABLE",
+      "text": "The alert threshold for queue depth is a thousand messages.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U017",
+      "category": "UNVERIFIABLE",
+      "text": "There are two availability zones behind that load balancer.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U018",
+      "category": "UNVERIFIABLE",
+      "text": "The checkout worker uses the shared VPC.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U019",
+      "category": "UNVERIFIABLE",
+      "text": "The staging environment mirrors production configuration.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U020",
+      "category": "UNVERIFIABLE",
+      "text": "The events pipeline writes to S3 every fifteen minutes.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U021",
+      "category": "UNVERIFIABLE",
+      "text": "That dashboard is owned by the platform team.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U022",
+      "category": "UNVERIFIABLE",
+      "text": "The retry logic lives in the shared messaging library.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U023",
+      "category": "UNVERIFIABLE",
+      "text": "The incident review is scheduled for Thursday.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U024",
+      "category": "UNVERIFIABLE",
+      "text": "We use blue-green deploys for the checkout service.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U025",
+      "category": "UNVERIFIABLE",
+      "text": "The checkout worker container is built from the node base image.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U026",
+      "category": "UNVERIFIABLE",
+      "text": "The schema migration tool is Flyway.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U027",
+      "category": "UNVERIFIABLE",
+      "text": "That column was added by the fraud team.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U028",
+      "category": "UNVERIFIABLE",
+      "text": "Our SLO for checkout availability is 99.9 percent.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U029",
+      "category": "UNVERIFIABLE",
+      "text": "The payment provider rate limits us at 200 requests a second.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U030",
+      "category": "UNVERIFIABLE",
+      "text": "The queue depth alarm pages the on-call engineer.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U031",
+      "category": "UNVERIFIABLE",
+      "text": "The checkout worker reads its config at start-up.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U032",
+      "category": "UNVERIFIABLE",
+      "text": "That runbook has not been updated since the migration.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U033",
+      "category": "UNVERIFIABLE",
+      "text": "The events table feeds the analytics warehouse.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U034",
+      "category": "UNVERIFIABLE",
+      "text": "The API gateway terminates TLS for the checkout service.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U035",
+      "category": "UNVERIFIABLE",
+      "text": "The feature flag service is AppConfig.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U036",
+      "category": "UNVERIFIABLE",
+      "text": "We keep thirty days of logs.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U037",
+      "category": "UNVERIFIABLE",
+      "text": "The checkout service talks to the ledger over gRPC.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U038",
+      "category": "UNVERIFIABLE",
+      "text": "The order events are keyed by order id.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U039",
+      "category": "UNVERIFIABLE",
+      "text": "Everything downstream assumes the order events are idempotent.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U040",
+      "category": "UNVERIFIABLE",
+      "text": "That is why the alert threshold is set where it is.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U041",
+      "category": "UNVERIFIABLE",
+      "text": "The new starter is picking up the queue work this sprint.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U042",
+      "category": "UNVERIFIABLE",
+      "text": "The checkout worker has a health endpoint on port 8080.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U043",
+      "category": "UNVERIFIABLE",
+      "text": "So a poison message takes a while to actually fail out.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U044",
+      "category": "UNVERIFIABLE",
+      "text": "The duplicate-charge incident was in August.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U045",
+      "category": "UNVERIFIABLE",
+      "text": "The fraud team asked for that column back in July.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U046",
+      "category": "UNVERIFIABLE",
+      "text": "The rollout plan had it going out after the incident review.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U047",
+      "category": "UNVERIFIABLE",
+      "text": "We moved the checkout worker to graviton instances.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U048",
+      "category": "UNVERIFIABLE",
+      "text": "The events table primary key is a bigserial.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U049",
+      "category": "UNVERIFIABLE",
+      "text": "That change went through the usual review.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "U050",
+      "category": "UNVERIFIABLE",
+      "text": "The checkout worker retries a bunch of times before giving up.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N001",
+      "category": "NON_CLAIM",
+      "text": "Does the checkout worker still retry three times on a 5xx?",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N002",
+      "category": "NON_CLAIM",
+      "text": "Is the new checkout enabled in Europe yet?",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N003",
+      "category": "NON_CLAIM",
+      "text": "How many times does the checkout worker retry?",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N004",
+      "category": "NON_CLAIM",
+      "text": "Has the checkout service shipped 4.13 yet?",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N005",
+      "category": "NON_CLAIM",
+      "text": "Do we store the source IP on the events table?",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N006",
+      "category": "NON_CLAIM",
+      "text": "The checkout worker retries three times, right?",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N007",
+      "category": "NON_CLAIM",
+      "text": "Any idea whether the new checkout is live in the EU?",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N008",
+      "category": "NON_CLAIM",
+      "text": "Is the DLQ on the checkout worker still enabled?",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N009",
+      "category": "NON_CLAIM",
+      "text": "What version is the checkout service running in production?",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N010",
+      "category": "NON_CLAIM",
+      "text": "Was the checkout worker always retrying three times?",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N011",
+      "category": "NON_CLAIM",
+      "text": "Two retries on the checkout worker seems too low for this kind of failure.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N012",
+      "category": "NON_CLAIM",
+      "text": "Three retries feels too aggressive for a payment path.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N013",
+      "category": "NON_CLAIM",
+      "text": "One retry is not ideal for a transient network error.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N014",
+      "category": "NON_CLAIM",
+      "text": "Honestly the new checkout should be enabled in Europe by now.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N015",
+      "category": "NON_CLAIM",
+      "text": "Five retries would be overkill on the checkout worker.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N016",
+      "category": "NON_CLAIM",
+      "text": "The DLQ ought to be enabled on every worker.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N017",
+      "category": "NON_CLAIM",
+      "text": "I'd rather the checkout service was on 4.13 before the demo.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N018",
+      "category": "NON_CLAIM",
+      "text": "The events table should have a user agent column.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N019",
+      "category": "NON_CLAIM",
+      "text": "Maybe the checkout worker retries three times and that is the backlog.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N020",
+      "category": "NON_CLAIM",
+      "text": "Perhaps the new checkout is disabled in Europe.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N021",
+      "category": "NON_CLAIM",
+      "text": "It might be that the DLQ on the checkout worker is off.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N022",
+      "category": "NON_CLAIM",
+      "text": "Possibly the checkout service is still on 4.12.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N023",
+      "category": "NON_CLAIM",
+      "text": "I wonder if the events table stores the user agent.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N024",
+      "category": "NON_CLAIM",
+      "text": "What if the checkout worker retries three times on every failure?",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N025",
+      "category": "NON_CLAIM",
+      "text": "Let's set the checkout worker to three retries.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N026",
+      "category": "NON_CLAIM",
+      "text": "We should bump the checkout worker to three retries.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N027",
+      "category": "NON_CLAIM",
+      "text": "Can you enable the new checkout in Europe today?",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N028",
+      "category": "NON_CLAIM",
+      "text": "Please turn the DLQ back on for the checkout worker.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N029",
+      "category": "NON_CLAIM",
+      "text": "Go ahead and deploy 4.13 of the checkout service.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N030",
+      "category": "NON_CLAIM",
+      "text": "We need to add the user agent to the events table.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N031",
+      "category": "NON_CLAIM",
+      "text": "If the checkout worker retried three times we would see duplicates.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N032",
+      "category": "NON_CLAIM",
+      "text": "Unless the new checkout is enabled in Europe the numbers will not add up.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N033",
+      "category": "NON_CLAIM",
+      "text": "Suppose the checkout service is still running 4.12.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N034",
+      "category": "NON_CLAIM",
+      "text": "The checkout worker will retry three times once we ship the change.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N035",
+      "category": "NON_CLAIM",
+      "text": "We're going to enable the new checkout in Europe next week.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N036",
+      "category": "NON_CLAIM",
+      "text": "The events table is going to store the user agent after the migration.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N037",
+      "category": "NON_CLAIM",
+      "text": "Once we deploy, the checkout service will be running 4.13.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N038",
+      "category": "NON_CLAIM",
+      "text": "I thought the checkout worker had the DLQ turned off.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N039",
+      "category": "NON_CLAIM",
+      "text": "I assumed the checkout worker retried three times.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N040",
+      "category": "NON_CLAIM",
+      "text": "I used to think the new checkout was disabled in Europe.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N041",
+      "category": "NON_CLAIM",
+      "text": "I was under the impression the checkout service was on 4.12.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N042",
+      "category": "NON_CLAIM",
+      "text": "Priya said the checkout worker retries three times.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N043",
+      "category": "NON_CLAIM",
+      "text": "Sam told me the new checkout is disabled in Europe.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N044",
+      "category": "NON_CLAIM",
+      "text": "The platform team reckons the checkout service is still on 4.12.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N045",
+      "category": "NON_CLAIM",
+      "text": "They said the events table stores the user agent.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N046",
+      "category": "NON_CLAIM",
+      "text": "Right, the checkout worker is throwing again.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N047",
+      "category": "NON_CLAIM",
+      "text": "I'll add a dashboard for queue depth this afternoon.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N048",
+      "category": "NON_CLAIM",
+      "text": "Walking the new starter through the queue design.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N049",
+      "category": "NON_CLAIM",
+      "text": "I mentioned the queue thing to the platform team.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N050",
+      "category": "NON_CLAIM",
+      "text": "They are going to look at the broker settings instead.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "S051",
+      "category": "SUPPORTED_CLAIM",
+      "text": "It retries once before anything lands in the DLQ.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "SUPPORTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "D051",
+      "category": "DRIFTED_CLAIM",
+      "text": "It retries three times before anything lands in the DLQ.",
+      "correct": true,
+      "falsePositive": false,
+      "missed": false,
+      "verdict": "DRIFTED",
+      "verdictCorrect": true,
+      "detail": "exact"
+    },
+    {
+      "id": "U051",
+      "category": "UNVERIFIABLE",
+      "text": "It retries three times.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    },
+    {
+      "id": "N051",
+      "category": "NON_CLAIM",
+      "text": "The checkout worker retries three times and the events table stores the source IP.",
+      "correct": false,
+      "falsePositive": false,
+      "missed": false,
+      "detail": "silent, as expected"
+    }
+  ]
+}

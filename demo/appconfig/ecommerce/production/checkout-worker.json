@@ -1,0 +1,11 @@
+{
+  "retry": {
+    "max_attempts": 1,
+    "backoff_seconds": 5
+  },
+  "dlq": {
+    "enabled": true,
+    "queue": "checkout-dlq"
+  },
+  "concurrency": 8
+}
