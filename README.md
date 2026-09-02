@@ -161,8 +161,8 @@ being dropped. See `docs/friction-log.md`.
 ## Run everything
 
 ```bash
-pnpm verify        # typecheck, 220 tests, evaluation harness
-pnpm test          # 220 tests: unit, adapter failure matrix, 12 golden scenarios, MCP,
+pnpm verify        # typecheck, 225 tests, evaluation harness
+pnpm test          # 225 tests: unit, adapter failure matrix, 12 golden scenarios, MCP,
                    #            wire conformance, the corpus gate, the server over real HTTP
 pnpm doctor        # exercise all four Bee capabilities against whichever Bee is configured
 pnpm eval          # extraction metrics against the golden corpus
@@ -287,7 +287,7 @@ tools/eval/               the golden corpus and the metrics harness
 tools/demo/               one-command demo, corpus audit, repo seeding
 infrastructure/           CDK stack and Lambda handlers
 tests/conformance/        the emulator's bytes, through Bee's own SSE parser
-tests/                    220 tests
+tests/                    225 tests
 ```
 
 `packages/drift-spec` has no I/O, no model and no Bee: it is the portable half, and it is the piece

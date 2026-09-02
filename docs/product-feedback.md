@@ -4,7 +4,7 @@ The submission's mandatory feedback answers, per tool. The detailed, reproducibl
 "what needs work" column is [`friction-log.md`](friction-log.md); this is the summary a product team
 can read in five minutes.
 
-Written after building one project end to end: 220 tests, a 204-utterance labelled corpus, an MCP
+Written after building one project end to end: 225 tests, a 204-utterance labelled corpus, an MCP
 server, a CDK stack and a recorded demo.
 
 ---
@@ -44,7 +44,7 @@ transport is live, the dashboard shows it, and `pnpm doctor` exercises every cap
 - **`bee proxy` is the right shape for a local integration.** A loopback HTTP surface means an
   integration does not hold the user's token, which for a product that reads someone's whole working
   day is exactly the boundary you want. It also made a faithful emulator possible, which is how this
-  project has 220 tests.
+  project has 225 tests.
 - **Neural search over conversations is the feature that makes this product exist.** Without it, the
   best this could say is "you are wrong". With it, it can say "you have said this in five
   conversations since July, and four of them were before the value changed", which is a completely
@@ -228,7 +228,7 @@ tell the human what changed and when, rather than silently correcting them.
 | tool | used for | verdict |
 |---|---|---|
 | **Node 22 / TypeScript 5.7** | the whole product, strict mode with `noUncheckedIndexedAccess` | Yes. The strictest settings found three real defects the first time `tsc --noEmit` ran. |
-| **Vitest 3** | 220 tests | Yes. Upgrading from 2.1 to 3.2 to clear a critical advisory took one command and broke nothing. |
+| **Vitest 3** | 225 tests | Yes. Upgrading from 2.1 to 3.2 to clear a critical advisory took one command and broke nothing. |
 | **Vite 6 + React 18** | the dashboard | Yes. 15 kB of CSS, 175 kB of JS, a 360 ms build. |
 | **pnpm 9** | workspace | Yes, with one sharp edge: a `package.json` script named `audit` is silently shadowed by pnpm's own command, so the README documented a command that printed a vulnerability report instead of the product's tool. *(friction log P1)* |
 | **Playwright** | recording the demo against the real running product | Yes. One trap: `page.evaluate` awaits a returned promise, so returning the tour's `start()` puts the recording window over the end screen. *(PW1)* |
