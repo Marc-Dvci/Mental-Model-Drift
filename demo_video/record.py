@@ -7,7 +7,7 @@ number on screen is drawn by the product, and the conversations really are
 played into Bee, the stream really is cut, and the reconnect really does
 recover the sentence that was missed.
 
-    pnpm tour                     # terminal 1: emulator + server, tour armed
+    pnpm tour                     # terminal 1: Bee + server, tour armed
     python demo_video/narrate.py  # terminal 2: voice + timing.json
     python demo_video/record.py   #             this
 

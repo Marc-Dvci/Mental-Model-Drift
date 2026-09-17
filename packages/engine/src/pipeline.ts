@@ -271,6 +271,10 @@ export class DriftEngine {
         String(d.assertedValue) === String(drift.assertedValue),
     );
     if (existing) {
+      // The new claim's recall excluded its own conversation, not the card's,
+      // so the card's own sentence would come back as a "prior" occurrence
+      // and be counted twice. Keep the card's conversation out of the list.
+      const own = (await this.o.store.getClaim(existing.claimId))?.sourceConversationId;
       const merged: DriftEvent = {
         ...existing,
         actualValue: drift.actualValue,
@@ -280,7 +284,7 @@ export class DriftEngine {
           at: claim.capturedAt,
           excerpt: claim.originalText,
           afterSourceChange: Boolean(drift.sourceChangeAt && claim.capturedAt > drift.sourceChangeAt),
-        } : undefined),
+        } : undefined).filter((o) => o.conversationId !== own),
         ...(drift.sourceChangeAt ? { sourceChangeAt: drift.sourceChangeAt } : {}),
         ...(drift.sourceChangeCommit ? { sourceChangeCommit: drift.sourceChangeCommit } : {}),
       };

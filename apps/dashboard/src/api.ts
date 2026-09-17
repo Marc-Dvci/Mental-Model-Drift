@@ -196,7 +196,11 @@ export const api = {
   confirm: (id: string) => req<DriftEvent>(`/api/drifts/${id}/confirm`, { method: 'POST', body: '{}' }),
   updateUnderstanding: (id: string) =>
     req<{ factText: string; factId?: string; error?: string }>(`/api/drifts/${id}/update-understanding`, { method: 'POST', body: '{}' }),
-  openPr: (id: string) => req<{ url: string; number: number; branch: string }>(`/api/drifts/${id}/docs-pr`, { method: 'POST', body: '{}' }),
+  openPr: (id: string) =>
+    req<
+      | { opened?: true; url: string; number: number; branch: string }
+      | { opened: false; repository: string; path: string; hunks: { line: number; before: string; after: string }[]; reason: string }
+    >(`/api/drifts/${id}/docs-pr`, { method: 'POST', body: '{}' }),
   reconcile: () => req<Record<string, unknown>>('/api/reconcile', { method: 'POST', body: '{}' }),
   check: (statement: string, context: string[] = []) =>
     req<FirewallResult>('/api/check', { method: 'POST', body: JSON.stringify({ statement, context }) }),

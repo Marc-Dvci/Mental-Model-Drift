@@ -4,7 +4,7 @@
  *   pnpm corpus            summary, and every line that survived the gates
  *   pnpm corpus --all      every utterance, including the silent ones
  *   pnpm corpus --bee      read from a running Bee (or `bee proxy`) instead of
- *                          the demo fixtures
+ *                          the recorded conversations in demo/conversations
  *
  * The survey itself is `surveyCoverage` in `packages/engine/src/coverage.ts`,
  * the same function behind the dashboard's `/api/coverage`. This file only
@@ -36,7 +36,7 @@ interface FixtureConversation {
 const registry = Registry.fromFile(join(ROOT, 'demo', 'source-registry.yaml'));
 const extractor = new Extractor(registry, [new GrammarProposer(registry)]);
 
-/** The demo fixtures, read straight off disk so this runs with nothing else up. */
+/** The recorded conversations, read straight off disk so this runs with nothing else up. */
 const fixtureSource: CoverageSource = async () => {
   const dir = join(ROOT, 'demo', 'conversations');
   return readdirSync(dir)
@@ -77,7 +77,7 @@ if (showAll) {
 
 console.log(
   `\n${report.conversations} conversations, ${report.utterances} utterances, ${report.speakers} distinct speakers` +
-    ` (${fromBee ? 'read from Bee' : 'demo fixtures'})`,
+    ` (${fromBee ? 'read from Bee' : 'demo/conversations'})`,
 );
 console.log(
   `${report.checkable} produced a checkable claim (${((report.checkable / report.utterances) * 100).toFixed(1)}% of what was heard)`,

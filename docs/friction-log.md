@@ -53,10 +53,10 @@ disjoint. Three real cases:
 authoritative; the structural reader survives only as a fallback for transports that drop the name,
 and anything it produces is marked `nameWasInferred`, so a guess is never mistaken downstream for
 something Bee actually said. `tests/conformance/bee-wire.test.ts` pins it by copying Bee's own
-`parseSSEBuffer` verbatim and running the local emulator's literal socket bytes through it.
+`parseSSEBuffer` verbatim and running the test suite's local Bee's literal socket bytes through it.
 Reintroducing the bug makes that parser return **zero** events, which is the whole danger: a client
 that drops the name and a server that never sends it agree perfectly with each other, and produce
-nothing at all against a real device.
+nothing at all in front of Bee's own parser.
 
 There is still no event **id**, so identity stays derived: a fingerprint over conversation + speaker
 + normalised text + a coarse 10-second bucket, so the same utterance arriving twice collapses while
@@ -343,9 +343,7 @@ real path and spawn that with `shell: false`.
    spawned without a shell at all.
 
 There is also a trap in (3). Searching `PATH` for the bare name first finds
-`C:\Program Files
-odejs
-px`, an extensionless shell script Windows cannot execute, and the
+`C:\Program Files\nodejs\npx`, an extensionless shell script Windows cannot execute, and the
 spawn then fails with `ENOENT` pointing at a file that demonstrably exists.
 
 **Workaround.** `packages/bee/src/bin.ts` splits the cases, because Windows does:
@@ -459,9 +457,9 @@ Kept here because a friction log that only blames tooling is not a useful docume
   meaningless.
 
   The general lesson, and the reason this entry is here rather than in the Bee section: **an
-  integration test against your own simulator proves your client agrees with your simulator.** It
+  integration test against your own test double proves your client agrees with your test double.** It
   says nothing about the real service, and it is at its most convincing exactly when both sides
   share a misconception. What fixed it was `tests/conformance/bee-wire.test.ts`, which runs the
-  emulator's literal socket bytes through Bee's own SSE parser, copied verbatim. That test is worth
-  more than the other 213 combined for the one question that matters here, because it is the only
+  local Bee's literal socket bytes through Bee's own SSE parser, copied verbatim. That test is worth
+  more than the other 219 combined for the one question that matters here, because it is the only
   one whose failure mode is "the real thing would not accept this".

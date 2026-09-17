@@ -342,14 +342,24 @@ async function readRaw(ctx: ApiContext, locator: { repository: string; path: str
 }
 
 export async function openDocsPullRequest(ctx: ApiContext, id: string) {
-  if (process.env.MMD_ALLOW_PR !== '1') {
-    throw new Error('opening pull requests is disabled; set MMD_ALLOW_PR=1 to enable it');
-  }
   const card = await getDrift(ctx, id);
   if (!card) throw new Error('no such drift');
   const prepared = await prepareDocsPatch(ctx, id);
   const patch = prepared?.patches?.find((p) => p.changed);
   if (!patch) throw new Error('no documentation change to propose');
+
+  // Preparing the patch and pushing it are two different acts. Without the
+  // flag the first one still happens, and the answer says so: a prepared
+  // patch is a result, not a failure.
+  if (process.env.MMD_ALLOW_PR !== '1') {
+    return {
+      opened: false as const,
+      repository: (patch as { repository: string }).repository,
+      path: patch.path,
+      hunks: patch.hunks,
+      reason: 'prepared locally and not pushed; start the server with MMD_ALLOW_PR=1 to open the pull request',
+    };
+  }
 
   const authoritative = card.evidence.find((e) => e.authoritative && e.status === 'OK');
   const writer = new GitHubPullRequestWriter();
@@ -385,8 +395,8 @@ function fmt(v: unknown): string {
  * matters is the one on the right of the ratio -- the utterances that produce
  * nothing -- because that is the cost of leaving this thing running.
  *
- * Cached for a minute. It re-reads every conversation, which is cheap against
- * an emulator and rude against a device.
+ * Cached for a minute. It re-reads every conversation, which is cheap on a
+ * handful of days and rude on a year of them.
  */
 export async function getCoverage(ctx: ApiContext, opts: { force?: boolean } = {}) {
   const fresh = ctx.coverage && Date.now() - ctx.coverage.at < 60_000;

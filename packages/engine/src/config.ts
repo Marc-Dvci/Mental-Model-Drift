@@ -50,8 +50,8 @@ export interface BuildOptions {
   proposers?: ('grammar' | 'bedrock')[];
   /**
    * An already-constructed Bee client, instead of one built from the
-   * environment. Tests and the golden scenarios point this at the local
-   * emulator; nothing else in the engine can tell the difference, which is the
+   * environment. Tests and the golden scenarios point this at the test suite's
+   * local Bee; nothing else in the engine can tell the difference, which is the
    * property that makes those scenarios worth running.
    */
   bee?: BeeClient;

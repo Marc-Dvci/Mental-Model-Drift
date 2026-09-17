@@ -1,7 +1,7 @@
 /**
  * The twelve end-to-end golden scenarios.
  *
- * Each one runs the whole product: a Bee transport (the local emulator, which
+ * Each one runs the whole product: a Bee transport (bee-sim, which
  * speaks the documented `/v1/*` surface and SSE stream), the real extraction and
  * grounding gates, the real deterministic comparator, the real adapters reading
  * the on-disk mirrors, and the real store.
@@ -27,7 +27,7 @@ let reconciler: Reconciler;
 let cleanup: () => void;
 
 /**
- * One engine, one simulator, for the whole file. The store is cleared between
+ * One engine, one bee-sim, for the whole file. The store is cleared between
  * scenarios; the fixtures are not, because they are the point.
  */
 beforeAll(async () => {
@@ -60,7 +60,7 @@ beforeEach(() => {
   reconciler = new Reconciler(built.bee, built.engine, built.store);
 });
 
-/** A Bee client pointed at the emulator, over the documented proxy surface. */
+/** A Bee client pointed at bee-sim, over the documented proxy surface. */
 function simClient(): BeeClient {
   return new BeeClient({ proxyUrl: `http://127.0.0.1:${port}`, allowCli: false });
 }
@@ -214,6 +214,14 @@ describe('09 realtime event lost, recovered by cursor reconciliation', () => {
     const before = (await drifts())[0]!;
     const priorBefore = before.priorOccurrences.length;
 
+    // Bee has the 09:02 conversation on record by now, so a later search
+    // over history finds it -- exactly as it would on a device.
+    await fetch(`http://127.0.0.1:${port}/_sim/play`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ conversationId: '10743', speedMs: 0 }),
+    });
+
     // The stream drops. The changefeed does not: this is the whole point of
     // Bee documenting delivery as at-most-once.
     await fetch(`http://127.0.0.1:${port}/_sim/network`, {
@@ -244,6 +252,10 @@ describe('09 realtime event lost, recovered by cursor reconciliation', () => {
     expect(after.filter((d) => d.property === 'retry.max_attempts')).toHaveLength(1);
     expect(merged.priorOccurrences.length).toBeGreaterThan(priorBefore);
     expect(merged.priorOccurrences.some((o) => o.afterSourceChange)).toBe(true);
+    // The card's own sentence is not one of its prior occurrences.
+    const ownConversation = (await built.store.getClaim(merged.claimId))!.sourceConversationId;
+    expect(merged.priorOccurrences.some((o) => o.conversationId === ownConversation)).toBe(false);
+    expect(merged.priorOccurrences.length).toBe(priorBefore + 1);
 
     const metrics = await built.store.getMetrics();
     expect(metrics.BeeEventsReconciled).toBeGreaterThan(0);

@@ -1,6 +1,6 @@
 /**
  * The server as a judge or a user actually meets it: a real process, a real
- * port, a real Bee emulator behind it.
+ * port, bee-sim behind it.
  *
  * What is checked here cannot be checked in-process. The event backlog only
  * matters across a *connection*, and the guided-tour controls only matter as
@@ -163,6 +163,24 @@ describe('the server over HTTP', () => {
       expect((await fetch(base + path)).status).toBe(404);
     }
   });
+
+  it('prepares the documentation patch, and says it did not push it, when pushing is off', async () => {
+    const drifts = (await (await fetch(`${base}/api/drifts`)).json()) as { drift: { id: string; property: string } }[];
+    const card = drifts.find((d) => d.drift.property === 'retry.max_attempts');
+    expect(card).toBeDefined();
+    const res = await fetch(`${base}/api/drifts/${card!.drift.id}/docs-pr`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: '{}',
+    });
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { opened: boolean; path: string; hunks: { before: string; after: string }[]; reason: string };
+    expect(body.opened).toBe(false);
+    expect(body.path).toBe('docs/architecture.md');
+    expect(body.hunks[0]!.before).toContain('three');
+    expect(body.hunks[0]!.after).not.toContain('three');
+    expect(body.reason).toContain('MMD_ALLOW_PR=1');
+  }, 30_000);
 
   it('keeps the event name when a relay posts the enveloped frame', async () => {
     // `bee stream --webhook-body '{"event":"{{event}}","data":{{{raw}}}}'` is

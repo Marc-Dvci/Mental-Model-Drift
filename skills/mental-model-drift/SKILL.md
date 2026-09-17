@@ -117,7 +117,7 @@ be stale. If what you are about to change depends on one, say so before you writ
 
 The recurrence counts and excerpts come from the user's own Bee recordings, read through Bee's
 neural conversation search — this skill composes with
-[`bee-cli`](https://github.com/bee-computer/bee-skill), and the same `bee login` session serves both.
+[`bee-skill`](https://github.com/bee-computer/bee-skill), and the same `bee login` session serves both.
 Bee data is owner-encrypted and intensely personal: what comes back here are excerpts of the user's
 private conversations. Quote at most the one sentence that carries the belief, never a surrounding
 transcript, and never repeat a conversation excerpt into a file, a commit message or a pull request.

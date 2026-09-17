@@ -3,7 +3,7 @@
  *
  *   pnpm demo
  *
- * Starts the Bee emulator and the server in this process, plays the 09:02
+ * Starts a local Bee and the server in this process, plays the 09:02
  * conversation into the live stream one sentence at a time, cuts the stream to
  * provoke Bee's documented at-most-once loss, lets cursor reconciliation
  * recover it, and then leaves everything running with the dashboard on
@@ -13,8 +13,7 @@
  * decided and why -- including the sentences it deliberately ignored, which are
  * most of them.
  *
- * With a real device this is the same run: `bee proxy` instead of the emulator,
- * BEE_PROXY_URL pointed at it, and no --sim.
+ * With `bee proxy` it is the same run: BEE_PROXY_URL pointed at it, and no --sim.
  */
 import { spawn, type ChildProcess } from 'node:child_process';
 import { existsSync } from 'node:fs';
@@ -32,6 +31,7 @@ const ROOT = resolve(fileURLToPath(new URL('../../..', import.meta.url)));
  * the middle of the demo. Spawning node directly is faster too.
  */
 const TSX = resolve(ROOT, 'node_modules', 'tsx', 'dist', 'cli.mjs');
+const VITE = resolve(ROOT, 'node_modules', 'vite', 'bin', 'vite.js');
 const SIM_PORT = Number(process.env.BEE_SIM_PORT ?? 8787);
 const PORT = Number(process.env.PORT ?? 4310);
 const SPEED = Number(process.env.MMD_DEMO_SPEED ?? 1400);
@@ -134,24 +134,26 @@ async function main(): Promise<void> {
   beat('setup');
   if (!existsSync(join(ROOT, 'demo', 'checkout-demo', '.git'))) {
     console.log('  seeding the demo repository with backdated commits');
-    await sh('npx', ['tsx', 'tools/demo/seed-repo.ts', '--force']);
+    await sh(process.execPath, [TSX, 'tools/demo/seed-repo.ts', '--force']);
   }
   if (!existsSync(join(ROOT, 'apps', 'dashboard', 'dist', 'index.html'))) {
     console.log('  building the dashboard');
-    await sh('npx', ['vite', 'build', '--config', 'apps/dashboard/vite.config.ts']);
+    // Same reason as TSX above: `npx` is a .cmd shim on Windows and cannot be
+    // spawned without a shell, so a fresh clone would stop here with ENOENT.
+    await sh(process.execPath, [VITE, 'build', '--config', 'apps/dashboard/vite.config.ts']);
   }
   // Dedupe keys persist, so a second run would legitimately produce nothing.
   await rm(join(ROOT, '.state'), { recursive: true, force: true });
   console.log('  cleared .state (the content-key dedupe would otherwise skip a repeat run)');
 
-  // A simulator left running from an earlier demo would be silently reused,
+  // A local Bee left running from an earlier demo would be silently reused,
   // serving whatever fixtures it loaded then. That is a confusing half-hour.
-  await refuseIfInUse(SIM_PORT, 'bee emulator');
+  await refuseIfInUse(SIM_PORT, 'local bee');
   await refuseIfInUse(PORT, 'server');
 
   background('bee-sim', ['tools/bee-sim/src/cli.ts'], { BEE_SIM_PORT: String(SIM_PORT), BEE_SIM_LIVE: '10743,10744' });
   await waitFor(`http://127.0.0.1:${SIM_PORT}/v1/me`);
-  console.log(`  bee emulator on :${SIM_PORT}  ${c.dim('(the documented /v1 surface: stream, changes, search, facts)')}`);
+  console.log(`  bee on :${SIM_PORT}  ${c.dim('(the documented /v1 surface: stream, changes, search, facts)')}`);
 
   background(
     'server',
@@ -202,7 +204,7 @@ async function main(): Promise<void> {
   beat('what is left running');
   console.log(`  dashboard   ${c.blue(`http://127.0.0.1:${PORT}`)}`);
   console.log(`  api         ${c.dim(`http://127.0.0.1:${PORT}/api/drifts`)}`);
-  console.log(`  emulator    ${c.dim(`http://127.0.0.1:${SIM_PORT}/_sim/state`)}`);
+  console.log(`  bee         ${c.dim(`http://127.0.0.1:${SIM_PORT}/_sim/state`)}`);
   console.log(c.dim('\n  ctrl-c to stop everything.\n'));
 }
 

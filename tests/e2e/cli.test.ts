@@ -1,6 +1,6 @@
 /**
  * The `mmd` command line, as an agent following the Agent Skill meets it: a
- * real process, a real exit code, a real Bee emulator behind it.
+ * real process, a real exit code, bee-sim behind it.
  *
  * The exit code *is* the contract here. `SKILL.md` tells an agent that 1 means
  * the human's premise is stale and 2 means a source could not be read, and an

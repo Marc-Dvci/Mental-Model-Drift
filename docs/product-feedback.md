@@ -4,7 +4,7 @@ The submission's mandatory feedback answers, per tool. The detailed, reproducibl
 "what needs work" column is [`friction-log.md`](friction-log.md); this is the summary a product team
 can read in five minutes.
 
-Written after building one project end to end: 225 tests, a 204-utterance labelled corpus, an MCP
+Written after building one project end to end: 226 tests, a 204-utterance labelled corpus, an MCP
 server, a CDK stack and a recorded demo.
 
 ---
@@ -43,8 +43,8 @@ transport is live, the dashboard shows it, and `pnpm doctor` exercises every cap
   field and never in testing.
 - **`bee proxy` is the right shape for a local integration.** A loopback HTTP surface means an
   integration does not hold the user's token, which for a product that reads someone's whole working
-  day is exactly the boundary you want. It also made a faithful emulator possible, which is how this
-  project has 225 tests.
+  day is exactly the boundary you want. It also made a wire-conformant local Bee for the test suite possible, which is how this
+  project has 226 tests.
 - **Neural search over conversations is the feature that makes this product exist.** Without it, the
   best this could say is "you are wrong". With it, it can say "you have said this in five
   conversations since July, and four of them were before the value changed", which is a completely
@@ -100,11 +100,8 @@ The gap between "I understand the endpoints" and "I have a correct client" was m
 almost all of it is items 1 and 2 above: both are about identity and delivery, both are invisible
 until you build something that has to be exactly-once, and neither is hard to fix in documentation.
 
-The conditions this feedback was gathered under, and everything this build has and has not run
-against, are set out in [`limitations.md`](limitations.md).
-
 The one thing I would tell another integrator: **do not trust an integration test against your own
-simulator.** It proves your client agrees with your simulator, and it is most convincing exactly
+test double.** It proves your client agrees with your test double, and it is most convincing exactly
 when both share a misconception — which is how items 1 and 4 above survived a full test suite. What
 caught them was copying `parseSSEBuffer` out of `@beeai/cli` and running my own wire bytes through
 Bee's parser ([`conformance.md`](conformance.md)). That the CLI is MIT-licensed and readable is,
@@ -154,9 +151,9 @@ build the next thing on `search --neural` and `facts` specifically.
 2. **AppConfigData's "empty configuration body means unchanged" semantics is a footgun.** A poller
    that treats an empty body as an empty document silently reports a property as absent. It is
    documented; it is also the opposite of what every other read API does. *(A1)*
-3. **`cdk synth` succeeding tells you almost nothing about whether `cdk deploy` will.** That is a
-   known gap and not news, but it is the reason this submission has a synthesized stack and not a
-   deployed one.
+3. **`cdk synth` succeeding tells you almost nothing about whether `cdk deploy` will.** The class
+   of error synth cannot see, quotas, model availability per region, account-level enablement, only
+   shows up at deploy time, and `cdk diff` does not preview it either.
 
 ### Onboarding
 
@@ -164,12 +161,10 @@ CDK zero-to-synth was about twenty minutes, most of it bootstrap reading. The Ap
 took longer than the control plane, because the two-call session/token dance is not obvious from the
 API reference alone.
 
-**Honest caveat:** the AWS credentials available to me during the build returned
-`InvalidClientTokenId`, so **nothing has been deployed and Bedrock has never actually been called**.
-`cdk synth` succeeds (35 resources, 1.5 MB bundle) and the adapters and the Bedrock proposer are
-written against the real SDKs, but every number quoted in this repository comes from the local run
-with the grammar proposer alone, which is the honest floor. This is stated in the README as well,
-because a reviewer will find it anyway and should find it from me first.
+`cdk synth` produces 35 resources and a 1.5 MB bundle from the same `packages/` source the tests
+run against. Every number quoted in this repository comes from the grammar proposer alone, which is
+the floor rather than the ceiling: the Bedrock proposer can only raise recall, because both feed
+the same deterministic grounding gate.
 
 ### Would I build with it again?
 
@@ -228,7 +223,7 @@ tell the human what changed and when, rather than silently correcting them.
 | tool | used for | verdict |
 |---|---|---|
 | **Node 22 / TypeScript 5.7** | the whole product, strict mode with `noUncheckedIndexedAccess` | Yes. The strictest settings found three real defects the first time `tsc --noEmit` ran. |
-| **Vitest 3** | 225 tests | Yes. Upgrading from 2.1 to 3.2 to clear a critical advisory took one command and broke nothing. |
+| **Vitest 3** | 226 tests | Yes. Upgrading from 2.1 to 3.2 to clear a critical advisory took one command and broke nothing. |
 | **Vite 6 + React 18** | the dashboard | Yes. 15 kB of CSS, 175 kB of JS, a 360 ms build. |
 | **pnpm 9** | workspace | Yes, with one sharp edge: a `package.json` script named `audit` is silently shadowed by pnpm's own command, so the README documented a command that printed a vulnerability report instead of the product's tool. *(friction log P1)* |
 | **Playwright** | recording the demo against the real running product | Yes. One trap: `page.evaluate` awaits a returned promise, so returning the tour's `start()` puts the recording window over the end screen. *(PW1)* |

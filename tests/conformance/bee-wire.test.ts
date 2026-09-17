@@ -1,28 +1,28 @@
 /**
- * Wire conformance: does the emulator speak Bee?
+ * Wire conformance: does bee-sim speak Bee?
  *
  * Every other test in this repo runs the product against `tools/bee-sim`. That
- * proves the product agrees with the emulator, which is worth nothing unless
- * the emulator agrees with Bee. This file is the bridge, and it does not take
+ * proves the product agrees with bee-sim, which is worth nothing unless
+ * bee-sim agrees with Bee. This file is the bridge, and it does not take
  * anyone's word for the format:
  *
  *   1. `parseSSEBuffer` below is copied verbatim from `@beeai/cli` 0.7.3
  *      (`sources/commands/stream/index.ts`, MIT). It is the function `bee
  *      stream` itself uses to turn socket bytes into events.
- *   2. The test opens a raw socket to the emulator, keeps the literal bytes it
+ *   2. The test opens a raw socket to bee-sim, keeps the literal bytes it
  *      writes, and feeds them to that function.
  *   3. What comes back has to be the events that were sent, named.
  *
  * That is a stronger statement than "the shapes look right". Bee's parser only
  * emits an event once it has seen *both* an `event` field and a `data` field:
  * a frame written as `data:` alone is silently discarded, no error, no warning.
- * An emulator with that bug looks perfect to a client that does the same thing
- * and produces nothing at all against a real device -- which is exactly the
+ * A test double with that bug looks perfect to a client that does the same thing
+ * and produces nothing at all in front of Bee's own parser -- which is exactly the
  * failure this file exists to make impossible.
  *
  * The same applies to the read endpoints: `/v1/conversations/:id/related` is
  * reachable through `bee proxy` because the proxy forwards every `/v1` path
- * upstream rather than exposing a route list, so the emulator has to answer it
+ * upstream rather than exposing a route list, so bee-sim has to answer it
  * too, in the shape the CLI's own reader expects.
  */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -154,7 +154,7 @@ function dechunk(raw: string): string {
   return out;
 }
 
-describe("the emulator's stream through Bee's own SSE parser", () => {
+describe("bee-sim's stream through Bee's own SSE parser", () => {
   it('names every frame, so Bee\'s parser emits them instead of dropping them', async () => {
     const body = await captureStreamBytes('new-utterance', () => {
       sim.appendUtterance('10743', 'the checkout worker retries three times');
@@ -243,7 +243,7 @@ describe("the emulator's stream through Bee's own SSE parser", () => {
   });
 });
 
-describe('the emulator\'s read endpoints', () => {
+describe('bee-sim\'s read endpoints', () => {
   it('answers /v1/conversations/:id/related, which reaches Bee through the proxy', async () => {
     const res = await fetch(`http://127.0.0.1:${port}/v1/conversations/10188/related`);
     expect(res.status).toBe(200);

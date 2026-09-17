@@ -304,7 +304,10 @@ function Card({
     }
   };
 
-  const afterChange = drift.priorOccurrences.filter((o) => o.afterSourceChange).length;
+  // The card's own sentence counts too: it is the "+ 1" in the total below,
+  // and it was spoken after the change whenever the change has a date before it.
+  const ownAfterChange = drift.sourceChangeAt && claim && claim.capturedAt > drift.sourceChangeAt ? 1 : 0;
+  const afterChange = drift.priorOccurrences.filter((o) => o.afterSourceChange).length + ownAfterChange;
 
   return (
     <article
@@ -405,10 +408,19 @@ function Card({
           disabled={busy !== null || drift.confirmationRequired}
           onClick={() => void act('pr', async () => {
             const pr = await api.openPr(drift.id);
+            if (pr.opened === false) {
+              const hunk = pr.hunks[0];
+              setNotice(drift.id, {
+                tone: 'ok',
+                title: `Documentation patch prepared for ${pr.repository}/${pr.path}`,
+                body: `${hunk ? `- ${hunk.before}\n+ ${hunk.after}\n` : ''}${pr.reason}`,
+              });
+              return;
+            }
             setNotice(drift.id, { tone: 'ok', title: `Documentation pull request #${pr.number} opened`, body: pr.url });
           })}
         >
-          {busy === 'pr' ? 'Opening…' : 'Create docs PR'}
+          {busy === 'pr' ? 'Preparing…' : 'Create docs PR'}
         </button>
         <button
           className="ghost"

@@ -259,5 +259,6 @@ with two alarms.
 The relay (`apps/relay`) is the piece that has to live next to `bee proxy`, because the proxy is
 loopback-only by design. Everything downstream of it is stateless.
 
-**This has been synthesized and never deployed.** See "What is not done" in the README; the numbers
-quoted anywhere in this repository come from the local run, not from an AWS account.
+Every number quoted in this repository comes from the local run with the grammar proposer alone,
+which is the floor rather than the ceiling: the second proposer can only raise recall, because both
+feed the same deterministic grounding gate.

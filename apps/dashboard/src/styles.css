@@ -420,7 +420,7 @@ tr:last-child td { border-bottom: none; }
 .notice.bad { border-color: rgba(229, 118, 106, 0.35); }
 .notice.bad strong { color: var(--bad); }
 .notice strong { font-weight: 600; font-size: 13px; }
-.notice .mono { color: var(--muted); word-break: break-word; }
+.notice .mono { color: var(--muted); word-break: break-word; white-space: pre-wrap; }
 
 /* Replayed events are history, not something that just happened. */
 .feed li.replayed { animation: none; }

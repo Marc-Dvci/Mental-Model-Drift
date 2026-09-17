@@ -94,7 +94,7 @@ describe('drift worklist', () => {
   beforeEach(() => {
     ctx = createContext();
     // Swap the engine built from the environment for the one pointed at the
-    // emulator, so this exercises the same projection the dashboard reads.
+    // bee-sim, so this exercises the same projection the dashboard reads.
     (ctx as { built: BuiltEngine }).built = built;
   });
 

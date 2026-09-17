@@ -5,9 +5,9 @@
  *
  * Mental Model Drift talks to Bee through one client, over `/v1/*` on the local
  * proxy: the SSE stream, the cursor changefeed, conversation reads, neural
- * search and facts. This simulator implements that same surface over fixture
- * conversations, so the whole product can be developed and tested without a
- * device on the table -- and so the reliability behaviour that matters can be
+ * search and facts. This local Bee implements that same surface over the recorded
+ * conversations in `demo/conversations`, so the test suite can run on any machine
+ * with nothing else up -- and so the reliability behaviour that matters can be
  * *provoked* on demand rather than waited for.
  *
  * It is not a reimplementation of Bee. It has no transcription, no diarisation,
@@ -192,7 +192,7 @@ export class BeeSim {
     }
     if (path === '/v1/stream') return this.stream(req, res, (url.searchParams.get('types') ?? '').split(',').filter(Boolean));
 
-    // ------------------------------------------------------------ simulator
+    // ------------------------------------------------------------ local controls
     if (path === '/_sim/state') {
       return json(res, 200, {
         networkUp: this.networkUp,
@@ -230,7 +230,7 @@ export class BeeSim {
   // -------------------------------------------------------------------- data
 
   private me() {
-    return { id: 1, name: 'Bee owner (simulated)', email: 'owner@example.invalid', timezone: 'Europe/Paris' };
+    return { id: 1, name: 'Bee owner', email: 'owner@example.invalid', timezone: 'Europe/Paris' };
   }
 
   private listConversations(): SimConversation[] {
@@ -376,7 +376,7 @@ export class BeeSim {
    * SSE parser only emits an event once it has seen both an `event` field and a
    * `data` field, so a frame written as `data:` alone is silently dropped by
    * Bee's own client. Emitting it here is what lets `tests/conformance` run
-   * this simulator's bytes through that parser and get the frames back.
+   * this server's bytes through that parser and get the frames back.
    */
   private emitTo(client: ServerResponse, frame: unknown, type: string): void {
     client.write(`event: ${type}\ndata: ${JSON.stringify(frame)}\n\n`);
@@ -417,7 +417,7 @@ export class BeeSim {
    * The other event types, in the shapes `bee stream`'s formatter reads them.
    *
    * Nothing in the product subscribes to these -- it asks for `new-utterance`
-   * and nothing else -- but the simulator emits them on demand so the
+   * and nothing else -- but this server emits them on demand so the
    * conformance tests can prove the client classifies the whole documented
    * event set, including the three types whose payloads a structural reader
    * gets wrong.

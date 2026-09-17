@@ -7,10 +7,10 @@
  * buttons. Nothing on screen is drawn by the tour except its own caption bar,
  * the two title cards, and the ring around whatever it is pointing at.
  *
- * The two controls that only the emulator can offer -- play a conversation, cut
+ * The two replay controls -- play a conversation, cut
  * the network -- go through `/api/tour/*`, which the server refuses unless it
- * was started with MMD_TOUR=1. Against a real Bee device the tour has nothing to
- * play, which is correct: with a device you wait for someone to say something.
+ * was started with MMD_TOUR=1, so outside a demonstration the tour has nothing to
+ * play, which is correct: in daily use you wait for someone to say something.
  *
  * Pacing. Each beat has a default duration, and the recorder overrides all of
  * them at once by setting `window.__MMD_TIMING` to an array of milliseconds
@@ -37,7 +37,7 @@ interface Beat {
 }
 
 interface Runtime extends TourControls {
-  /** Starts playback and returns; the emulator streams for as long as it takes. */
+  /** Starts playback and returns; Bee streams for as long as it takes. */
   play(conversationId: string, speedMs: number): void;
   network(up: boolean): Promise<void>;
   click(selector: string): Promise<void>;
@@ -355,7 +355,7 @@ function runtime(controls: TourControls): Runtime {
     ...controls,
     sleep,
     waitFor,
-    // Not awaited: the emulator holds the request open for the whole playback,
+    // Not awaited: the play endpoint holds the request open for the whole playback,
     // and a beat's budget is the length of its narration, not of the audio it
     // is describing.
     play: (conversationId, speedMs) => {

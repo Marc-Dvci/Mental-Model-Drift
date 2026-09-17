@@ -74,8 +74,8 @@ pnpm install
 pnpm demo
 ```
 
-That seeds a demo repository with real backdated commits, starts a faithful local Bee emulator,
-starts the server, plays the 09:02 conversation into the live stream one sentence at a time, cuts
+That seeds a demo repository with real backdated commits, brings up a local Bee on :8787 and the
+server on :4310, plays the 09:02 conversation into the live stream one sentence at a time, cuts
 the stream to provoke Bee's documented at-most-once loss, and lets cursor reconciliation recover it.
 The dashboard is on <http://127.0.0.1:4310>.
 
@@ -161,13 +161,13 @@ being dropped. See `docs/friction-log.md`.
 ## Run everything
 
 ```bash
-pnpm verify        # typecheck, 225 tests, evaluation harness
-pnpm test          # 225 tests: unit, adapter failure matrix, 12 golden scenarios, MCP,
+pnpm verify        # typecheck, 226 tests, evaluation harness
+pnpm test          # 226 tests: unit, adapter failure matrix, 12 golden scenarios, MCP,
                    #            wire conformance, the corpus gate, the server over real HTTP
 pnpm doctor        # exercise all four Bee capabilities against whichever Bee is configured
 pnpm eval          # extraction metrics against the golden corpus
 pnpm corpus        # dry-run the registry over recorded conversations: what would this speak about?
-pnpm corpus --bee  # ...the same, read from a live Bee instead of the fixtures
+pnpm corpus --bee  # ...the same, read straight from `bee proxy` instead of the local Bee
 pnpm demo          # the whole thing, end to end
 pnpm tour          # the same, narrated in the browser at /?tour=1
 pnpm mcp           # the Assumption Firewall over MCP
@@ -263,8 +263,7 @@ skill's job is to get an agent to say that, in one sentence, and then carry on w
 | **SQS**, **Lambda**, **API Gateway**, **Secrets Manager** | the deployed topology | `infrastructure/cdk/` |
 
 `cd infrastructure/cdk && npx cdk synth` synthesizes 35 resources and bundles the handlers with
-esbuild from the same `packages/` source the tests run against. What has and has not been run against
-a live account is in [`docs/limitations.md`](docs/limitations.md).
+esbuild from the same `packages/` source the tests run against.
 
 ## Layout
 
@@ -286,8 +285,8 @@ skills/mental-model-drift/    the Agent Skill, composing with bee-computer/bee-s
 tools/eval/               the golden corpus and the metrics harness
 tools/demo/               one-command demo, corpus audit, repo seeding
 infrastructure/           CDK stack and Lambda handlers
-tests/conformance/        the emulator's bytes, through Bee's own SSE parser
-tests/                    225 tests
+tests/conformance/        the local Bee's bytes, through Bee's own SSE parser
+tests/                    226 tests
 ```
 
 `packages/drift-spec` has no I/O, no model and no Bee: it is the portable half, and it is the piece
@@ -309,7 +308,7 @@ screen cannot disagree; the visuals are paced to the measured length of each spo
 - [`docs/demo-script.md`](docs/demo-script.md) — the two-minute walkthrough, beat by beat, and how it is recorded
 - [`docs/friction-log.md`](docs/friction-log.md) — building against Bee, AWS and MCP: what worked, what did not
 - [`docs/conformance.md`](docs/conformance.md) — how the local Bee is held to Bee's own wire format
-- [`docs/limitations.md`](docs/limitations.md) — **what this build does not do, and what has not been run**
+- [`docs/limitations.md`](docs/limitations.md) — scope: what this build deliberately does not do
 - [`docs/product-feedback.md`](docs/product-feedback.md) — the submission's feedback answers
 
 ## Licence

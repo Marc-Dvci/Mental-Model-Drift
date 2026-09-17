@@ -1,6 +1,6 @@
 # The demo, beat by beat
 
-**2 minutes 15 seconds.** Every frame is the product. Nothing is added in post: the captions, the
+**2 minutes 36 seconds.** Every frame is the product. Nothing is added in post: the captions, the
 two title cards and the ring around whatever is being pointed at are all drawn by the dashboard, and
 the conversations really are played into Bee, the stream really is cut, and the reconnect really
 does recover the sentence that was missed.
@@ -8,7 +8,7 @@ does recover the sentence that was missed.
 Reproduce it in three commands:
 
 ```bash
-pnpm tour                     # terminal 1: emulator + server, guided tour armed
+pnpm tour                     # terminal 1: Bee + server, guided tour armed
 python demo_video/narrate.py  # terminal 2: Edge TTS -> narration.wav + timing.json
 python demo_video/record.py   #             Playwright -> demo_video/mmd-demo.mp4
 ```
@@ -90,11 +90,11 @@ panel name a locator does.
 
 ## Recording notes
 
-- 1600×900, 30 fps, H.264/AAC, ~11 MB. Subtitles are written from the same timing to
+- 1600×900, 30 fps, H.264/AAC, ~13 MB. Subtitles are written from the same timing to
   `demo_video/mmd-demo.srt`, so they can be uploaded alongside the video with no edit pass.
-- The tour drives the emulator through `/api/tour/*`, which the server refuses with 403 unless it
-  was started with `MMD_TOUR=1`. Against a real Bee device the tour has nothing to play, which is
-  correct: with a device you wait for somebody to say something.
+- The tour plays the recorded conversations through `/api/tour/*`, which the server refuses with
+  403 unless it was started with `MMD_TOUR=1`, so the replay controls never exist outside a
+  demonstration.
 - `record.py` deliberately does not `await` the tour's `start()`. `page.evaluate` awaits a returned
   promise, and `start()` resolves only when the tour ends, so returning it puts the recording window
   over the end screen instead of over the demonstration.

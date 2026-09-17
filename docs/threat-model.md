@@ -113,7 +113,7 @@ writing tool is off by default.
 | S3 | **A malicious source document** contains instructions | source content is never fed to a model. Adapters do a typed read at a fixed JSON path and return a value | none material: the value is compared, not interpreted |
 | S4 | **Path traversal** into the repository or the static root | `readPath` implements a deliberately small JSONPath subset with no filters or wildcards; `serveStatic` normalises before joining and refuses anything outside the root | |
 | S5 | **The server exposed on a LAN** | binds `127.0.0.1`; `MMD_HOST` must be set on purpose | no authentication if you do set it — do not |
-| S6 | **The guided-tour controls used to inject utterances** | `/api/tour/*` returns 403 unless the process was started with `MMD_TOUR=1`, and proxies only to the emulator URL the server already holds. A test asserts the 403 | |
+| S6 | **The guided-tour controls used to inject utterances** | `/api/tour/*` returns 403 unless the process was started with `MMD_TOUR=1`, and proxies only to the Bee URL the server already holds. A test asserts the 403 | |
 | S7 | **An unwanted pull request** opened against a real repository | preparing a patch and pushing one are separate actions. Pushing needs `MMD_ALLOW_PR=1` **and** a click, and the branch is created from the current head with a single file change | |
 | S8 | **Credentials** for AppConfig, Sentry, GitHub | never in the registry; taken from the environment, Secrets Manager in the deployed stack, or `gh auth token` | |
 | S9 | **Evidence tampering** | evidence rows are append-only and content-hashed; re-verification appends, never edits | the hash proves the row was not edited in place, not that the source was honest |

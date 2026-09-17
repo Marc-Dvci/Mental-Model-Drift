@@ -2,7 +2,7 @@
  * `pnpm doctor` -- exercise every Bee capability this product depends on, once,
  * against whatever Bee is configured, and say plainly which ones answered.
  *
- * The point is that "switching to a real device is one environment variable" is
+ * The point is that "switching Bee transports is one environment variable" is
  * a claim, and a claim about someone else's service is worth exactly as much as
  * the check that backs it. This is that check. It runs the same client the
  * product runs, over the same four capabilities, and prints a table:
@@ -73,7 +73,7 @@ async function main(): Promise<void> {
     line({ capability: 'CAPTURE', name: 'GET /v1/stream', detail: 'connected', status: 'ok', required: true });
 
     if (!heard.event) {
-      // Not a failure: on a real device this only means nobody spoke during the
+      // Not a failure: in daily use this only means nobody spoke during the
       // window. It does mean the check below could not be made.
       line({
         capability: 'CAPTURE',
@@ -192,7 +192,7 @@ async function main(): Promise<void> {
 /**
  * Connect to the realtime stream and wait for one utterance, or the timeout.
  *
- * Silence is a legitimate outcome on a real device -- it means nobody spoke --
+ * Silence is a legitimate outcome -- it means nobody spoke --
  * so the caller distinguishes "did not connect" from "connected and heard
  * nothing", and only the first is a failure.
  */

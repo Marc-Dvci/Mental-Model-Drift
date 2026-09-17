@@ -29,7 +29,7 @@ import {
 const PORT = Number(process.env.PORT ?? 4310);
 const HOST = process.env.MMD_HOST ?? '127.0.0.1';
 const STATIC_ROOT = resolve(process.env.MMD_STATIC ?? join(process.cwd(), 'apps', 'dashboard', 'dist'));
-/** Set only for a demonstration run against the emulator; never against a device. */
+/** Set only for a demonstration run; the tour controls do not exist otherwise. */
 const TOUR_TARGET = process.env.MMD_TOUR === '1' ? (process.env.BEE_PROXY_URL ?? '').replace(/\/$/, '') : '';
 
 const ctx = createContext();
@@ -143,13 +143,12 @@ async function handle(req: IncomingMessage, res: ServerResponse): Promise<void> 
   // ------------------------------------------------------------- guided tour
   // The dashboard's guided tour (`/?tour=1`) drives the real pipeline rather
   // than a script of pretend data: it plays recorded conversations into Bee and
-  // reads the same event stream a person reads. It needs two controls that the
-  // Bee emulator exposes and a real device does not, so they are proxied here,
-  // only when the server was started for a demonstration, and only ever to the
-  // emulator the server is already pointed at.
+  // reads the same event stream a person reads. It needs two replay controls,
+  // play and cut, which are proxied here only when the server was started for a
+  // demonstration, and only ever to the Bee URL the server is already pointed at.
   const tourMatch = /^\/api\/tour\/(play|network)$/.exec(path);
   if (tourMatch && method === 'POST') {
-    if (!TOUR_TARGET) return json(res, 403, { error: 'the guided tour is off (start with MMD_TOUR=1 against the emulator)' });
+    if (!TOUR_TARGET) return json(res, 403, { error: 'the guided tour is off (start the server with MMD_TOUR=1)' });
     const body = await readJson<Record<string, unknown>>(req);
     const upstream = await fetch(`${TOUR_TARGET}/_sim/${tourMatch[1]}`, {
       method: 'POST',
