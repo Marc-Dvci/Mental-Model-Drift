@@ -43,6 +43,13 @@ const children: ChildProcess[] = [];
  * this file or the browser is holding the remote control.
  */
 const TOUR = process.argv.includes('--tour');
+/**
+ * `pnpm serve:demo` is the same stack, unattended: it brings everything up,
+ * plays the two conversations so the dashboard has something to show, and then
+ * stays running. It is what the hosted demo runs, so the page a visitor opens
+ * is this repository at this commit and nothing else.
+ */
+const SERVE = process.argv.includes('--serve');
 
 const c = {
   dim: (s: string) => `\x1b[2m${s}\x1b[0m`,
@@ -181,6 +188,30 @@ async function main(): Promise<void> {
     return;
   }
 
+  if (SERVE) {
+    // Unattended: a conversation that fails to play must not take the server
+    // down with it. An empty dashboard is recoverable; a restart loop is not.
+    try {
+      await play();
+    } catch (err) {
+      console.log(`  could not play the recorded conversations: ${(err as Error).message}`);
+    }
+    beat('serving');
+    console.log(`  dashboard on :${PORT}, ${c.dim('/api/drifts')}, ${c.dim('/api/check')}`);
+    return;
+  }
+
+  await play();
+
+  beat('what is left running');
+  console.log(`  dashboard   ${c.blue(`http://127.0.0.1:${PORT}`)}`);
+  console.log(`  api         ${c.dim(`http://127.0.0.1:${PORT}/api/drifts`)}`);
+  console.log(`  bee         ${c.dim(`http://127.0.0.1:${SIM_PORT}/_sim/state`)}`);
+  console.log(c.dim('\n  ctrl-c to stop everything.\n'));
+}
+
+/** The two conversations, the outage between them, and the recovery. */
+async function play(): Promise<void> {
   beat('09:02 — the conversation, as Bee hears it');
   console.log(c.dim('  eight sentences. Half of them the product will not have an opinion about.\n'));
   await post(`http://127.0.0.1:${SIM_PORT}/_sim/play`, { conversationId: '10743', speedMs: SPEED });
@@ -200,12 +231,6 @@ async function main(): Promise<void> {
   console.log(`  ${c.green('stream restored')} — the client treats every drop as a gap and reconciles immediately`);
   await sleep(4000);
   await report();
-
-  beat('what is left running');
-  console.log(`  dashboard   ${c.blue(`http://127.0.0.1:${PORT}`)}`);
-  console.log(`  api         ${c.dim(`http://127.0.0.1:${PORT}/api/drifts`)}`);
-  console.log(`  bee         ${c.dim(`http://127.0.0.1:${SIM_PORT}/_sim/state`)}`);
-  console.log(c.dim('\n  ctrl-c to stop everything.\n'));
 }
 
 /** Print the current cards, and the metrics that show what stayed silent. */

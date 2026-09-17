@@ -8,6 +8,12 @@ one system nobody instruments: the engineer's understanding.
 
 Amazon Developer Hackathon — **Bee track** (developer experience) · **AWS Builder** · **Open Source**
 
+**Try it without installing anything: <https://mental-model-drift.onrender.com>** — the dashboard
+with the demo's conversations already heard. Open a card's **View evidence** for the source, the
+locator and the timestamp; the **Heard** tab for everything the product decided *not* to speak
+about; the **Agent** tab to hand it a sentence of your own and get the verdict an agent would get.
+It sleeps when idle, so the first load takes a few seconds to wake.
+
 ---
 
 ## The problem, in one sentence someone actually said
@@ -90,6 +96,10 @@ Sixteen beats, two and a half minutes, and it is the real pipeline throughout: t
 into Bee, cuts the stream, clicks the product's own buttons. It is also exactly what the demo video
 is a recording of — see [`docs/demo-script.md`](docs/demo-script.md).
 
+**Hosted the same way.** [`render.yaml`](render.yaml) runs `pnpm serve:demo`, which is this same
+stack unattended: Bee on 8787, the server on `$PORT`, the two conversations played in. The page
+above is this repository at this commit, with nothing added for the demonstration.
+
 **With a real Bee device** it is the same run with one variable changed:
 
 ```bash
@@ -170,6 +180,7 @@ pnpm corpus        # dry-run the registry over recorded conversations: what woul
 pnpm corpus --bee  # ...the same, read straight from `bee proxy` instead of the local Bee
 pnpm demo          # the whole thing, end to end
 pnpm tour          # the same, narrated in the browser at /?tour=1
+pnpm serve:demo    # the same, unattended: what the hosted demo runs
 pnpm mcp           # the Assumption Firewall over MCP
 ```
 
@@ -213,7 +224,7 @@ check_assumption("The checkout worker retries three times, so a slow consumer is
     restated in 6 earlier conversation(s), 2 of them after the change
     Act on the actual value, and tell the human what changed and when rather than
     silently correcting them.
-    evidence: AWS_APPCONFIG OK appconfig://ecommerce/production/checkout-worker$.retry.max_attempts (local)
+    evidence: AWS_APPCONFIG OK appconfig://ecommerce/production/checkout-worker$.retry.max_attempts
 ```
 
 Five tools: `check_assumption`, `belief_history`, `list_verifiable_properties`, `open_drifts`,

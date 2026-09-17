@@ -46,7 +46,7 @@ export class SentryVerifier implements Verifier {
 
   async verify(claim: Claim, source: SourceRef): Promise<Evidence> {
     const l = source.locator as unknown as SentryLocator;
-    const locator = `sentry://${l.organization}/${l.project}?environment=${l.environment} (${this.opts.mode})`;
+    const locator = `sentry://${l.organization}/${l.project}?environment=${l.environment}`;
     try {
       const deploys = await this.deployments(l);
       const current = deploys.at(-1);

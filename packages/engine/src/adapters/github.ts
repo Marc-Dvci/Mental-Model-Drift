@@ -64,7 +64,7 @@ export class GitHubVerifier implements Verifier {
     }) as unknown as GitHubLocator;
     const l: GitHubLocator = base.table && !base.column && claim.object ? { ...base, column: claim.object } : base;
     const ref = l.ref ?? 'HEAD';
-    const locator = `github://${l.repository}/${l.path}@${ref}${l.json_path ?? (l.column ? `#${l.table}.${l.column}` : '')} (${this.opts.mode})`;
+    const locator = `github://${l.repository}/${l.path}@${ref}${l.json_path ?? (l.column ? `#${l.table}.${l.column}` : '')}`;
     try {
       const { content, sha } = await this.readFile(l, ref);
       const extracted = extractValue(l, content);

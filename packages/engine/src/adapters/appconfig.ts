@@ -59,14 +59,14 @@ export class AppConfigVerifier implements Verifier {
       return makeEvidence({
         claimId: claim.id,
         source: 'AWS_APPCONFIG',
-        sourceLocator: `appconfig://${raw.application}/${raw.environment}/${raw.profile}${raw.json_path} (${this.opts.mode})`,
+        sourceLocator: `appconfig://${raw.application}/${raw.environment}/${raw.profile}${raw.json_path}`,
         status: 'AMBIGUOUS',
         value: undefined,
         authoritative: source.authoritative,
         error: (err as Error).message,
       });
     }
-    const locator = `appconfig://${l.application}/${l.environment}/${l.profile}${l.json_path} (${this.opts.mode})`;
+    const locator = `appconfig://${l.application}/${l.environment}/${l.profile}${l.json_path}`;
     try {
       const doc = this.opts.mode === 'live' ? await this.fetchLive(l) : this.fetchLocal(l);
       const { found, value } = readPath(doc, l.json_path);

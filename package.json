@@ -15,6 +15,7 @@
     "corpus": "tsx tools/demo/src/audit.ts",
     "doctor": "tsx tools/doctor/src/main.ts",
     "demo": "tsx tools/demo/src/run.ts",
+    "serve:demo": "tsx tools/demo/src/run.ts --serve",
     "tour": "tsx tools/demo/src/run.ts --tour",
     "demo:seed": "tsx tools/demo/seed-repo.ts --force",
     "bee-sim": "tsx tools/bee-sim/src/cli.ts",

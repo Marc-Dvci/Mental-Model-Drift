@@ -1,0 +1,33 @@
+# The hosted demo: https://mental-model-drift.onrender.com
+#
+# One service runs the whole product exactly as `pnpm demo` runs it locally --
+# Bee on 8787, the server on $PORT, the two recorded conversations played in --
+# so the page a visitor opens is this repository at this commit and nothing
+# else. `pnpm serve:demo` is `tools/demo/src/run.ts --serve`.
+#
+# Deploy: Render dashboard -> New -> Blueprint -> pick this repository.
+
+services:
+  - type: web
+    name: mental-model-drift
+    runtime: node
+    plan: free
+    region: oregon
+    branch: main
+    # Dev dependencies are the build: tsx runs the server, vite builds the
+    # dashboard, and the seeded repository is what the archaeology adapter
+    # reads to say *when* a value changed.
+    buildCommand: corepack enable && pnpm install --frozen-lockfile --prod=false && pnpm build && pnpm demo:seed
+    startCommand: pnpm serve:demo
+    healthCheckPath: /api/status
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      # The server binds loopback unless this is set on purpose, which is the
+      # right default everywhere except here.
+      - key: MMD_HOST
+        value: 0.0.0.0
+      - key: BEE_SIM_PORT
+        value: "8787"
+      - key: MMD_DEMO_SPEED
+        value: "150"

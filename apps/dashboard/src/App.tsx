@@ -165,12 +165,28 @@ function Header({ status, openCount }: { status: Status | null; openCount: numbe
           <span className="dot" /> Bee {beeOk ? 'connected' : 'unavailable'}
         </span>
         <span className="chip">{status?.bee.transport ?? '—'}</span>
-        <span className="chip">{status?.mode === 'live' ? 'live sources' : 'local sources'}</span>
+        <span className="chip" title="the systems that get the final word on a claim">
+          {sourcesChip(status)}
+        </span>
         <span className="chip">{status?.proposers ?? '—'}</span>
         <span className={`chip ${openCount ? 'warn' : ''}`}>{openCount} open</span>
       </div>
     </header>
   );
+}
+
+/**
+ * The adapters the registry names as authoritative, in the order they appear.
+ * Naming them is more use than naming the mode: it says which systems get to
+ * decide, which is the only thing a verdict rests on.
+ */
+function sourcesChip(status: Status | null): string {
+  const adapters = new Set<string>();
+  for (const system of status?.registrySystems ?? []) {
+    for (const property of system.properties) adapters.add(property.source);
+  }
+  if (adapters.size === 0) return '—';
+  return [...adapters].map((a) => a.replace(/^aws_/, '')).join(' · ');
 }
 
 // ---------------------------------------------------------------------- ledger
