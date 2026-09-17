@@ -26,8 +26,13 @@ export interface TourControls {
 }
 
 interface Beat {
-  /** Spoken word for word. The caption and the narration are the same string. */
+  /** Shown on screen and in the subtitles. Read aloud as written unless `spoken` says otherwise. */
   caption: string;
+  /**
+   * What the narrator says when the caption is not how it is pronounced: a
+   * clock time is written "09:02" and said "nine oh two". Same words otherwise.
+   */
+  spoken?: string;
   ms: number;
   /** A CSS selector to ring, once the beat's action has settled. */
   focus?: string;
@@ -59,6 +64,8 @@ const BEATS: Beat[] = [
   },
   {
     caption:
+      '09:02. An engineer is looking at an alert on the checkout worker, and decides not to investigate it.',
+    spoken:
       'Nine oh two. An engineer is looking at an alert on the checkout worker, and decides not to investigate it.',
     ms: 7600,
     focus: '.feed',
@@ -141,6 +148,8 @@ const BEATS: Beat[] = [
   },
   {
     caption:
+      '11:40. The stream drops. Bee documents realtime delivery as at most once, so the corridor conversation happening now is never replayed.',
+    spoken:
       'Eleven forty. The stream drops. Bee documents realtime delivery as at most once, so the corridor conversation happening now is never replayed.',
     ms: 12400,
     focus: '.feed',
@@ -215,6 +224,8 @@ declare global {
       beats: number;
       /** The narration, word for word, so the recorder can synthesise it. */
       captions: string[];
+      /** The on-screen captions, for the subtitle file. */
+      subtitles: string[];
       start: () => Promise<void>;
       running: boolean;
     };
@@ -223,8 +234,9 @@ declare global {
 
 export function Tour({ controls }: { controls: TourControls }) {
   const [index, setIndex] = useState(-1);
-  const [done, setDone] = useState(false);
   const [focusBox, setFocusBox] = useState<DOMRect | null>(null);
+  /** Where the ring last was, so it can fade out in place rather than vanish. */
+  const lastBox = useRef<DOMRect | null>(null);
   const started = useRef(false);
   const ctrl = useRef(controls);
   ctrl.current = controls;
@@ -238,7 +250,11 @@ export function Tour({ controls }: { controls: TourControls }) {
       const budget = timing?.[i] ?? beat.ms;
       const openedAt = Date.now();
       setIndex(i);
-      setFocusBox(null);
+      // A beat with a target keeps the previous ring, and its dimming, in place
+      // until the new target is measured, so the ring glides rather than the
+      // page flashing to full brightness in between. A beat without one lets
+      // the ring fade out.
+      if (!beat.focus) setFocusBox(null);
       try {
         await beat.run?.(runtime(ctrl.current));
       } catch (err) {
@@ -254,12 +270,18 @@ export function Tour({ controls }: { controls: TourControls }) {
       const remaining = budget - (Date.now() - openedAt);
       if (remaining > 0) await sleep(remaining);
     }
-    setIndex(-1);
-    setDone(true);
+    // The closing card stays up: the tour ends on it rather than dropping back
+    // to the dashboard under the recording's fade-out.
   }, []);
 
   useEffect(() => {
-    window.MentalModelDriftTour = { beats: BEATS.length, captions: BEATS.map((b) => b.caption), start, running: true };
+    window.MentalModelDriftTour = {
+      beats: BEATS.length,
+      captions: BEATS.map((b) => b.spoken ?? b.caption),
+      subtitles: BEATS.map((b) => b.caption),
+      start,
+      running: true,
+    };
     // Autostart unless the recorder wants to inject its own pacing first.
     if (!new URLSearchParams(location.search).has('manual')) void start();
   }, [start]);
@@ -274,9 +296,10 @@ export function Tour({ controls }: { controls: TourControls }) {
     return () => clearInterval(timer);
   }, [index]);
 
-  if (done) return null;
   const beat = index >= 0 ? BEATS[index] : undefined;
   if (!beat) return null;
+  if (focusBox) lastBox.current = focusBox;
+  const ringBox = focusBox ?? lastBox.current;
 
   return (
     <>
@@ -289,14 +312,14 @@ export function Tour({ controls }: { controls: TourControls }) {
           ))}
         </div>
       )}
-      {!beat.card && focusBox && (
+      {ringBox && (
         <div
-          className="tour-ring"
+          className={`tour-ring ${focusBox && !beat.card ? '' : 'hidden'}`}
           style={{
-            top: focusBox.top - 8,
-            left: focusBox.left - 8,
-            width: focusBox.width + 16,
-            height: focusBox.height + 16,
+            top: ringBox.top - 8,
+            left: ringBox.left - 8,
+            width: ringBox.width + 16,
+            height: ringBox.height + 16,
           }}
         />
       )}

@@ -434,8 +434,10 @@ tr:last-child td { border-bottom: none; }
   box-shadow: 0 0 0 9999px rgba(6, 8, 11, 0.52), 0 0 26px rgba(110, 168, 254, 0.35);
   pointer-events: none;
   z-index: 40;
-  transition: top 260ms ease, left 260ms ease, width 260ms ease, height 260ms ease;
+  transition: top 260ms ease, left 260ms ease, width 260ms ease, height 260ms ease, opacity 260ms ease;
 }
+.tour-ring.hidden { opacity: 0; }
+.tour-ring { animation: fade-in 300ms ease; }
 
 .tour-caption {
   position: fixed;

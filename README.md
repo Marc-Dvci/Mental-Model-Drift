@@ -294,10 +294,10 @@ intended to be useful to anyone building this kind of verification for a differe
 
 ## The demo video
 
-`demo_video/mmd-demo.mp4` — 2:36, and every frame of it is the product. The narration is the guided
-tour's own captions, read out of the running page so the words a viewer hears and the words on
-screen cannot disagree; the visuals are paced to the measured length of each spoken sentence.
-`docs/demo-script.md` has the beat sheet and the three commands that reproduce it.
+2:36, and every frame of it is the product: a recording of `pnpm tour` at `/?tour=1`. The narration
+is the guided tour's own captions, read out of the running page so the words a viewer hears and the
+words on screen cannot disagree; the visuals are paced to the measured length of each spoken
+sentence. `docs/demo-script.md` has the beat sheet.
 
 ## Documentation
 
@@ -308,7 +308,6 @@ screen cannot disagree; the visuals are paced to the measured length of each spo
 - [`docs/demo-script.md`](docs/demo-script.md) — the two-minute walkthrough, beat by beat, and how it is recorded
 - [`docs/friction-log.md`](docs/friction-log.md) — building against Bee, AWS and MCP: what worked, what did not
 - [`docs/conformance.md`](docs/conformance.md) — how the local Bee is held to Bee's own wire format
-- [`docs/limitations.md`](docs/limitations.md) — scope: what this build deliberately does not do
 - [`docs/product-feedback.md`](docs/product-feedback.md) — the submission's feedback answers
 
 ## Licence

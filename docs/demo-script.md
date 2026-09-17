@@ -5,16 +5,8 @@ two title cards and the ring around whatever is being pointed at are all drawn b
 the conversations really are played into Bee, the stream really is cut, and the reconnect really
 does recover the sentence that was missed.
 
-Reproduce it in three commands:
-
-```bash
-pnpm tour                     # terminal 1: Bee + server, guided tour armed
-python demo_video/narrate.py  # terminal 2: Edge TTS -> narration.wav + timing.json
-python demo_video/record.py   #             Playwright -> demo_video/mmd-demo.mp4
-```
-
-Or just watch it happen in a browser: `pnpm tour`, then open
-<http://127.0.0.1:4310/?tour=1>.
+Watch it happen in a browser: `pnpm tour`, then open <http://127.0.0.1:4310/?tour=1>. The video
+is a recording of exactly that page.
 
 ---
 
@@ -22,10 +14,9 @@ Or just watch it happen in a browser: `pnpm tour`, then open
 
 The narration is not written in the recorder. It is the tour's own captions, read out of the running
 page (`window.MentalModelDriftTour.captions`), so **the words a viewer hears and the words burned
-into the screen cannot drift apart**. `narrate.py` synthesises each beat separately, measures it with
-`ffprobe`, and writes `timing.json`. `record.py` injects those durations as `window.__MMD_TIMING`,
-and each beat runs its action and then *holds the remainder*, so a fast machine and a slow one draw
-the same frames.
+into the screen cannot drift apart**. Each caption is synthesised separately and measured, and the
+recorder hands the per-beat durations to the page as `window.__MMD_TIMING`; each beat runs its
+action and then *holds the remainder*, so a fast machine and a slow one draw the same frames.
 
 Every number spoken is on screen in the same shot. That is a rule, not an aspiration: an earlier cut
 said "six of the eight sentences produce nothing" because the design document said so. The real
@@ -38,7 +29,7 @@ number is four, and the product had been saying four on screen the whole time.
 | # | at | what the product does | narration |
 |---|---|---|---|
 | 0 | 0:00 | title card | *We monitor configuration drift, infrastructure drift and schema drift. This monitors the one system nobody instruments: the engineer's understanding.* |
-| 1 | 0:11 | plays conversation 10743 into Bee's realtime stream, one sentence at a time | *Nine oh two. An engineer is looking at an alert on the checkout worker, and decides not to investigate it.* |
+| 1 | 0:11 | plays conversation 10743 into Bee's realtime stream, one sentence at a time | *09:02. An engineer is looking at an alert on the checkout worker, and decides not to investigate it.* |
 | 2 | 0:17 | the live capture panel fills: every utterance, and every rejection with its reason | *Bee hears the whole conversation. Eight sentences, and half of them produce nothing at all: a question, an opinion, an observation with no value in it, and a belief the speaker has already marked as past.* |
 | 3 | 0:31 | candidate → grounding → `reading aws_appconfig` → `DRIFTED` | *One is a flat assertion about a property the registry knows how to check. Every word of it has to appear in what was actually said, and then the value is read from AWS AppConfig.* |
 | 4 | 0:42 | the card, ringed on the two values | *Production says one, not three.* |
@@ -47,7 +38,7 @@ number is four, and the product had been saying four on screen the whole time.
 | 7 | 1:08 | opens the evidence drawer | *The evidence is a source, an address and a timestamp. No model is ever asked whether a statement is true. It is asked only which property the sentence is about.* |
 | 8 | 1:19 | scrolls to the mental-model timeline | *Underneath, the mental-model timeline: what the system was, when it changed, and every time this person said otherwise.* |
 | 9 | 1:26 | clicks **Yes, that was my understanding**, then **Update my understanding**; the fact text written to Bee appears on the card | *One click writes the corrected value into Bee memory as a confirmed fact, which is where the wearer's own assistant will read it next.* |
-| 10 | 1:34 | cuts the stream, then plays conversation 10744 into a Bee nobody is listening to | *Eleven forty. The stream drops. Bee documents realtime delivery as at most once, so the corridor conversation happening now is never replayed.* |
+| 10 | 1:34 | cuts the stream, then plays conversation 10744 into a Bee nobody is listening to | *11:40. The stream drops. Bee documents realtime delivery as at most once, so the corridor conversation happening now is never replayed.* |
 | 11 | 1:44 | restores the stream; cursor reconciliation recovers the corridor sentence and checks it | *On reconnect the cursor closes the gap, and the sentence nobody was listening to comes back: the stale number has just been handed to another team.* |
 | 12 | 1:53 | switches to the **Heard** tab; the coverage survey renders | *And most of the time it says nothing. Across seven weeks and one hundred and fifteen utterances, seventeen were about something this registry can settle. The other ninety-eight produce nothing. Silence is the feature.* |
 | 13 | 2:07 | switches to the **Agent** tab; the firewall panel | *And the person is not the only one who needs this. A coding agent is handed the same sentence, and cannot tell a fact from a memory.* |
@@ -90,12 +81,12 @@ panel name a locator does.
 
 ## Recording notes
 
-- 1600×900, 30 fps, H.264/AAC, ~13 MB. Subtitles are written from the same timing to
-  `demo_video/mmd-demo.srt`, so they can be uploaded alongside the video with no edit pass.
+- 1600×900, 30 fps, H.264/AAC. Subtitles are written from the same timing, so they can be uploaded
+  alongside the video with no edit pass.
 - The tour plays the recorded conversations through `/api/tour/*`, which the server refuses with
   403 unless it was started with `MMD_TOUR=1`, so the replay controls never exist outside a
   demonstration.
-- `record.py` deliberately does not `await` the tour's `start()`. `page.evaluate` awaits a returned
+- The recorder deliberately does not `await` the tour's `start()`. `page.evaluate` awaits a returned
   promise, and `start()` resolves only when the tour ends, so returning it puts the recording window
   over the end screen instead of over the demonstration.
 - If a beat looks wrong, run the tour in a visible browser first (`pnpm tour`, then
