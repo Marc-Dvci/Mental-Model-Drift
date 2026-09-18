@@ -188,35 +188,55 @@ export class AppConfigVerifier implements Verifier {
 
   private reentered = false;
 
+  /**
+   * The history of a value in an environment is the sequence of deployments
+   * into that environment, not the sequence of versions that were authored.
+   *
+   * A hosted configuration version carries no timestamp, so the first live run
+   * of this method stamped every change with the moment it was asked, which
+   * turned "three was correct until the twenty-third of August" into "three was
+   * correct until just now". A deployment carries `StartedAt` and
+   * `CompletedAt`, and it names the version it shipped, so the deployment is
+   * both the date and the fact: a version that was authored and never deployed
+   * never changed what production was running, and does not appear here.
+   */
   private async historyLive(l: AppConfigLocator): Promise<HostedVersion[]> {
-    const { AppConfigClient, ListHostedConfigurationVersionsCommand, GetHostedConfigurationVersionCommand } =
+    const { AppConfigClient, ListDeploymentsCommand, GetHostedConfigurationVersionCommand } =
       await import('@aws-sdk/client-appconfig');
     const client = new AppConfigClient({ region: this.opts.region ?? process.env.AWS_REGION });
-    const list = await client.send(
-      new ListHostedConfigurationVersionsCommand({
-        ApplicationId: l.application,
-        ConfigurationProfileId: l.profile,
-        MaxResults: 50,
-      }),
+
+    const deployments = await client.send(
+      new ListDeploymentsCommand({ ApplicationId: l.application, EnvironmentId: l.environment, MaxResults: 50 }),
     );
-    const items = (list.Items ?? []).slice().sort((a, b) => (a.VersionNumber ?? 0) - (b.VersionNumber ?? 0));
+    const shipped = (deployments.Items ?? [])
+      .filter((d) => d.ConfigurationName === l.profile || d.ConfigurationName === undefined)
+      .filter((d) => d.State === 'COMPLETE' || d.State === 'BAKING' || d.State === 'DEPLOYING')
+      .map((d) => ({
+        version: Number(d.ConfigurationVersion),
+        at: (d.CompletedAt ?? d.StartedAt ?? new Date()).toISOString(),
+        started: d.StartedAt?.getTime() ?? 0,
+      }))
+      .filter((d) => Number.isFinite(d.version))
+      .sort((a, b) => a.started - b.started);
+
     const out: HostedVersion[] = [];
-    for (const item of items) {
-      const got = await client.send(
-        new GetHostedConfigurationVersionCommand({
-          ApplicationId: l.application,
-          ConfigurationProfileId: l.profile,
-          VersionNumber: item.VersionNumber,
-        }),
-      );
-      const bytes = await got.Content?.transformToString();
-      if (!bytes) continue;
-      out.push({
-        version: item.VersionNumber ?? 0,
-        at: new Date().toISOString(),
-        description: item.Description,
-        content: JSON.parse(bytes),
-      });
+    const contents = new Map<number, { content: unknown; description?: string }>();
+    for (const d of shipped) {
+      let entry = contents.get(d.version);
+      if (!entry) {
+        const got = await client.send(
+          new GetHostedConfigurationVersionCommand({
+            ApplicationId: l.application,
+            ConfigurationProfileId: l.profile,
+            VersionNumber: d.version,
+          }),
+        );
+        const bytes = await got.Content?.transformToString();
+        if (!bytes) continue;
+        entry = { content: JSON.parse(bytes), ...(got.Description ? { description: got.Description } : {}) };
+        contents.set(d.version, entry);
+      }
+      out.push({ version: d.version, at: d.at, description: entry.description, content: entry.content });
     }
     return out;
   }

@@ -149,17 +149,18 @@ speech, small talk).
 | | grammar proposer, no model | target |
 |---|---|---|
 | candidate precision | **100.0%** | > 95% |
-| recall | 89.2% | |
+| recall | 90.2% (93.1% with the Bedrock proposer beside it) | |
 | false-positive rate | **0.0%** | |
 | subject / property mapping | **100.0%** | > 95% |
 | value extraction | **100.0%** | > 98% |
 | verdict accuracy | **100.0%** | |
 | latency | 2.9 ms / utterance | |
 
-Recall is the number deliberately left imperfect. The eleven misses are phrasings outside the
-registry's declared vocabulary and values too far from their property lexeme to be trusted; each one
-is a missed opportunity, and each false positive avoided is a person not being told they are wrong
-about something they never said. `pnpm eval --errors` prints all eleven.
+Recall is the number deliberately left imperfect. The ten misses are phrasings outside the
+registry's declared vocabulary and values too far from their property lexeme to be trusted; with a
+model beside the grammar, seven remain, and every one of those is the grounding gate declining on
+purpose. Each is a missed opportunity, and each false positive avoided is a person not being told
+they are wrong about something they never said. `pnpm eval --errors` prints them.
 
 Building that corpus found six real defects, all now fixed and pinned by tests: `on`/`off` read as
 polarity words inside prepositional phrases (which *inverted* a claim), a number regex that lost
@@ -268,13 +269,27 @@ skill's job is to get an agent to say that, in one sentence, and then carry on w
 | service | used for | where |
 |---|---|---|
 | **AppConfig** + **AppConfigData** | authoritative deployed configuration and feature state; hosted version history reconstructs when a value changed | `packages/engine/src/adapters/appconfig.ts` |
-| **Bedrock** (Claude, via `@anthropic-ai/bedrock-sdk`) | the second extraction proposer; asked only which registry property a sentence is about | `packages/engine/src/extract/bedrock.ts` |
+| **Bedrock** (Claude via `@anthropic-ai/bedrock-sdk`, any other family via the API endpoint's chat completions) | the second extraction proposer; asked only which registry property a sentence is about. Over the corpus, beside the grammar: recall 90.2% → 93.1%, precision 100% | `packages/engine/src/extract/bedrock.ts` |
 | **DynamoDB** | single-table store: claims, evidence, drifts, cursor, dedupe markers with TTL | `packages/engine/src/store/dynamo-store.ts` |
 | **CloudWatch** | the metrics that matter: how much was heard, how little was acted on, how often a card was dismissed | `infrastructure/lambda/index.ts` |
 | **SQS**, **Lambda**, **API Gateway**, **Secrets Manager** | the deployed topology | `infrastructure/cdk/` |
 
 `cd infrastructure/cdk && npx cdk synth` synthesizes 35 resources and bundles the handlers with
 esbuild from the same `packages/` source the tests run against.
+
+Each source is switched on its own. `MMD_MODE=live` turns all three live; `MMD_APPCONFIG`,
+`MMD_GITHUB` and `MMD_SENTRY` take `live` or `local` and override one, so the deployed
+configuration can be read from AWS while the repository is the local clone:
+
+```bash
+AWS_REGION=us-east-1 MMD_APPCONFIG=live pnpm mmd check "the checkout worker retries three times"
+MMD_DYNAMO_TABLE=mmd-dev pnpm demo                        # the store is the table
+MMD_BEDROCK_MODEL_ID=openai.gpt-oss-120b pnpm eval --proposers grammar,bedrock
+```
+
+The first two lines and the third were run against the real services on 18 September;
+`docs/product-feedback.md` quotes what came back, and friction-log entries A4 to A6 are the four
+defects that running them found.
 
 ## Layout
 

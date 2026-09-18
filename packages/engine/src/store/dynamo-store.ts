@@ -18,6 +18,7 @@
  */
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import {
+  BatchGetCommand,
   DynamoDBDocumentClient,
   GetCommand,
   PutCommand,
@@ -26,6 +27,18 @@ import {
 } from '@aws-sdk/lib-dynamodb';
 import type { Claim, DriftEvent, Evidence, HistoricalChange } from '#spec';
 import type { Store } from './types.ts';
+
+/** Every counter the pipeline increments. `getMetrics` reads exactly these. */
+const METRIC_NAMES = [
+  'BeeEventsReceived',
+  'BeeEventsReconciled',
+  'BeeEventsDeduplicated',
+  'ClaimsDetected',
+  'ClaimsSupported',
+  'DriftsDetected',
+  'BeeFactsWritten',
+  'ClaimFalsePositiveFeedback',
+] as const;
 
 export interface DynamoStoreOptions {
   tableName: string;
@@ -191,9 +204,24 @@ export class DynamoStore implements Store {
     }));
   }
 
+  /**
+   * The counters, read back in one round trip.
+   *
+   * This returned `{}` until the store was run against a table. Every
+   * increment had landed, atomically, and the dashboard's coverage panel read
+   * zero for all of them, because the deployed design leaned on CloudWatch for
+   * the read side and the panel does not. The names are the closed set the
+   * pipeline increments, so a BatchGet on those keys answers without a scan.
+   */
   async getMetrics(): Promise<Record<string, number>> {
-    // Metrics are per-key items; the deployed dashboard reads CloudWatch instead
-    // of scanning, so this returns what a caller explicitly asked to be tracked.
-    return {};
+    const res = await this.doc.send(new BatchGetCommand({
+      RequestItems: { [this.table]: { Keys: METRIC_NAMES.map((name) => ({ pk: `METRIC#${name}`, sk: 'METRIC' })) } },
+    }));
+    const out: Record<string, number> = {};
+    for (const item of res.Responses?.[this.table] ?? []) {
+      const name = String(item.pk).replace(/^METRIC#/, '');
+      out[name] = Number(item.value ?? 0);
+    }
+    return out;
   }
 }

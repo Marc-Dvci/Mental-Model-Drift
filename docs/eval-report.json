@@ -5,22 +5,21 @@
   "utterances": 204,
   "claims": 102,
   "nonClaims": 102,
-  "truePositives": 91,
+  "truePositives": 92,
   "falsePositives": 0,
-  "falseNegatives": 11,
+  "falseNegatives": 10,
   "candidatePrecision": 1,
-  "recall": 0.8921568627450981,
+  "recall": 0.9019607843137255,
   "falsePositiveRate": 0,
   "subjectPropertyAccuracy": 1,
   "valueAccuracy": 1,
-  "verdictAccuracy": 1,
-  "msPerUtterance": 2.784313725490196,
+  "msPerUtterance": 0.08823529411764706,
   "byCategory": {
     "SUPPORTED_CLAIM": {
       "n": 51,
-      "correct": 47,
+      "correct": 48,
       "falsePositives": 0,
-      "missed": 4
+      "missed": 3
     },
     "DRIFTED_CLAIM": {
       "n": 51,
@@ -49,8 +48,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -60,8 +57,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -71,8 +66,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -91,8 +84,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -102,8 +93,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -113,8 +102,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -124,8 +111,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -135,18 +120,16 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
       "id": "S010",
       "category": "SUPPORTED_CLAIM",
       "text": "The checkout worker retries a single time before parking the job.",
-      "correct": false,
+      "correct": true,
       "falsePositive": false,
-      "missed": true,
-      "detail": "expected checkout-worker.retry.max_attempts=1, got nothing (no proposal)"
+      "missed": false,
+      "detail": "exact"
     },
     {
       "id": "S011",
@@ -155,8 +138,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -166,8 +147,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -177,8 +156,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -188,8 +165,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -199,8 +174,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -210,8 +183,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -221,8 +192,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -232,8 +201,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -243,8 +210,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -254,8 +219,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -265,8 +228,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -276,8 +237,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -287,8 +246,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -298,8 +255,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -309,8 +264,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -320,8 +273,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -340,8 +291,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -360,8 +309,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -371,8 +318,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -382,8 +327,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -393,8 +336,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -404,8 +345,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -415,8 +354,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -426,8 +363,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -437,8 +372,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -448,8 +381,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -459,8 +390,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -470,8 +399,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -481,8 +408,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -492,8 +417,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -503,8 +426,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -514,8 +435,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -525,8 +444,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -536,8 +453,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -547,8 +462,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -558,8 +471,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -569,8 +480,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -580,8 +489,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -591,8 +498,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -602,8 +507,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -613,8 +516,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -624,8 +525,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -644,8 +543,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -655,8 +552,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -666,8 +561,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -677,8 +570,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -688,8 +579,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -699,8 +588,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -719,8 +606,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -730,8 +615,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -741,8 +624,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -752,8 +633,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -763,8 +642,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -774,8 +651,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -785,8 +660,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -796,8 +669,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -807,8 +678,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -818,8 +687,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -838,8 +705,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -849,8 +714,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -860,8 +723,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -871,8 +732,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -882,8 +741,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -893,8 +750,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -904,8 +759,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -933,8 +786,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -944,8 +795,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -955,8 +804,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -966,8 +813,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -977,8 +822,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -988,8 +831,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -999,8 +840,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -1010,8 +849,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -1021,8 +858,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -1032,8 +867,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -1043,8 +876,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -1054,8 +885,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -1065,8 +894,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -1076,8 +903,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -1087,8 +912,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -1107,8 +930,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -2027,8 +1848,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "SUPPORTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {
@@ -2038,8 +1857,6 @@
       "correct": true,
       "falsePositive": false,
       "missed": false,
-      "verdict": "DRIFTED",
-      "verdictCorrect": true,
       "detail": "exact"
     },
     {

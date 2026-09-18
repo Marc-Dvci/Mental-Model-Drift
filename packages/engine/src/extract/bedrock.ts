@@ -81,12 +81,47 @@ export class BedrockProposer implements Proposer {
   private readonly client: AnthropicBedrockMantle;
   readonly modelId: string;
   private readonly maxTokens: number;
+  private readonly region: string;
 
   constructor(private readonly registry: Registry, cfg: BedrockProposerConfig = {}) {
-    const region = cfg.region ?? process.env.AWS_REGION ?? 'us-east-1';
-    this.client = new AnthropicBedrockMantle({ awsRegion: region });
+    this.region = cfg.region ?? process.env.AWS_REGION ?? 'us-east-1';
+    this.client = new AnthropicBedrockMantle({ awsRegion: this.region });
     this.modelId = cfg.modelId ?? process.env.MMD_BEDROCK_MODEL_ID ?? 'anthropic.claude-opus-5';
     this.maxTokens = cfg.maxTokens ?? 2048;
+  }
+
+  /**
+   * The same question, to a model family that speaks chat completions.
+   *
+   * Bedrock serves Anthropic models over the Messages API and every other
+   * family over `/v1/chat/completions`, on the same host, under the same
+   * bearer token. The proposer's job is to name a catalogue entry and quote
+   * the words it read the value from; nothing about that is Anthropic-specific,
+   * and the account this was first run against could invoke `openai.gpt-oss-120b`
+   * and no Claude model. The JSON schema goes across as `response_format` and
+   * the answer comes back through the same registry and quotation gates, so a
+   * different family changes nothing downstream of this method.
+   */
+  private async completeViaChat(system: string, user: string): Promise<string> {
+    const { getToken } = await import('@aws/bedrock-token-generator');
+    const { fromNodeProviderChain } = await import('@aws-sdk/credential-providers');
+    const token = await getToken({ credentials: fromNodeProviderChain(), region: this.region });
+    const response = await fetch(`https://bedrock-mantle.${this.region}.api.aws/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` },
+      body: JSON.stringify({
+        model: this.modelId,
+        max_tokens: this.maxTokens,
+        messages: [
+          { role: 'system', content: system },
+          { role: 'user', content: user },
+        ],
+        response_format: { type: 'json_schema', json_schema: { name: 'claims', schema: CLAIM_SCHEMA, strict: true } },
+      }),
+    });
+    if (!response.ok) throw new Error(`${response.status} ${(await response.text()).slice(0, 400)}`);
+    const body = (await response.json()) as { choices?: { message?: { content?: string | null } }[] };
+    return body.choices?.[0]?.message?.content ?? '';
   }
 
   async propose(ctx: ExtractionContext): Promise<Proposal[]> {
@@ -105,25 +140,29 @@ export class BedrockProposer implements Proposer {
       .filter(Boolean)
       .join('\n');
 
-    const response = await this.client.messages.create({
-      model: this.modelId,
-      max_tokens: this.maxTokens,
-      system: [{ type: 'text', text: SYSTEM, cache_control: { type: 'ephemeral' } }],
-      messages: [{ role: 'user', content: userContent }],
-      output_config: { format: { type: 'json_schema', schema: CLAIM_SCHEMA } },
-    } as never);
-
-    const text = (response as { content: { type: string; text?: string }[] }).content
-      .filter((b) => b.type === 'text')
-      .map((b) => b.text ?? '')
-      .join('');
-
-    let parsed: { claims?: RawClaim[] };
-    try {
-      parsed = JSON.parse(text) as { claims?: RawClaim[] };
-    } catch {
-      return [];
+    let text: string;
+    if (this.modelId.startsWith('anthropic.')) {
+      const response = await this.client.messages.create({
+        model: this.modelId,
+        max_tokens: this.maxTokens,
+        system: [{ type: 'text', text: SYSTEM, cache_control: { type: 'ephemeral' } }],
+        messages: [{ role: 'user', content: userContent }],
+        output_config: { format: { type: 'json_schema', schema: CLAIM_SCHEMA } },
+      } as never);
+      text = (response as { content: { type: string; text?: string }[] }).content
+        .filter((b) => b.type === 'text')
+        .map((b) => b.text ?? '')
+        .join('');
+    } else {
+      text = await this.completeViaChat(SYSTEM, userContent);
     }
+
+    // The model's raw answer, before the registry and quotation gates, because
+    // "the model proposed nothing" and "the gates rejected everything it
+    // proposed" are different failures with different fixes.
+    if (process.env.MMD_DEBUG_BEDROCK === '1') console.error(`[bedrock] ${this.modelId} -> ${text.slice(0, 600)}`);
+    const parsed = readClaimsObject(text);
+    if (!parsed) return [];
 
     const out: Proposal[] = [];
     for (const raw of parsed.claims ?? []) {
@@ -131,6 +170,11 @@ export class BedrockProposer implements Proposer {
       // that does not exist is not a low-confidence claim, it is not a claim.
       const resolved = this.registry.resolve(raw.subject, raw.property);
       if (!resolved) continue;
+      // A schema fact is about a column, and the schema requires the object
+      // only in prose. A model that names the table and not the column has not
+      // made a claim the registry can address, and letting it through produced
+      // a second, objectless copy of the claim the grammar had already made.
+      if (resolved.property.claimType === 'SCHEMA_FACT' && !raw.object) continue;
       if (!raw.spokenValue || !ctx.text.toLowerCase().includes(raw.spokenValue.toLowerCase().trim())) {
         // The model was asked to quote the words it read the value from. If the
         // quote is not in the utterance, the value was invented.
@@ -165,4 +209,53 @@ interface RawClaim {
 
 function clamp(n: number): number {
   return Math.max(0, Math.min(1, n));
+}
+
+/**
+ * The claims object, wherever the model put it.
+ *
+ * `openai.gpt-oss-120b` under `response_format: json_schema` answers with the
+ * schema's object about two thirds of the time, and with a stray token in
+ * front of it the rest: a lone `{`, or `[]`, then the object. Every one of those
+ * answers was right about the sentence, and every one of them failed
+ * `JSON.parse`, so the proposer reported nothing and the corpus read the model
+ * as adding zero recall. The object is found by its `"claims"` key and read
+ * from the brace that opens it, which tolerates a prefix and a wrapping array
+ * alike and still refuses anything that is not that object.
+ */
+function readClaimsObject(text: string): { claims?: RawClaim[] } | undefined {
+  try {
+    const decoded: unknown = JSON.parse(text);
+    const candidate = Array.isArray(decoded) ? decoded[0] : decoded;
+    if (candidate && typeof candidate === 'object' && 'claims' in candidate) return candidate as { claims?: RawClaim[] };
+  } catch {
+    // fall through to the scan
+  }
+  const key = text.indexOf('"claims"');
+  if (key === -1) return undefined;
+  const open = text.lastIndexOf('{', key);
+  if (open === -1) return undefined;
+  let depth = 0;
+  let inString = false;
+  for (let i = open; i < text.length; i++) {
+    const ch = text[i];
+    if (inString) {
+      if (ch === String.fromCharCode(92)) i++;
+      else if (ch === '"') inString = false;
+      continue;
+    }
+    if (ch === '"') inString = true;
+    else if (ch === '{') depth++;
+    else if (ch === '}') {
+      depth--;
+      if (depth === 0) {
+        try {
+          return JSON.parse(text.slice(open, i + 1)) as { claims?: RawClaim[] };
+        } catch {
+          return undefined;
+        }
+      }
+    }
+  }
+  return undefined;
 }

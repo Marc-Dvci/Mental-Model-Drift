@@ -13,7 +13,7 @@
  * Precision is the metric this is tuned for. A missed claim costs an
  * opportunity; a false one costs the user's trust in every card that follows.
  */
-import type { GroundingReport } from '#spec';
+import { normalise, type GroundingReport } from '#spec';
 import { ground } from '../grounding.ts';
 import type { Registry } from '../registry.ts';
 import type {
@@ -77,7 +77,35 @@ export class Extractor {
       all.push(...s.proposals);
     }
 
+    // Two proposers agree when their values mean the same thing, not when they
+    // spell it the same way. The grammar reads "4.13" off the sentence and a
+    // model answers "4.13.0"; the grammar reads 3 and a model answers "three".
+    // Keyed raw, those are two values for one property and the ambiguity rule
+    // below rejects both, which on the first live run turned a corroborating
+    // second opinion into a veto on every version claim in the corpus. Values
+    // are normalised to the catalogue type here, once, before anything compares
+    // them; a value the type cannot read is left as it was and fails grounding
+    // on its own.
+    for (const p of all) {
+      const resolved = this.registry.resolve(p.subject, p.property);
+      if (!resolved) continue;
+      const typed = normalise(p.assertedValue, resolved.property.type);
+      if (typed.ok) p.assertedValue = typed.value;
+    }
+
     const rejected: RejectedProposal[] = [];
+
+    // Two systems in one sentence is ambiguous, and silence beats a coin flip.
+    // The grammar proposer has always held to that on its own; a model splits
+    // the sentence happily and proposes both halves, so the rule has to sit
+    // where every proposer's output passes, or it is only a property of the
+    // proposer that happened to be there first.
+    const subjects = new Set(all.map((p) => p.subject));
+    if (subjects.size > 1) {
+      for (const p of all) rejected.push({ proposal: p, reason: `the utterance is about ${subjects.size} systems at once`, stage: 'ambiguity' });
+      return { proposals: all, accepted: [], rejected, proposerStatus };
+    }
+
     const merged = mergeProposals(all);
     const accepted: Accepted[] = [];
 

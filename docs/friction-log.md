@@ -277,6 +277,90 @@ modern alternative to a monorepo build step and it is not obvious that it just w
 
 ---
 
+### A4 — A hosted configuration version has no timestamp; the deployment does
+
+**Severity: high** (the product's central sentence, "that was the value until 23 August", read as
+"until just now" on the first live run)
+
+**Task.** Reconstruct when `retry.max_attempts` changed in production, from AppConfig alone, with
+the adapter's `history()` running against a real application for the first time.
+
+**Expected.** `ListHostedConfigurationVersions` to carry a creation time per version, the way every
+other versioned store does.
+
+**Actual.** It carries `VersionNumber`, `Description`, `ContentType` and a KMS ARN. No date. The
+adapter had filled the gap with `new Date()`, so every change was stamped with the moment the
+question was asked, and the timeline the product is built around collapsed to a single instant.
+The test fixtures carry dates, so nothing offline could have shown this.
+
+The date lives one call over: `ListDeployments` returns `StartedAt`, `CompletedAt` and the version
+each deployment shipped. That turns out to be the *right* source, not a substitute. A version that
+was authored and never deployed never changed what production was running, and the old code would
+have reported it as a change. The adapter now walks deployments, in order, and reads each shipped
+version once.
+
+**Suggestion.** A `CreatedAt` on hosted versions would be welcome, but the documentation fix is the
+bigger one: the AppConfig guide on "tracking configuration changes" should say that the deployment,
+not the version, is the unit of history for an environment. `MaxResults` on `ListDeployments` also
+caps at 50 and rejects 100 with a validation error, which the API reference states and the SDK's
+types do not.
+
+---
+
+### A5 — Bedrock's chat-completions endpoint, given a JSON schema, prefixes the object with a stray token
+
+**Severity: high** (a model that was right on every utterance was scored as adding no recall at all)
+
+**Task.** Run the Bedrock proposer against the corpus. Claude is not available in the account this
+was built with, on either the SDK path or the Bedrock API endpoint, so `openai.gpt-oss-120b` is
+asked the same question over `/v1/chat/completions` with the claim schema as `response_format`.
+
+**Expected.** `message.content` to be the schema's object.
+
+**Actual.** About one answer in three came back as `{` + newline + the object, or `[]` + the object,
+or the object inside a one-element array. Each of those fails `JSON.parse`, the proposer swallowed
+the failure as "no claims", and the first corpus run reported grammar + Bedrock at exactly the
+grammar's own 89.2% recall, with the same eleven misses. Reading the raw content is what showed the
+model had named the right subject, property and value every time. The parser now finds the object
+by its `"claims"` key and reads it from the brace that opens it, and recall went to 93.1% with
+precision still 100%.
+
+Two further things surfaced only because a second proposer was finally producing proposals. The
+grammar reads `4.13` off a sentence and a model answers `4.13.0`; keyed raw, that is two values
+for one property, and the extractor's ambiguity rule rejected both, so corroboration was acting as
+a veto. Values are now normalised to the catalogue type before anything compares them. And the
+"two systems in one sentence is ambiguous" rule lived inside the grammar proposer, so a model that
+happily split the sentence walked straight past it; it now sits in the extractor, where every
+proposer's output passes.
+
+**Suggestion.** Strict `response_format` should mean strict. Until it does, the endpoint's
+documentation should say that the content may carry a prefix, so that a caller knows to locate the
+object rather than parse the string.
+
+---
+
+### A6 — `getMetrics` was a stub, and the atomic counters were fine
+
+**Severity: medium** (the coverage panel, the product's "silence is the feature" evidence, read zero
+against the real store)
+
+**Task.** Play the demo conversation into the engine with `MMD_DYNAMO_TABLE` set, for the first
+time against a real table.
+
+**Actual.** Thirty-four items landed: five claims, five evidence rows, three drifts, three
+histories, eleven dedupe markers, a cursor, and six counters incremented by `ADD`. Then the demo
+printed `heard 0 · reconciled 0 · deduplicated 0`, because the store's `getMetrics()` returned `{}`
+with a comment saying the deployed dashboard would read CloudWatch instead. The dashboard reads the
+store. The table double the tests use never exposed this because it kept its counters in a map.
+
+**Workaround.** The counter names are a closed set the pipeline increments, so one `BatchGet` on
+those keys answers without a scan.
+
+**Suggestion.** None for AWS; this one is on me. It is here because it is the same shape as A4: a
+read path written to a design that was never run, next to a write path that worked.
+
+---
+
 ## MCP TypeScript SDK 1.30
 
 ### M1 — Argument-validation failures resolve, they do not reject

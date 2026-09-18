@@ -30,9 +30,11 @@ import {
 import type { ExtractionContext, Proposal, Proposer } from './types.ts';
 import type { RegistryProperty, ValueType } from '#spec';
 
-const NUMBER_WORDS: Record<string, number> = {
+export const NUMBER_WORDS: Record<string, number> = {
   zero: 0, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7,
   eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12, once: 1, twice: 2, thrice: 3,
+  // "retries a single time" is how people say 1 without saying one.
+  single: 1,
 };
 
 /** Words nearer than this to the property lexeme count as being about it. */

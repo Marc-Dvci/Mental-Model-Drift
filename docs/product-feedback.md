@@ -125,18 +125,53 @@ build the next thing on `search --neural` and `facts` specifically.
 | service | used for | file |
 |---|---|---|
 | **AppConfig** + **AppConfigData** | the authoritative value of deployed configuration and feature state; hosted version history reconstructs *when* a value changed | `packages/engine/src/adapters/appconfig.ts` |
-| **Bedrock** (Claude, `@anthropic-ai/bedrock-sdk`) | the second extraction proposer, asked only which registry property a sentence is about — never whether it is true | `packages/engine/src/extract/bedrock.ts` |
+| **Bedrock** (`@anthropic-ai/bedrock-sdk` for Claude; the Bedrock API endpoint's chat completions for every other family) | the second extraction proposer, asked only which registry property a sentence is about — never whether it is true | `packages/engine/src/extract/bedrock.ts` |
 | **DynamoDB** | single-table store: claims, evidence, drifts, cursor, dedupe markers with TTL | `packages/engine/src/store/dynamo-store.ts` |
 | **CloudWatch** | the metrics that matter for this product: how much was heard, how little was acted on, how often a card was dismissed as "not my belief" | `infrastructure/lambda/index.ts` |
 | **SQS + DLQ**, **Lambda**, **API Gateway (HTTP API)**, **Secrets Manager** | the deployed topology | `infrastructure/cdk/lib/mental-model-drift-stack.ts` |
 | **CDK** (TypeScript) | all of the above, 35 resources, handlers bundled by `NodejsFunction` from the same `packages/` source the tests run against | `infrastructure/cdk/` |
 
+### What was run, on 18 September
+
+Three of the services in the runtime path were exercised against the real thing, from this
+repository, with the results below quoted from the transcripts.
+
+- **AppConfig.** An application `ecommerce`, environment `production`, profiles `checkout-worker`
+  and `feature-flags`, two hosted versions of the retry configuration deployed in order. With
+  `MMD_APPCONFIG=live`, `mmd check "the checkout worker retries three times"` returned `DRIFTED,
+  stated 3, actually 1, evidence: AWS_APPCONFIG OK appconfig://ecommerce/production/checkout-worker$.retry.max_attempts`,
+  and the feature flag read `SUPPORTED` for EU. The adapter's `history()` returned the change 3 → 1,
+  dated by the deployment that shipped it, with the deployment's own description. The whole 09:02
+  conversation was then played through the engine with every AppConfig read live: three drifts,
+  the same three the local mirror produces.
+- **Bedrock.** The proposer ran over the full 204-utterance corpus alongside the grammar:
+  recall **90.2% → 93.1%**, precision **100%** on both runs, zero false positives, 2.2 s a call.
+  Claude is not available to the account this was built with, so the model was
+  `openai.gpt-oss-120b`, asked the identical question over the endpoint's chat completions with
+  the same JSON schema; the proposer folds that answer into the same registry and quotation gates,
+  and nothing downstream can tell which family answered. That is the architecture doing what it
+  was built to do.
+- **DynamoDB.** The demo conversation, into a real table: 34 items, every counter incremented
+  atomically, the drifts read back through the same API the dashboard uses.
+
+Running them found four defects the tests could not, all fixed and written up as friction-log
+entries A4 to A6: hosted versions carry no timestamp (the deployment does, and is the better
+source); the endpoint prefixes a schema-constrained answer with a stray token a third of the time;
+two proposers spelling one value two ways tripped the ambiguity rule; and `getMetrics` on the
+DynamoDB store was a stub.
+
 ### What worked well
 
-- **AppConfig's hosted configuration version history is the quiet hero of this project.** It is what
-  lets the product say "that was the value until 23 August" instead of only "you are wrong". I went
-  looking for that capability in git and found it in AppConfig, already there, already versioned,
-  with the deployment that changed it.
+- **AppConfig's deployment history is the quiet hero of this project.** It is what lets the product
+  say "that was the value until 23 August" instead of only "you are wrong". I went looking for that
+  capability in git and found it in AppConfig, already there, already versioned, with the deployment
+  that changed it. The first live run corrected one thing about that sentence: the *version* is not
+  dated, the *deployment* is, and the deployment is the right unit anyway, because a version that
+  was never deployed never changed production.
+- **The Bedrock API endpoint answers the right question when a model is not available.**
+  `permission_error: anthropic.claude-opus-5 is not available for this account`, naming the model.
+  `InvokeModel` through the SDK answers the same situation with `ValidationException: Operation not
+  allowed`, which reads as a malformed request and cost an hour on the request body.
 - **`NodejsFunction` bundled a pnpm workspace using Node subpath imports (`#spec`, `#engine`) with no
   configuration at all.** `projectRoot` + `depsLockFilePath` and it worked. This was the one thing I
   had budgeted a painful afternoon for, and it took none.
@@ -154,6 +189,16 @@ build the next thing on `search --neural` and `facts` specifically.
 3. **`cdk synth` succeeding tells you almost nothing about whether `cdk deploy` will.** The class
    of error synth cannot see, quotas, model availability per region, account-level enablement, only
    shows up at deploy time, and `cdk diff` does not preview it either.
+4. **A hosted configuration version carries no creation time.** `ListHostedConfigurationVersions`
+   returns a number, a description and a content type. The date is on `ListDeployments`, one call
+   over, and nothing in the guide on tracking changes says so. *(A4)*
+5. **Strict `response_format` on the endpoint's chat completions is not strict.** One answer in
+   three arrived as a stray `{` or `[]` followed by the object. Every one of those answers was
+   correct about the sentence, and every one failed `JSON.parse`. *(A5)*
+6. **Three states look like "Bedrock works" and only the last one does.** Credentials resolve;
+   STS accepts them; the account is entitled to the model. `list-foundation-models` returns ninety
+   model ids whichever state you are in, because it describes the catalogue rather than the caller,
+   and `get-foundation-model-availability` is the call that answers and the one nobody reaches for.
 
 ### Onboarding
 
@@ -162,9 +207,11 @@ took longer than the control plane, because the two-call session/token dance is 
 API reference alone.
 
 `cdk synth` produces 35 resources and a 1.5 MB bundle from the same `packages/` source the tests
-run against. Every number quoted in this repository comes from the grammar proposer alone, which is
-the floor rather than the ceiling: the Bedrock proposer can only raise recall, because both feed
-the same deterministic grounding gate.
+run against. The grammar proposer alone is the floor, at 90.2% recall and 100% precision; with the
+Bedrock proposer beside it the corpus reads 93.1% and 100%, because both feed the same
+deterministic grounding gate and the gate is what holds precision. The seven utterances still
+missed are the gate declining on purpose: a negated clause, or a sentence with no lexeme for the
+property, which is the strictness the false-positive rate is bought with.
 
 ### Would I build with it again?
 

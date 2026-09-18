@@ -69,16 +69,25 @@ export function buildEngine(opts: BuildOptions = {}): BuiltEngine {
 
   const bee = opts.bee ?? BeeClient.fromEnv();
 
+  // Each source can be switched on its own. MMD_MODE sets all three; MMD_APPCONFIG,
+  // MMD_GITHUB and MMD_SENTRY override one. A demo whose deployed configuration is
+  // read from AWS while its repository is the local clone is a normal shape, and
+  // one switch for three unrelated accounts made it unreachable.
+  const sourceMode = (name: 'APPCONFIG' | 'GITHUB' | 'SENTRY'): Mode => {
+    const own = process.env[`MMD_${name}`];
+    return own === 'live' || own === 'local' ? own : mode;
+  };
+
   const github = new GitHubVerifier(
-    mode === 'live'
+    sourceMode('GITHUB') === 'live'
       ? { mode: 'api', ...(process.env.MMD_GITHUB_REF ? {} : {}) }
       : { mode: 'localgit', repoRoot: process.env.MMD_DEMO_REPO ?? join(root, 'demo', 'checkout-demo') },
   );
 
   const verifiers: Verifier[] = [
-    new AppConfigVerifier({ mode, fixtureRoot: join(root, 'demo', 'appconfig') }),
+    new AppConfigVerifier({ mode: sourceMode('APPCONFIG'), fixtureRoot: join(root, 'demo', 'appconfig') }),
     github,
-    new SentryVerifier({ mode, fixtureRoot: join(root, 'demo', 'sentry') }),
+    new SentryVerifier({ mode: sourceMode('SENTRY'), fixtureRoot: join(root, 'demo', 'sentry') }),
   ];
 
   const wanted = opts.proposers ?? deriveProposers();
@@ -116,7 +125,9 @@ export function buildEngine(opts: BuildOptions = {}): BuiltEngine {
       store: process.env.MMD_DYNAMO_TABLE ? `dynamodb:${process.env.MMD_DYNAMO_TABLE}` : 'json',
       bee: bee.describeTransport(),
       proposers: proposers.map((p) => p.name).join(' + ') || 'none',
-      github: mode === 'live' ? 'api.github.com' : 'local clone',
+      github: sourceMode('GITHUB') === 'live' ? 'api.github.com' : 'local clone',
+      appconfig: sourceMode('APPCONFIG') === 'live' ? `aws appconfig (${process.env.AWS_REGION ?? 'default region'})` : 'local mirror',
+      sentry: sourceMode('SENTRY') === 'live' ? 'sentry.io' : 'local mirror',
     }),
   };
 }

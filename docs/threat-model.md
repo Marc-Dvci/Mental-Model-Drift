@@ -66,7 +66,7 @@ own knowledge of a system, which is expensive and slow to repair.
 
 **What is done.** This is why the extraction gate is deterministic and why the measured number the
 project leads with is **false-positive rate: 0.0%** over 204 labelled utterances, with recall left
-at 89.2% rather than tuned up. Each miss is a missed opportunity; each false positive is a person
+at 90.2% rather than tuned up. Each miss is a missed opportunity; each false positive is a person
 told they are wrong about something they never said. Those are not symmetric and the thresholds are
 not set as if they were.
 
