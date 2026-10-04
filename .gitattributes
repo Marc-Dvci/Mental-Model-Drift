@@ -1,0 +1,8 @@
+# Normalise line endings in the repository. A handful of source files were
+# written on Windows and a handful on WSL, which otherwise shows up as
+# whole-file diffs for anyone who touches them next.
+* text=auto eol=lf
+
+*.png binary
+*.mp4 binary
+*.wav binary

@@ -1,0 +1,218 @@
+# Source Registry
+#
+# The boundary of what Mental Model Drift is willing to have an opinion on.
+#
+# Every entry answers one question: if someone says something about this
+# property, which system decides whether they are right? Nothing outside this
+# file can be verified, and nothing in it is verified by a language model --
+# the model's only job is to decide which entry a sentence is about.
+#
+# `impact` is set by a human and expresses blast radius, not likelihood. It is
+# the only subjective number in the pipeline, and it is deliberately visible
+# here rather than buried in code.
+#
+# Two source roles:
+#   authoritative_source  what the system IS. Decides SUPPORTED vs DRIFTED.
+#   historical_source     what the system WAS. Explains, never decides.
+
+version: 1
+
+systems:
+  checkout-worker:
+    label: Checkout worker
+    aliases:
+      - checkout
+      - checkout worker
+      - checkout queue worker
+      - payment worker
+      - the worker
+    properties:
+      retry.max_attempts:
+        label: Checkout retry attempts
+        type: integer
+        impact: HIGH
+        claimType: CONFIG_VALUE
+        lexemes:
+          - retries
+          - retry
+          - retried
+          - retrying
+          - retry attempts
+          - max attempts
+          - attempts
+          - redelivers
+        authoritative_source:
+          adapter: aws_appconfig
+          authoritative: true
+          locator:
+            application: ecommerce
+            environment: production
+            profile: checkout-worker
+            json_path: $.retry.max_attempts
+        historical_source:
+          adapter: github
+          authoritative: false
+          locator:
+            repository: Marc-Dvci/mmd-checkout-demo
+            path: config/checkout.yaml
+            json_path: $.retry.max_attempts
+        documents:
+          - adapter: github
+            locator:
+              repository: Marc-Dvci/mmd-checkout-demo
+              path: docs/architecture.md
+
+      dlq.enabled:
+        label: Checkout dead-letter queue
+        type: boolean
+        impact: MEDIUM
+        claimType: FEATURE_STATE
+        lexemes:
+          - dead letter queue
+          - dead letter
+          - dlq
+        authoritative_source:
+          adapter: aws_appconfig
+          authoritative: true
+          locator:
+            application: ecommerce
+            environment: production
+            profile: checkout-worker
+            json_path: $.dlq.enabled
+        historical_source:
+          adapter: github
+          authoritative: false
+          locator:
+            repository: Marc-Dvci/mmd-checkout-demo
+            path: config/checkout.yaml
+            json_path: $.dlq.enabled
+
+  new-checkout:
+    label: New checkout experience
+    aliases:
+      - new checkout
+      - checkout v2
+      - checkout two
+      - new checkout flow
+    properties:
+      enabled:
+        label: New checkout rollout
+        type: boolean
+        impact: HIGH
+        claimType: FEATURE_STATE
+        lexemes:
+          - enabled
+          - disabled
+          - live
+          - rolled out
+          - turned on
+          - turned off
+          - switched on
+          - switched off
+          - dark
+        scopes:
+          region:
+            EU:
+              - europe
+              - eu
+              - emea
+              - the eu
+            US:
+              - the us
+              - north america
+              - states
+            APAC:
+              - apac
+              - asia
+        authoritative_source:
+          adapter: aws_appconfig
+          authoritative: true
+          locator:
+            application: ecommerce
+            environment: production
+            profile: feature-flags
+            # The dimension, not one instance of it: the region resolved from
+            # the spoken words is bound in before the source is read, so a claim
+            # about the US can never be checked against the EU value.
+            json_path: $.new_checkout.regions.${scope.region}
+        historical_source:
+          adapter: github
+          authoritative: false
+          locator:
+            repository: Marc-Dvci/mmd-checkout-demo
+            path: config/feature-flags.yaml
+            json_path: $.new_checkout.regions.${scope.region}
+
+  checkout-service:
+    label: Checkout service
+    aliases:
+      - checkout service
+      - checkout api
+      - the api
+    properties:
+      deployed_version:
+        label: Checkout service production release
+        type: semver
+        impact: MEDIUM
+        claimType: DEPLOYMENT_VERSION
+        lexemes:
+          - running
+          - version
+          - deployed
+          - release
+          - shipped
+        authoritative_source:
+          adapter: sentry
+          authoritative: true
+          locator:
+            organization: drift-demo
+            project: checkout
+            environment: production
+
+  events:
+    label: Events table
+    aliases:
+      - events table
+      - events
+      - event table
+      - the events
+    properties:
+      column_exists:
+        label: Events table columns
+        type: presence
+        impact: MEDIUM
+        claimType: SCHEMA_FACT
+        lexemes:
+          - stores
+          - store
+          - storing
+          - records
+          - record
+          - logs
+          - keeps
+          - captures
+          - has
+          - contains
+          - includes
+          - column
+          - field
+        objectAliases:
+          source_ip:
+            - source ip
+            - source ip address
+            - source ip addresses
+            - client ip
+            - originating ip
+          user_agent:
+            - user agent
+            - user agent string
+        authoritative_source:
+          adapter: github
+          authoritative: true
+          locator:
+            repository: Marc-Dvci/mmd-checkout-demo
+            path: database/schema.sql
+            table: events
+            # `column` is intentionally absent: which column is being asserted
+            # about comes from the claim's object, resolved through objectAliases
+            # above, so one registry entry covers every column of the table.

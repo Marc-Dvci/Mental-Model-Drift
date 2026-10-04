@@ -1,0 +1,36 @@
+{
+  "id": 10352,
+  "uuid": "4175eb3a-8fb5-5888-b176-9d5ab532e08c",
+  "short_summary": "Gym and weekend",
+  "state": "COMPLETED",
+  "start_time": "2026-08-11T13:44:00.000Z",
+  "end_time": "2026-08-11T13:44:36.000Z",
+  "created_at": "2026-08-11T13:44:00.000Z",
+  "utterances": [
+    {
+      "speaker": "speaker_1",
+      "text": "Did you end up going Saturday?",
+      "created_at": "2026-08-11T13:44:00.000Z"
+    },
+    {
+      "speaker": "speaker_2",
+      "text": "Yes, it was packed. Never again at eleven.",
+      "created_at": "2026-08-11T13:44:08.000Z"
+    },
+    {
+      "speaker": "speaker_1",
+      "text": "I did the earlier one, it was fine.",
+      "created_at": "2026-08-11T13:44:19.000Z"
+    },
+    {
+      "speaker": "speaker_2",
+      "text": "Are you still doing the half marathon thing?",
+      "created_at": "2026-08-11T13:44:28.000Z"
+    },
+    {
+      "speaker": "speaker_1",
+      "text": "In October. I have not trained enough.",
+      "created_at": "2026-08-11T13:44:36.000Z"
+    }
+  ]
+}

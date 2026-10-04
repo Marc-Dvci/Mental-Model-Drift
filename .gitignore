@@ -1,0 +1,17 @@
+node_modules/
+dist/
+.env
+.env.local
+*.log
+.state/
+# Personal derived Bee data, kept separate from the resettable fixture state.
+.bee-account/
+apps/dashboard/dist/
+demo/checkout-demo/
+coverage/
+
+# CDK synth output: reproducible with `npx cdk synth`, 5 MB of it
+infrastructure/cdk/cdk.out/
+
+# The demo video lives on YouTube, not in the repository.
+demo_video/

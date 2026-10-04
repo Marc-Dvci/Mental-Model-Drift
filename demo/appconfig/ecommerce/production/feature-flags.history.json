@@ -1,0 +1,14 @@
+[
+  {
+    "version": 1,
+    "at": "2026-07-14T08:20:00.000Z",
+    "description": "Initial deployment, all regions dark",
+    "content": { "new_checkout": { "regions": { "EU": false, "US": false, "APAC": false } } }
+  },
+  {
+    "version": 2,
+    "at": "2026-08-27T07:31:00.000Z",
+    "description": "Enable new checkout in EU",
+    "content": { "new_checkout": { "regions": { "EU": true, "US": false, "APAC": false } } }
+  }
+]

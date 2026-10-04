@@ -1,0 +1,26 @@
+{
+  "id": 10744,
+  "uuid": "0d7e51ab-4c39-4a16-8e52-b3f7290ac641",
+  "short_summary": "Corridor conversation after the alert",
+  "state": "COMPLETED",
+  "start_time": "2026-09-01T11:40:00.000Z",
+  "end_time": "2026-09-01T11:40:26.000Z",
+  "created_at": "2026-09-01T11:40:00.000Z",
+  "utterances": [
+    {
+      "speaker": "speaker_1",
+      "text": "I mentioned the queue thing to the platform team.",
+      "created_at": "2026-09-01T11:40:00.000Z"
+    },
+    {
+      "speaker": "speaker_1",
+      "text": "Told them the checkout worker retries three times, so a slow consumer is not the problem.",
+      "created_at": "2026-09-01T11:40:12.000Z"
+    },
+    {
+      "speaker": "speaker_1",
+      "text": "They are going to look at the broker settings instead.",
+      "created_at": "2026-09-01T11:40:26.000Z"
+    }
+  ]
+}

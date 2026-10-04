@@ -1,0 +1,204 @@
+{"id": "S001", "category": "SUPPORTED_CLAIM", "text": "The checkout worker retries once before the dead letter queue.", "expect": {"subject": "checkout-worker", "property": "retry.max_attempts", "value": 1}, "verdict": "SUPPORTED"}
+{"id": "S002", "category": "SUPPORTED_CLAIM", "text": "Checkout retries a failed job one time and then gives up.", "expect": {"subject": "checkout-worker", "property": "retry.max_attempts", "value": 1}, "verdict": "SUPPORTED"}
+{"id": "S003", "category": "SUPPORTED_CLAIM", "text": "The payment worker retries once on a 5xx.", "expect": {"subject": "checkout-worker", "property": "retry.max_attempts", "value": 1}, "verdict": "SUPPORTED"}
+{"id": "S004", "category": "SUPPORTED_CLAIM", "text": "Max attempts on the checkout worker is 1 now.", "expect": {"subject": "checkout-worker", "property": "retry.max_attempts", "value": 1}, "verdict": "SUPPORTED"}
+{"id": "S005", "category": "SUPPORTED_CLAIM", "text": "The checkout queue worker retries 1 time after the incident fix.", "expect": {"subject": "checkout-worker", "property": "retry.max_attempts", "value": 1}, "verdict": "SUPPORTED"}
+{"id": "S006", "category": "SUPPORTED_CLAIM", "text": "The worker retries once, so a poison message fails out fast.", "expect": {"subject": "checkout-worker", "property": "retry.max_attempts", "value": 1}, "verdict": "SUPPORTED"}
+{"id": "S007", "category": "SUPPORTED_CLAIM", "text": "Checkout retry attempts sit at 1 in production.", "expect": {"subject": "checkout-worker", "property": "retry.max_attempts", "value": 1}, "verdict": "SUPPORTED"}
+{"id": "S008", "category": "SUPPORTED_CLAIM", "text": "The checkout worker redelivers a message once.", "expect": {"subject": "checkout-worker", "property": "retry.max_attempts", "value": 1}, "verdict": "SUPPORTED"}
+{"id": "S009", "category": "SUPPORTED_CLAIM", "text": "Since August the checkout worker only retries once.", "expect": {"subject": "checkout-worker", "property": "retry.max_attempts", "value": 1}, "verdict": "SUPPORTED"}
+{"id": "S010", "category": "SUPPORTED_CLAIM", "text": "The checkout worker retries a single time before parking the job.", "expect": {"subject": "checkout-worker", "property": "retry.max_attempts", "value": 1}, "verdict": "SUPPORTED"}
+{"id": "S011", "category": "SUPPORTED_CLAIM", "text": "The checkout worker has the dead letter queue enabled.", "expect": {"subject": "checkout-worker", "property": "dlq.enabled", "value": true}, "verdict": "SUPPORTED"}
+{"id": "S012", "category": "SUPPORTED_CLAIM", "text": "The checkout worker DLQ is on in production.", "expect": {"subject": "checkout-worker", "property": "dlq.enabled", "value": true}, "verdict": "SUPPORTED"}
+{"id": "S013", "category": "SUPPORTED_CLAIM", "text": "The dead letter queue is enabled for the payment worker.", "expect": {"subject": "checkout-worker", "property": "dlq.enabled", "value": true}, "verdict": "SUPPORTED"}
+{"id": "S014", "category": "SUPPORTED_CLAIM", "text": "The checkout worker dead letter queue is turned on.", "expect": {"subject": "checkout-worker", "property": "dlq.enabled", "value": true}, "verdict": "SUPPORTED"}
+{"id": "S015", "category": "SUPPORTED_CLAIM", "text": "The DLQ on the checkout worker is active.", "expect": {"subject": "checkout-worker", "property": "dlq.enabled", "value": true}, "verdict": "SUPPORTED"}
+{"id": "S016", "category": "SUPPORTED_CLAIM", "text": "The checkout worker keeps its dead letter queue switched on.", "expect": {"subject": "checkout-worker", "property": "dlq.enabled", "value": true}, "verdict": "SUPPORTED"}
+{"id": "S017", "category": "SUPPORTED_CLAIM", "text": "The new checkout is enabled in Europe.", "expect": {"subject": "new-checkout", "property": "enabled", "value": true, "scope": {"region": "EU"}}, "verdict": "SUPPORTED"}
+{"id": "S018", "category": "SUPPORTED_CLAIM", "text": "The new checkout is live in the EU.", "expect": {"subject": "new-checkout", "property": "enabled", "value": true, "scope": {"region": "EU"}}, "verdict": "SUPPORTED"}
+{"id": "S019", "category": "SUPPORTED_CLAIM", "text": "New checkout is rolled out in EMEA.", "expect": {"subject": "new-checkout", "property": "enabled", "value": true, "scope": {"region": "EU"}}, "verdict": "SUPPORTED"}
+{"id": "S020", "category": "SUPPORTED_CLAIM", "text": "The new checkout flow is turned on in Europe.", "expect": {"subject": "new-checkout", "property": "enabled", "value": true, "scope": {"region": "EU"}}, "verdict": "SUPPORTED"}
+{"id": "S021", "category": "SUPPORTED_CLAIM", "text": "Checkout v2 is enabled in Europe now.", "expect": {"subject": "new-checkout", "property": "enabled", "value": true, "scope": {"region": "EU"}}, "verdict": "SUPPORTED"}
+{"id": "S022", "category": "SUPPORTED_CLAIM", "text": "The new checkout is switched on for the EU.", "expect": {"subject": "new-checkout", "property": "enabled", "value": true, "scope": {"region": "EU"}}, "verdict": "SUPPORTED"}
+{"id": "S023", "category": "SUPPORTED_CLAIM", "text": "The new checkout is disabled in the US.", "expect": {"subject": "new-checkout", "property": "enabled", "value": false, "scope": {"region": "US"}}, "verdict": "SUPPORTED"}
+{"id": "S024", "category": "SUPPORTED_CLAIM", "text": "New checkout is still dark in North America.", "expect": {"subject": "new-checkout", "property": "enabled", "value": false, "scope": {"region": "US"}}, "verdict": "SUPPORTED"}
+{"id": "S025", "category": "SUPPORTED_CLAIM", "text": "Checkout v2 is turned off in the states.", "expect": {"subject": "new-checkout", "property": "enabled", "value": false, "scope": {"region": "US"}}, "verdict": "SUPPORTED"}
+{"id": "S026", "category": "SUPPORTED_CLAIM", "text": "The new checkout flow is disabled in APAC.", "expect": {"subject": "new-checkout", "property": "enabled", "value": false, "scope": {"region": "APAC"}}, "verdict": "SUPPORTED"}
+{"id": "S027", "category": "SUPPORTED_CLAIM", "text": "New checkout is still off in Asia.", "expect": {"subject": "new-checkout", "property": "enabled", "value": false, "scope": {"region": "APAC"}}, "verdict": "SUPPORTED"}
+{"id": "S028", "category": "SUPPORTED_CLAIM", "text": "The checkout service is running 4.13 in production.", "expect": {"subject": "checkout-service", "property": "deployed_version", "value": "4.13"}, "verdict": "SUPPORTED"}
+{"id": "S029", "category": "SUPPORTED_CLAIM", "text": "Checkout api is on 4.13.0 in production right now.", "expect": {"subject": "checkout-service", "property": "deployed_version", "value": "4.13.0"}, "verdict": "SUPPORTED"}
+{"id": "S030", "category": "SUPPORTED_CLAIM", "text": "The checkout service deployed 4.13 last week.", "expect": {"subject": "checkout-service", "property": "deployed_version", "value": "4.13"}, "verdict": "SUPPORTED"}
+{"id": "S031", "category": "SUPPORTED_CLAIM", "text": "We shipped 4.13.0 of the checkout service.", "expect": {"subject": "checkout-service", "property": "deployed_version", "value": "4.13.0"}, "verdict": "SUPPORTED"}
+{"id": "S032", "category": "SUPPORTED_CLAIM", "text": "The checkout api release in production is 4.13.", "expect": {"subject": "checkout-service", "property": "deployed_version", "value": "4.13"}, "verdict": "SUPPORTED"}
+{"id": "S033", "category": "SUPPORTED_CLAIM", "text": "The checkout service version is 4.13.0.", "expect": {"subject": "checkout-service", "property": "deployed_version", "value": "4.13.0"}, "verdict": "SUPPORTED"}
+{"id": "S034", "category": "SUPPORTED_CLAIM", "text": "The events table stores the source IP.", "expect": {"subject": "events", "property": "column_exists", "value": true, "object": "source_ip"}, "verdict": "SUPPORTED"}
+{"id": "S035", "category": "SUPPORTED_CLAIM", "text": "The events table records the source IP address for every row.", "expect": {"subject": "events", "property": "column_exists", "value": true, "object": "source_ip"}, "verdict": "SUPPORTED"}
+{"id": "S036", "category": "SUPPORTED_CLAIM", "text": "Events has a source ip column.", "expect": {"subject": "events", "property": "column_exists", "value": true, "object": "source_ip"}, "verdict": "SUPPORTED"}
+{"id": "S037", "category": "SUPPORTED_CLAIM", "text": "The events table captures the client IP.", "expect": {"subject": "events", "property": "column_exists", "value": true, "object": "source_ip"}, "verdict": "SUPPORTED"}
+{"id": "S038", "category": "SUPPORTED_CLAIM", "text": "The event table keeps the originating IP.", "expect": {"subject": "events", "property": "column_exists", "value": true, "object": "source_ip"}, "verdict": "SUPPORTED"}
+{"id": "S039", "category": "SUPPORTED_CLAIM", "text": "The events table logs the source IP on every insert.", "expect": {"subject": "events", "property": "column_exists", "value": true, "object": "source_ip"}, "verdict": "SUPPORTED"}
+{"id": "S040", "category": "SUPPORTED_CLAIM", "text": "The events table contains the source ip.", "expect": {"subject": "events", "property": "column_exists", "value": true, "object": "source_ip"}, "verdict": "SUPPORTED"}
+{"id": "S041", "category": "SUPPORTED_CLAIM", "text": "The events table includes the source IP for fraud review.", "expect": {"subject": "events", "property": "column_exists", "value": true, "object": "source_ip"}, "verdict": "SUPPORTED"}
+{"id": "S042", "category": "SUPPORTED_CLAIM", "text": "The events table does not store the user agent.", "expect": {"subject": "events", "property": "column_exists", "value": false, "object": "user_agent"}, "verdict": "SUPPORTED"}
+{"id": "S043", "category": "SUPPORTED_CLAIM", "text": "Events does not record the user agent string.", "expect": {"subject": "events", "property": "column_exists", "value": false, "object": "user_agent"}, "verdict": "SUPPORTED"}
+{"id": "S044", "category": "SUPPORTED_CLAIM", "text": "The events table has no user agent column.", "expect": {"subject": "events", "property": "column_exists", "value": false, "object": "user_agent"}, "verdict": "SUPPORTED"}
+{"id": "S045", "category": "SUPPORTED_CLAIM", "text": "The checkout worker retries once, because of the duplicate-charge incident.", "expect": {"subject": "checkout-worker", "property": "retry.max_attempts", "value": 1}, "verdict": "SUPPORTED"}
+{"id": "S046", "category": "SUPPORTED_CLAIM", "text": "I'm pretty sure the checkout worker retries once now.", "expect": {"subject": "checkout-worker", "property": "retry.max_attempts", "value": 1}, "verdict": "SUPPORTED"}
+{"id": "S047", "category": "SUPPORTED_CLAIM", "text": "Last I checked the new checkout was enabled in Europe.", "expect": {"subject": "new-checkout", "property": "enabled", "value": true, "scope": {"region": "EU"}}, "verdict": "SUPPORTED"}
+{"id": "S048", "category": "SUPPORTED_CLAIM", "text": "I think the checkout service is running 4.13 in production.", "expect": {"subject": "checkout-service", "property": "deployed_version", "value": "4.13"}, "verdict": "SUPPORTED"}
+{"id": "S049", "category": "SUPPORTED_CLAIM", "text": "The checkout worker retries once and the backlog clears quickly.", "expect": {"subject": "checkout-worker", "property": "retry.max_attempts", "value": 1}, "verdict": "SUPPORTED"}
+{"id": "S050", "category": "SUPPORTED_CLAIM", "text": "The DLQ is enabled on the checkout worker, so nothing is lost.", "expect": {"subject": "checkout-worker", "property": "dlq.enabled", "value": true}, "verdict": "SUPPORTED"}
+{"id": "D001", "category": "DRIFTED_CLAIM", "text": "It's probably fine. Checkout retries failed jobs three times anyway.", "expect": {"subject": "checkout-worker", "property": "retry.max_attempts", "value": 3}, "verdict": "DRIFTED"}
+{"id": "D002", "category": "DRIFTED_CLAIM", "text": "The checkout worker retries three times before the DLQ.", "expect": {"subject": "checkout-worker", "property": "retry.max_attempts", "value": 3}, "verdict": "DRIFTED"}
+{"id": "D003", "category": "DRIFTED_CLAIM", "text": "Checkout retries a failed job three times.", "expect": {"subject": "checkout-worker", "property": "retry.max_attempts", "value": 3}, "verdict": "DRIFTED"}
+{"id": "D004", "category": "DRIFTED_CLAIM", "text": "The payment worker retries twice on a timeout.", "expect": {"subject": "checkout-worker", "property": "retry.max_attempts", "value": 2}, "verdict": "DRIFTED"}
+{"id": "D005", "category": "DRIFTED_CLAIM", "text": "Max attempts on the checkout worker is 5.", "expect": {"subject": "checkout-worker", "property": "retry.max_attempts", "value": 5}, "verdict": "DRIFTED"}
+{"id": "D006", "category": "DRIFTED_CLAIM", "text": "The checkout queue worker retries 3 times.", "expect": {"subject": "checkout-worker", "property": "retry.max_attempts", "value": 3}, "verdict": "DRIFTED"}
+{"id": "D007", "category": "DRIFTED_CLAIM", "text": "Told them the checkout worker retries three times, so a slow consumer is not the problem.", "expect": {"subject": "checkout-worker", "property": "retry.max_attempts", "value": 3}, "verdict": "DRIFTED"}
+{"id": "D008", "category": "DRIFTED_CLAIM", "text": "The checkout worker redelivers a message three times.", "expect": {"subject": "checkout-worker", "property": "retry.max_attempts", "value": 3}, "verdict": "DRIFTED"}
+{"id": "D009", "category": "DRIFTED_CLAIM", "text": "Checkout retry attempts are set to three in production.", "expect": {"subject": "checkout-worker", "property": "retry.max_attempts", "value": 3}, "verdict": "DRIFTED"}
+{"id": "D010", "category": "DRIFTED_CLAIM", "text": "The worker retries four times before anything is parked.", "expect": {"subject": "checkout-worker", "property": "retry.max_attempts", "value": 4}, "verdict": "DRIFTED"}
+{"id": "D011", "category": "DRIFTED_CLAIM", "text": "The checkout worker retries twice, which is why the backlog drains slowly.", "expect": {"subject": "checkout-worker", "property": "retry.max_attempts", "value": 2}, "verdict": "DRIFTED"}
+{"id": "D012", "category": "DRIFTED_CLAIM", "text": "The checkout worker retries three times, and that has not changed.", "expect": {"subject": "checkout-worker", "property": "retry.max_attempts", "value": 3}, "verdict": "DRIFTED"}
+{"id": "D013", "category": "DRIFTED_CLAIM", "text": "The queue is slow, but the checkout worker retries three times.", "expect": {"subject": "checkout-worker", "property": "retry.max_attempts", "value": 3}, "verdict": "DRIFTED"}
+{"id": "D014", "category": "DRIFTED_CLAIM", "text": "I'm pretty sure the checkout worker retries three times.", "expect": {"subject": "checkout-worker", "property": "retry.max_attempts", "value": 3}, "verdict": "DRIFTED"}
+{"id": "D015", "category": "DRIFTED_CLAIM", "text": "The checkout worker has the dead letter queue disabled.", "expect": {"subject": "checkout-worker", "property": "dlq.enabled", "value": false}, "verdict": "DRIFTED"}
+{"id": "D016", "category": "DRIFTED_CLAIM", "text": "The checkout worker DLQ is off in production.", "expect": {"subject": "checkout-worker", "property": "dlq.enabled", "value": false}, "verdict": "DRIFTED"}
+{"id": "D017", "category": "DRIFTED_CLAIM", "text": "The dead letter queue is turned off on the payment worker.", "expect": {"subject": "checkout-worker", "property": "dlq.enabled", "value": false}, "verdict": "DRIFTED"}
+{"id": "D018", "category": "DRIFTED_CLAIM", "text": "The checkout worker dead letter queue is switched off.", "expect": {"subject": "checkout-worker", "property": "dlq.enabled", "value": false}, "verdict": "DRIFTED"}
+{"id": "D019", "category": "DRIFTED_CLAIM", "text": "The DLQ on the checkout worker is inactive.", "expect": {"subject": "checkout-worker", "property": "dlq.enabled", "value": false}, "verdict": "DRIFTED"}
+{"id": "D020", "category": "DRIFTED_CLAIM", "text": "The new checkout is still disabled in Europe.", "expect": {"subject": "new-checkout", "property": "enabled", "value": false, "scope": {"region": "EU"}}, "verdict": "DRIFTED"}
+{"id": "D021", "category": "DRIFTED_CLAIM", "text": "New checkout is dark in the EU.", "expect": {"subject": "new-checkout", "property": "enabled", "value": false, "scope": {"region": "EU"}}, "verdict": "DRIFTED"}
+{"id": "D022", "category": "DRIFTED_CLAIM", "text": "Checkout v2 is turned off in EMEA.", "expect": {"subject": "new-checkout", "property": "enabled", "value": false, "scope": {"region": "EU"}}, "verdict": "DRIFTED"}
+{"id": "D023", "category": "DRIFTED_CLAIM", "text": "The new checkout flow is still off in Europe.", "expect": {"subject": "new-checkout", "property": "enabled", "value": false, "scope": {"region": "EU"}}, "verdict": "DRIFTED"}
+{"id": "D024", "category": "DRIFTED_CLAIM", "text": "The new checkout is not enabled in Europe.", "expect": {"subject": "new-checkout", "property": "enabled", "value": false, "scope": {"region": "EU"}}, "verdict": "DRIFTED"}
+{"id": "D025", "category": "DRIFTED_CLAIM", "text": "The new checkout is live in the US.", "expect": {"subject": "new-checkout", "property": "enabled", "value": true, "scope": {"region": "US"}}, "verdict": "DRIFTED"}
+{"id": "D026", "category": "DRIFTED_CLAIM", "text": "Checkout v2 is enabled in North America.", "expect": {"subject": "new-checkout", "property": "enabled", "value": true, "scope": {"region": "US"}}, "verdict": "DRIFTED"}
+{"id": "D027", "category": "DRIFTED_CLAIM", "text": "The new checkout flow is rolled out in the states.", "expect": {"subject": "new-checkout", "property": "enabled", "value": true, "scope": {"region": "US"}}, "verdict": "DRIFTED"}
+{"id": "D028", "category": "DRIFTED_CLAIM", "text": "The new checkout is enabled in APAC.", "expect": {"subject": "new-checkout", "property": "enabled", "value": true, "scope": {"region": "APAC"}}, "verdict": "DRIFTED"}
+{"id": "D029", "category": "DRIFTED_CLAIM", "text": "New checkout is live in Asia already.", "expect": {"subject": "new-checkout", "property": "enabled", "value": true, "scope": {"region": "APAC"}}, "verdict": "DRIFTED"}
+{"id": "D030", "category": "DRIFTED_CLAIM", "text": "The checkout service is still running 4.12 in production.", "expect": {"subject": "checkout-service", "property": "deployed_version", "value": "4.12"}, "verdict": "DRIFTED"}
+{"id": "D031", "category": "DRIFTED_CLAIM", "text": "Checkout api is on 4.12.0 in production.", "expect": {"subject": "checkout-service", "property": "deployed_version", "value": "4.12.0"}, "verdict": "DRIFTED"}
+{"id": "D032", "category": "DRIFTED_CLAIM", "text": "The checkout service deployed 4.11 and has not moved since.", "expect": {"subject": "checkout-service", "property": "deployed_version", "value": "4.11"}, "verdict": "DRIFTED"}
+{"id": "D033", "category": "DRIFTED_CLAIM", "text": "We are running 4.12 of the checkout service.", "expect": {"subject": "checkout-service", "property": "deployed_version", "value": "4.12"}, "verdict": "DRIFTED"}
+{"id": "D034", "category": "DRIFTED_CLAIM", "text": "The checkout api release in production is 4.11.0.", "expect": {"subject": "checkout-service", "property": "deployed_version", "value": "4.11.0"}, "verdict": "DRIFTED"}
+{"id": "D035", "category": "DRIFTED_CLAIM", "text": "The checkout service version is 4.12.", "expect": {"subject": "checkout-service", "property": "deployed_version", "value": "4.12"}, "verdict": "DRIFTED"}
+{"id": "D036", "category": "DRIFTED_CLAIM", "text": "The checkout service is running 4.12, so the fix is not out yet.", "expect": {"subject": "checkout-service", "property": "deployed_version", "value": "4.12"}, "verdict": "DRIFTED"}
+{"id": "D037", "category": "DRIFTED_CLAIM", "text": "The events table stores the user agent.", "expect": {"subject": "events", "property": "column_exists", "value": true, "object": "user_agent"}, "verdict": "DRIFTED"}
+{"id": "D038", "category": "DRIFTED_CLAIM", "text": "The events table records the user agent string.", "expect": {"subject": "events", "property": "column_exists", "value": true, "object": "user_agent"}, "verdict": "DRIFTED"}
+{"id": "D039", "category": "DRIFTED_CLAIM", "text": "Events has a user agent column.", "expect": {"subject": "events", "property": "column_exists", "value": true, "object": "user_agent"}, "verdict": "DRIFTED"}
+{"id": "D040", "category": "DRIFTED_CLAIM", "text": "The event table captures the user agent for every request.", "expect": {"subject": "events", "property": "column_exists", "value": true, "object": "user_agent"}, "verdict": "DRIFTED"}
+{"id": "D041", "category": "DRIFTED_CLAIM", "text": "The events table does not store the source IP.", "expect": {"subject": "events", "property": "column_exists", "value": false, "object": "source_ip"}, "verdict": "DRIFTED"}
+{"id": "D042", "category": "DRIFTED_CLAIM", "text": "Events does not record the client IP.", "expect": {"subject": "events", "property": "column_exists", "value": false, "object": "source_ip"}, "verdict": "DRIFTED"}
+{"id": "D043", "category": "DRIFTED_CLAIM", "text": "The events table has no source ip column.", "expect": {"subject": "events", "property": "column_exists", "value": false, "object": "source_ip"}, "verdict": "DRIFTED"}
+{"id": "D044", "category": "DRIFTED_CLAIM", "text": "The events table never logs the originating IP.", "expect": {"subject": "events", "property": "column_exists", "value": false, "object": "source_ip"}, "verdict": "DRIFTED"}
+{"id": "D045", "category": "DRIFTED_CLAIM", "text": "The checkout worker retries three times, because that is what the runbook says.", "expect": {"subject": "checkout-worker", "property": "retry.max_attempts", "value": 3}, "verdict": "DRIFTED"}
+{"id": "D046", "category": "DRIFTED_CLAIM", "text": "The new checkout is disabled in Europe, so the old flow is still serving.", "expect": {"subject": "new-checkout", "property": "enabled", "value": false, "scope": {"region": "EU"}}, "verdict": "DRIFTED"}
+{"id": "D047", "category": "DRIFTED_CLAIM", "text": "Last I checked the checkout worker retried three times.", "expect": {"subject": "checkout-worker", "property": "retry.max_attempts", "value": 3}, "verdict": "DRIFTED"}
+{"id": "D048", "category": "DRIFTED_CLAIM", "text": "As far as I know the DLQ on the checkout worker is off.", "expect": {"subject": "checkout-worker", "property": "dlq.enabled", "value": false}, "verdict": "DRIFTED"}
+{"id": "D049", "category": "DRIFTED_CLAIM", "text": "The checkout worker retries three times before it gives up.", "expect": {"subject": "checkout-worker", "property": "retry.max_attempts", "value": 3}, "verdict": "DRIFTED"}
+{"id": "D050", "category": "DRIFTED_CLAIM", "text": "The checkout service is on 4.12 in production and the alert is expected.", "expect": {"subject": "checkout-service", "property": "deployed_version", "value": "4.12"}, "verdict": "DRIFTED"}
+{"id": "U001", "category": "UNVERIFIABLE", "text": "The checkout worker runs eight consumers in production.", "expect": null}
+{"id": "U002", "category": "UNVERIFIABLE", "text": "Checkout backs off five seconds between attempts.", "expect": null}
+{"id": "U003", "category": "UNVERIFIABLE", "text": "The checkout worker is deployed on three nodes.", "expect": null}
+{"id": "U004", "category": "UNVERIFIABLE", "text": "The events table is partitioned by month.", "expect": null}
+{"id": "U005", "category": "UNVERIFIABLE", "text": "The events table has about forty million rows.", "expect": null}
+{"id": "U006", "category": "UNVERIFIABLE", "text": "The checkout service sits behind the shared load balancer.", "expect": null}
+{"id": "U007", "category": "UNVERIFIABLE", "text": "Kafka is probably a better fit than SQS for this.", "expect": null}
+{"id": "U008", "category": "UNVERIFIABLE", "text": "Postgres handles this workload fine at our size.", "expect": null}
+{"id": "U009", "category": "UNVERIFIABLE", "text": "The order service owns the idempotency key.", "expect": null}
+{"id": "U010", "category": "UNVERIFIABLE", "text": "Redis is where we keep the session state.", "expect": null}
+{"id": "U011", "category": "UNVERIFIABLE", "text": "The new checkout uses the same payment provider as the old one.", "expect": null}
+{"id": "U012", "category": "UNVERIFIABLE", "text": "Our p99 on checkout is around four hundred milliseconds.", "expect": null}
+{"id": "U013", "category": "UNVERIFIABLE", "text": "The billing team owns the invoice pipeline.", "expect": null}
+{"id": "U014", "category": "UNVERIFIABLE", "text": "We run the migration during the Sunday maintenance window.", "expect": null}
+{"id": "U015", "category": "UNVERIFIABLE", "text": "The checkout worker logs to CloudWatch in production.", "expect": null}
+{"id": "U016", "category": "UNVERIFIABLE", "text": "The alert threshold for queue depth is a thousand messages.", "expect": null}
+{"id": "U017", "category": "UNVERIFIABLE", "text": "There are two availability zones behind that load balancer.", "expect": null}
+{"id": "U018", "category": "UNVERIFIABLE", "text": "The checkout worker uses the shared VPC.", "expect": null}
+{"id": "U019", "category": "UNVERIFIABLE", "text": "The staging environment mirrors production configuration.", "expect": null}
+{"id": "U020", "category": "UNVERIFIABLE", "text": "The events pipeline writes to S3 every fifteen minutes.", "expect": null}
+{"id": "U021", "category": "UNVERIFIABLE", "text": "That dashboard is owned by the platform team.", "expect": null}
+{"id": "U022", "category": "UNVERIFIABLE", "text": "The retry logic lives in the shared messaging library.", "expect": null}
+{"id": "U023", "category": "UNVERIFIABLE", "text": "The incident review is scheduled for Thursday.", "expect": null}
+{"id": "U024", "category": "UNVERIFIABLE", "text": "We use blue-green deploys for the checkout service.", "expect": null}
+{"id": "U025", "category": "UNVERIFIABLE", "text": "The checkout worker container is built from the node base image.", "expect": null}
+{"id": "U026", "category": "UNVERIFIABLE", "text": "The schema migration tool is Flyway.", "expect": null}
+{"id": "U027", "category": "UNVERIFIABLE", "text": "That column was added by the fraud team.", "expect": null}
+{"id": "U028", "category": "UNVERIFIABLE", "text": "Our SLO for checkout availability is 99.9 percent.", "expect": null}
+{"id": "U029", "category": "UNVERIFIABLE", "text": "The payment provider rate limits us at 200 requests a second.", "expect": null}
+{"id": "U030", "category": "UNVERIFIABLE", "text": "The queue depth alarm pages the on-call engineer.", "expect": null}
+{"id": "U031", "category": "UNVERIFIABLE", "text": "The checkout worker reads its config at start-up.", "expect": null}
+{"id": "U032", "category": "UNVERIFIABLE", "text": "That runbook has not been updated since the migration.", "expect": null}
+{"id": "U033", "category": "UNVERIFIABLE", "text": "The events table feeds the analytics warehouse.", "expect": null}
+{"id": "U034", "category": "UNVERIFIABLE", "text": "The API gateway terminates TLS for the checkout service.", "expect": null}
+{"id": "U035", "category": "UNVERIFIABLE", "text": "The feature flag service is AppConfig.", "expect": null}
+{"id": "U036", "category": "UNVERIFIABLE", "text": "We keep thirty days of logs.", "expect": null}
+{"id": "U037", "category": "UNVERIFIABLE", "text": "The checkout service talks to the ledger over gRPC.", "expect": null}
+{"id": "U038", "category": "UNVERIFIABLE", "text": "The order events are keyed by order id.", "expect": null}
+{"id": "U039", "category": "UNVERIFIABLE", "text": "Everything downstream assumes the order events are idempotent.", "expect": null}
+{"id": "U040", "category": "UNVERIFIABLE", "text": "That is why the alert threshold is set where it is.", "expect": null}
+{"id": "U041", "category": "UNVERIFIABLE", "text": "The new starter is picking up the queue work this sprint.", "expect": null}
+{"id": "U042", "category": "UNVERIFIABLE", "text": "The checkout worker has a health endpoint on port 8080.", "expect": null}
+{"id": "U043", "category": "UNVERIFIABLE", "text": "So a poison message takes a while to actually fail out.", "expect": null}
+{"id": "U044", "category": "UNVERIFIABLE", "text": "The duplicate-charge incident was in August.", "expect": null}
+{"id": "U045", "category": "UNVERIFIABLE", "text": "The fraud team asked for that column back in July.", "expect": null}
+{"id": "U046", "category": "UNVERIFIABLE", "text": "The rollout plan had it going out after the incident review.", "expect": null}
+{"id": "U047", "category": "UNVERIFIABLE", "text": "We moved the checkout worker to graviton instances.", "expect": null}
+{"id": "U048", "category": "UNVERIFIABLE", "text": "The events table primary key is a bigserial.", "expect": null}
+{"id": "U049", "category": "UNVERIFIABLE", "text": "That change went through the usual review.", "expect": null}
+{"id": "U050", "category": "UNVERIFIABLE", "text": "The checkout worker retries a bunch of times before giving up.", "expect": null}
+{"id": "N001", "category": "NON_CLAIM", "text": "Does the checkout worker still retry three times on a 5xx?", "expect": null}
+{"id": "N002", "category": "NON_CLAIM", "text": "Is the new checkout enabled in Europe yet?", "expect": null}
+{"id": "N003", "category": "NON_CLAIM", "text": "How many times does the checkout worker retry?", "expect": null}
+{"id": "N004", "category": "NON_CLAIM", "text": "Has the checkout service shipped 4.13 yet?", "expect": null}
+{"id": "N005", "category": "NON_CLAIM", "text": "Do we store the source IP on the events table?", "expect": null}
+{"id": "N006", "category": "NON_CLAIM", "text": "The checkout worker retries three times, right?", "expect": null}
+{"id": "N007", "category": "NON_CLAIM", "text": "Any idea whether the new checkout is live in the EU?", "expect": null}
+{"id": "N008", "category": "NON_CLAIM", "text": "Is the DLQ on the checkout worker still enabled?", "expect": null}
+{"id": "N009", "category": "NON_CLAIM", "text": "What version is the checkout service running in production?", "expect": null}
+{"id": "N010", "category": "NON_CLAIM", "text": "Was the checkout worker always retrying three times?", "expect": null}
+{"id": "N011", "category": "NON_CLAIM", "text": "Two retries on the checkout worker seems too low for this kind of failure.", "expect": null}
+{"id": "N012", "category": "NON_CLAIM", "text": "Three retries feels too aggressive for a payment path.", "expect": null}
+{"id": "N013", "category": "NON_CLAIM", "text": "One retry is not ideal for a transient network error.", "expect": null}
+{"id": "N014", "category": "NON_CLAIM", "text": "Honestly the new checkout should be enabled in Europe by now.", "expect": null}
+{"id": "N015", "category": "NON_CLAIM", "text": "Five retries would be overkill on the checkout worker.", "expect": null}
+{"id": "N016", "category": "NON_CLAIM", "text": "The DLQ ought to be enabled on every worker.", "expect": null}
+{"id": "N017", "category": "NON_CLAIM", "text": "I'd rather the checkout service was on 4.13 before the demo.", "expect": null}
+{"id": "N018", "category": "NON_CLAIM", "text": "The events table should have a user agent column.", "expect": null}
+{"id": "N019", "category": "NON_CLAIM", "text": "Maybe the checkout worker retries three times and that is the backlog.", "expect": null}
+{"id": "N020", "category": "NON_CLAIM", "text": "Perhaps the new checkout is disabled in Europe.", "expect": null}
+{"id": "N021", "category": "NON_CLAIM", "text": "It might be that the DLQ on the checkout worker is off.", "expect": null}
+{"id": "N022", "category": "NON_CLAIM", "text": "Possibly the checkout service is still on 4.12.", "expect": null}
+{"id": "N023", "category": "NON_CLAIM", "text": "I wonder if the events table stores the user agent.", "expect": null}
+{"id": "N024", "category": "NON_CLAIM", "text": "What if the checkout worker retries three times on every failure?", "expect": null}
+{"id": "N025", "category": "NON_CLAIM", "text": "Let's set the checkout worker to three retries.", "expect": null}
+{"id": "N026", "category": "NON_CLAIM", "text": "We should bump the checkout worker to three retries.", "expect": null}
+{"id": "N027", "category": "NON_CLAIM", "text": "Can you enable the new checkout in Europe today?", "expect": null}
+{"id": "N028", "category": "NON_CLAIM", "text": "Please turn the DLQ back on for the checkout worker.", "expect": null}
+{"id": "N029", "category": "NON_CLAIM", "text": "Go ahead and deploy 4.13 of the checkout service.", "expect": null}
+{"id": "N030", "category": "NON_CLAIM", "text": "We need to add the user agent to the events table.", "expect": null}
+{"id": "N031", "category": "NON_CLAIM", "text": "If the checkout worker retried three times we would see duplicates.", "expect": null}
+{"id": "N032", "category": "NON_CLAIM", "text": "Unless the new checkout is enabled in Europe the numbers will not add up.", "expect": null}
+{"id": "N033", "category": "NON_CLAIM", "text": "Suppose the checkout service is still running 4.12.", "expect": null}
+{"id": "N034", "category": "NON_CLAIM", "text": "The checkout worker will retry three times once we ship the change.", "expect": null}
+{"id": "N035", "category": "NON_CLAIM", "text": "We're going to enable the new checkout in Europe next week.", "expect": null}
+{"id": "N036", "category": "NON_CLAIM", "text": "The events table is going to store the user agent after the migration.", "expect": null}
+{"id": "N037", "category": "NON_CLAIM", "text": "Once we deploy, the checkout service will be running 4.13.", "expect": null}
+{"id": "N038", "category": "NON_CLAIM", "text": "I thought the checkout worker had the DLQ turned off.", "expect": null}
+{"id": "N039", "category": "NON_CLAIM", "text": "I assumed the checkout worker retried three times.", "expect": null}
+{"id": "N040", "category": "NON_CLAIM", "text": "I used to think the new checkout was disabled in Europe.", "expect": null}
+{"id": "N041", "category": "NON_CLAIM", "text": "I was under the impression the checkout service was on 4.12.", "expect": null}
+{"id": "N042", "category": "NON_CLAIM", "text": "Priya said the checkout worker retries three times.", "expect": null}
+{"id": "N043", "category": "NON_CLAIM", "text": "Sam told me the new checkout is disabled in Europe.", "expect": null}
+{"id": "N044", "category": "NON_CLAIM", "text": "The platform team reckons the checkout service is still on 4.12.", "expect": null}
+{"id": "N045", "category": "NON_CLAIM", "text": "They said the events table stores the user agent.", "expect": null}
+{"id": "N046", "category": "NON_CLAIM", "text": "Right, the checkout worker is throwing again.", "expect": null}
+{"id": "N047", "category": "NON_CLAIM", "text": "I'll add a dashboard for queue depth this afternoon.", "expect": null}
+{"id": "N048", "category": "NON_CLAIM", "text": "Walking the new starter through the queue design.", "expect": null}
+{"id": "N049", "category": "NON_CLAIM", "text": "I mentioned the queue thing to the platform team.", "expect": null}
+{"id": "N050", "category": "NON_CLAIM", "text": "They are going to look at the broker settings instead.", "expect": null}
+{"id": "S051", "category": "SUPPORTED_CLAIM", "text": "It retries once before anything lands in the DLQ.", "window": ["Okay, the checkout worker is backing up again."], "expect": {"subject": "checkout-worker", "property": "retry.max_attempts", "value": 1}, "verdict": "SUPPORTED", "note": "subject carried from the conversation window behind a pronoun"}
+{"id": "D051", "category": "DRIFTED_CLAIM", "text": "It retries three times before anything lands in the DLQ.", "window": ["Okay, the checkout worker is backing up again."], "expect": {"subject": "checkout-worker", "property": "retry.max_attempts", "value": 3}, "verdict": "DRIFTED", "note": "the August 12 utterance from the demo conversations"}
+{"id": "U051", "category": "UNVERIFIABLE", "text": "It retries three times.", "expect": null, "note": "no subject anywhere: a pronoun with no antecedent grounds nothing"}
+{"id": "N051", "category": "NON_CLAIM", "text": "The checkout worker retries three times and the events table stores the source IP.", "expect": null, "note": "two systems in one sentence: ambiguous, and silence beats a coin flip"}
