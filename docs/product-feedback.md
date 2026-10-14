@@ -278,6 +278,5 @@ tell the human what changed and when, rather than silently correcting them.
 | **Vite 6 + React 18** | the dashboard | Yes. 15 kB of CSS, 175 kB of JS, a 360 ms build. |
 | **pnpm 9** | workspace | Yes, with one sharp edge: a `package.json` script named `audit` is silently shadowed by pnpm's own command, so the README documented a command that printed a vulnerability report instead of the product's tool. *(friction log P1)* |
 | **Playwright** | recording the demo against the real running product | Yes. One trap: `page.evaluate` awaits a returned promise, so returning the tour's `start()` puts the recording window over the end screen. *(PW1)* |
-| **Edge TTS** | narration, measured per sentence so the visuals pace themselves to the voice | Yes. |
 | **GitHub CLI** | credential for the docs pull request, via `gh auth token` | Yes. |
 | **Node on Windows** | — | The one genuine platform problem: there is no way to spawn an npm `.cmd` shim that Node does not object to. `ENOENT` without a shell, `DEP0190` with one, and `EINVAL` if you resolve the path and skip the shell. Three cases, all needed. *(N1)* |
