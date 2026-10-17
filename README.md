@@ -22,6 +22,8 @@ locator and the timestamp; the **Conversation review** tab for everything the pr
 about; the **Agent check** tab to hand it a sentence of your own and get the verdict an agent would get.
 It sleeps when idle, so the first load takes a few seconds to wake.
 
+**Demo video:** <https://youtu.be/MOUOTh7kmVQ>
+
 ---
 
 ## The problem, in one sentence
