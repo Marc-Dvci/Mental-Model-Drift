@@ -20,7 +20,7 @@ Bee's own neural search and persistent memory are used when connected to the aut
 non-private fixtures. Open a card's **View evidence** for the source, the
 locator and the timestamp; the **Conversation review** tab for everything the product decided *not* to speak
 about; the **Agent check** tab to hand it a sentence of your own and get the verdict an agent would get.
-It sleeps when idle, so the first load takes a few seconds to wake.
+It sleeps when idle, so the first load takes about a minute to wake.
 
 **Demo video:** <https://youtu.be/MOUOTh7kmVQ>
 
@@ -40,6 +40,18 @@ Sixty seconds later the dashboard says what changed, when, which commit did it, 
 belief has been stated in **five conversations since 14 July** — four of them while three was still
 the right answer, and this one, which is not. Two hours after that the same person repeats it to
 another team in a corridor, while the stream happens to be down, and the product catches that too.
+
+I see this in my audit work: what everyone believes the code does and what it actually does can
+quietly differ. Mental Model Drift checks the difference while the decision is still being made.
+
+## For judges
+
+| Criterion | Where to look |
+|---|---|
+| Tech implementation | Bee's realtime stream, search, changed cursor and facts in `packages/bee/`; Bee's own SSE parser run on the wire bytes in `tests/conformance/bee-wire.test.ts`; AppConfig, Bedrock and DynamoDB in [AWS](#aws) |
+| Design | One engine behind the dashboard, the MCP server and the `mmd` command ([Three surfaces, one engine](#three-surfaces-one-engine)) |
+| Potential impact | [Measured, not asserted](#measured-not-asserted): 100 % precision and 0.0 % false positives on 204 labelled utterances |
+| Quality of the idea | [Four ways Bee is used, not one](#four-ways-bee-is-used-not-one); [Why this is not an LLM wrapper](#why-this-is-not-an-llm-wrapper) |
 
 ## What it does
 
