@@ -15,6 +15,9 @@ No private Bee conversation data is included in this repository. The checked-in 
 provides deterministic, non-private fixtures so judges and developers can reproduce the workflow
 without access to the entrant's personal Bee data. Its search and Facts store are test doubles;
 Bee's own neural search and persistent memory are used when connected to the authenticated proxy.
+The fixtures and the test proxy answer in the shapes Bee's API returns (numeric conversation ids,
+epoch-millisecond times, `transcriptions[]`, "Unknown" speakers, uuid-keyed live frames), so the
+code that reads them is the code that reads an account.
 
 **Explore the dashboard: <https://mental-model-drift.onrender.com>** — a public instance using those
 non-private fixtures. Open a card's **View evidence** for the source, the
@@ -85,17 +88,25 @@ dashboard's **Conversation review** tab shows the survey so it is measured rathe
 nothing else: `bee proxy`'s `/v1/*` endpoints and its SSE stream, with the `bee` CLI as the fallback
 for machines with no proxy running.
 
-Two details in there are worth a reviewer's thirty seconds, because both were bugs first:
+Four details in there are worth a reviewer's thirty seconds, because all four were bugs first:
 
-- **A realtime frame's type is its SSE `event:` name.** Bee's own client discards any frame that
-  arrives without one, and three real event types have payloads that a shape-guesser reads as each
-  other. The name is now read as authoritative, and anything inferred is marked as inferred.
+- **A live frame says what it is, and which utterance it carries.** Its type is on the SSE `event:`
+  line and again in its own `type` field, and the utterance has an `id` and a `spoken_at`. The
+  documentation's example payloads show none of the three. The client reads the name from either
+  place, and guesses from the payload's shape only for a frame that has neither, marking the guess.
+- **The stream and the records name a conversation differently.** A frame carries a
+  `conversation_uuid`; a record has a numeric `id` and no uuid. The utterance id joins them: it is
+  the id of the same utterance in the capturing conversation's realtime transcription.
+- **Records are not shaped the way the examples suggest.** A conversation's words are under
+  `transcriptions[]`, realtime first and final once processed; times are epoch milliseconds; every
+  speaker is "Unknown"; `GET /v1/changes` returns bare ids with its cursor at the top level, where
+  `bee changed --json` puts it under `meta`.
 - **`bee proxy` is a transparent pass-through, not a subset of the CLI.** Every `/v1` path is
   forwarded upstream, so `GET /v1/conversations/:id/related` works over the proxy and no capability
   quietly disappears on a machine without the CLI installed.
 
-Neither is stated in Bee's published documentation; both came out of reading `@beeai/cli`'s source,
-and both are written up in [`docs/friction-log.md`](docs/friction-log.md).
+All four are written up in [`docs/friction-log.md`](docs/friction-log.md), with the source each
+correction came from.
 
 ## Quick start
 
@@ -217,8 +228,8 @@ being dropped. See `docs/friction-log.md`.
 ## Run everything
 
 ```bash
-pnpm verify        # typecheck, 226 tests, evaluation harness
-pnpm test          # 226 tests: unit, adapter failure matrix, 12 golden scenarios, MCP,
+pnpm verify        # typecheck, 244 tests, evaluation harness
+pnpm test          # 244 tests: unit, adapter failure matrix, 12 golden scenarios, MCP,
                    #            wire conformance, the corpus gate, the server over real HTTP
 pnpm doctor        # Bee preflight; add --write to exercise a diagnostic Facts write
 pnpm eval          # extraction metrics against the golden corpus
@@ -230,8 +241,8 @@ pnpm mcp           # the Assumption Firewall over MCP
 ```
 
 `pnpm doctor` is the preflight. It runs the client over the configured transport and prints one
-row per capability — including whether the last realtime frame arrived carrying its SSE event name,
-which is the difference between reading Bee's stream and guessing at it.
+row per capability — including whether the last realtime frame arrived named and carrying its
+utterance id, which is the difference between reading Bee's stream and guessing at it.
 
 ## The Assumption Firewall (MCP)
 
@@ -342,7 +353,7 @@ tools/eval/               the golden corpus and the metrics harness
 tools/demo/               fixture runner, corpus audit, reference repository seeding
 infrastructure/           CDK stack and Lambda handlers
 tests/conformance/        wire format verification through Bee's own SSE parser
-tests/                    226 tests
+tests/                    244 tests
 ```
 
 `packages/drift-spec` has no I/O, no model and no Bee: it is the portable half, and it is the piece

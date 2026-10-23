@@ -345,7 +345,7 @@ function Card({
 
       <div className="values">
         <div className="value asserted">
-          <span className="value-label">You said</span>
+          <span className="value-label">{drift.ownership === 'UNKNOWN' ? 'Heard' : 'You said'}</span>
           <span className="value-number">{fmt(drift.assertedValue)}</span>
         </div>
         <span className="arrow" aria-hidden="true">
@@ -381,7 +381,7 @@ function Card({
           <p>
             {drift.ownership === 'LIKELY_USER'
               ? 'Read back before acting on it:'
-              : 'Heard in your conversation, but more than one person was speaking:'}
+              : 'Heard in your conversation. Bee does not say who said it:'}
           </p>
           <p className="confirm-q">Was this your understanding?</p>
           <button
@@ -498,7 +498,7 @@ function Detail({ card, onClose, onChanged }: { card: DriftCard; onClose: () => 
         <div className="evidence-summary">
           <span className="eyebrow">VERIFIED AGAINST YOUR REGISTERED SOURCE</span>
           <div className="evidence-comparison">
-            <div><span>You remembered</span><strong>{fmt(card.drift.assertedValue)}</strong></div>
+            <div><span>{card.drift.ownership === 'UNKNOWN' ? 'Heard' : 'You remembered'}</span><strong>{fmt(card.drift.assertedValue)}</strong></div>
             <span className="evidence-arrow" aria-hidden="true">&rarr;</span>
             <div><span>The current value</span><strong>{fmt(card.drift.actualValue)}</strong></div>
           </div>
@@ -719,7 +719,8 @@ function CoveragePanel() {
       <div className="coverage-head">
         <h3>Across everything Bee has recorded</h3>
         <p className="muted small">
-          {cov.conversations} conversations, {cov.utterances} utterances, {cov.speakers} distinct speakers
+          {cov.conversations} conversations, {cov.utterances} utterances
+          {cov.speakers > 0 ? `, ${cov.speakers} distinct speakers` : ''}
           {cov.earliest ? `, ${shortDate(cov.earliest)} to ${shortDate(cov.latest ?? cov.earliest)}` : ''}. Re-run of the
           same extraction and grounding gates, reading no source and writing nothing.
         </p>

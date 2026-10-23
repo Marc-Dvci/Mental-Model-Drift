@@ -1,0 +1,83 @@
+{
+  "conversation": {
+    "id": 10588401,
+    "start_time": 1787589601124,
+    "end_time": 1787589671576,
+    "summary": "Pairing on the dashboard.",
+    "short_summary": "Pairing on the dashboard",
+    "state": "COMPLETED",
+    "created_at": 1787589601412,
+    "updated_at": 1787589753970,
+    "transcriptions": [
+      {
+        "id": 14506415,
+        "realtime": false,
+        "utterances": [
+          {
+            "id": 3661324761,
+            "realtime": false,
+            "start": 1.88,
+            "end": 7.04,
+            "spoken_at": 1787589603000,
+            "text": "This panel is queue depth, the one under it is age of oldest message.",
+            "speaker": "Unknown",
+            "created_at": 1787589748811
+          },
+          {
+            "id": 3661324762,
+            "realtime": false,
+            "start": 19.88,
+            "end": 21.98,
+            "spoken_at": 1787589621000,
+            "text": "What is a normal depth?",
+            "speaker": "Unknown",
+            "created_at": 1787589748815
+          },
+          {
+            "id": 3661324763,
+            "realtime": false,
+            "start": 27.88,
+            "end": 31.34,
+            "spoken_at": 1787589629000,
+            "text": "A few hundred. The alarm is at a thousand.",
+            "speaker": "Unknown",
+            "created_at": 1787589748820
+          },
+          {
+            "id": 3661324764,
+            "realtime": false,
+            "start": 41.88,
+            "end": 46.36,
+            "spoken_at": 1787589643000,
+            "text": "The checkout worker logs to CloudWatch, so the panel reads from there.",
+            "speaker": "Unknown",
+            "created_at": 1787589748826
+          },
+          {
+            "id": 3661324765,
+            "realtime": false,
+            "start": 56.88,
+            "end": 60,
+            "spoken_at": 1787589658000,
+            "text": "Can you add the DLQ depth as well?",
+            "speaker": "Unknown",
+            "created_at": 1787589748833
+          },
+          {
+            "id": 3661324766,
+            "realtime": false,
+            "start": 64.88,
+            "end": 66.98,
+            "spoken_at": 1787589666000,
+            "text": "Yes, that is a one-liner.",
+            "speaker": "Unknown",
+            "created_at": 1787589748836
+          }
+        ]
+      }
+    ],
+    "suggested_links": [],
+    "primary_location": null
+  },
+  "timezone": "Europe/Paris"
+}

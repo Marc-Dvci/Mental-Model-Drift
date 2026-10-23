@@ -1,0 +1,73 @@
+{
+  "conversation": {
+    "id": 10039701,
+    "start_time": 1784202001591,
+    "end_time": 1784202047383,
+    "summary": "Lunch.",
+    "short_summary": "Lunch",
+    "state": "COMPLETED",
+    "created_at": 1784202001652,
+    "updated_at": 1784202132714,
+    "transcriptions": [
+      {
+        "id": 13754908,
+        "realtime": false,
+        "utterances": [
+          {
+            "id": 3583409479,
+            "realtime": false,
+            "start": 1.41,
+            "end": 5.55,
+            "spoken_at": 1784202003000,
+            "text": "Is the place on the corner still doing the set menu?",
+            "speaker": "Unknown",
+            "created_at": 1784202127555
+          },
+          {
+            "id": 3583409480,
+            "realtime": false,
+            "start": 10.41,
+            "end": 13.53,
+            "spoken_at": 1784202012000,
+            "text": "I think so, they changed the hours though.",
+            "speaker": "Unknown",
+            "created_at": 1784202127562
+          },
+          {
+            "id": 3583409481,
+            "realtime": false,
+            "start": 19.41,
+            "end": 22.87,
+            "spoken_at": 1784202021000,
+            "text": "Fine, I will grab something on the way back.",
+            "speaker": "Unknown",
+            "created_at": 1784202127565
+          },
+          {
+            "id": 3583409482,
+            "realtime": false,
+            "start": 31.41,
+            "end": 34.53,
+            "spoken_at": 1784202033000,
+            "text": "Are you around for the retro on Thursday?",
+            "speaker": "Unknown",
+            "created_at": 1784202127569
+          },
+          {
+            "id": 3583409483,
+            "realtime": false,
+            "start": 39.41,
+            "end": 42.19,
+            "spoken_at": 1784202041000,
+            "text": "Should be, unless the deploy slips again.",
+            "speaker": "Unknown",
+            "created_at": 1784202127574
+          }
+        ]
+      }
+    ],
+    "suggested_links": [],
+    "primary_location": null
+  },
+  "timezone": "Europe/Paris"
+}

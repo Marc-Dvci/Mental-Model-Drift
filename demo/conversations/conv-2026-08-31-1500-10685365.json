@@ -1,0 +1,63 @@
+{
+  "conversation": {
+    "id": 10685365,
+    "start_time": 1788189000794,
+    "end_time": 1788189041525,
+    "summary": "Weekend plans.",
+    "short_summary": "Weekend plans",
+    "state": "COMPLETED",
+    "created_at": 1788189001190,
+    "updated_at": 1788189100207,
+    "transcriptions": [
+      {
+        "id": 14639674,
+        "realtime": false,
+        "utterances": [
+          {
+            "id": 3675109724,
+            "realtime": false,
+            "start": 3.21,
+            "end": 5.65,
+            "spoken_at": 1788189004000,
+            "text": "Doing anything for the bank holiday?",
+            "speaker": "Unknown",
+            "created_at": 1788189095106
+          },
+          {
+            "id": 3675109725,
+            "realtime": false,
+            "start": 12.21,
+            "end": 13.97,
+            "spoken_at": 1788189013000,
+            "text": "Nothing planned. Probably cooking.",
+            "speaker": "Unknown",
+            "created_at": 1788189095113
+          },
+          {
+            "id": 3675109726,
+            "realtime": false,
+            "start": 22.21,
+            "end": 24.99,
+            "spoken_at": 1788189023000,
+            "text": "We are driving up on Saturday morning.",
+            "speaker": "Unknown",
+            "created_at": 1788189095116
+          },
+          {
+            "id": 3675109727,
+            "realtime": false,
+            "start": 33.21,
+            "end": 36.67,
+            "spoken_at": 1788189034000,
+            "text": "Send me the name of that place you mentioned.",
+            "speaker": "Unknown",
+            "created_at": 1788189095120
+          }
+        ]
+      }
+    ],
+    "suggested_links": [],
+    "primary_location": null
+  },
+  "timezone": "Europe/Paris"
+}

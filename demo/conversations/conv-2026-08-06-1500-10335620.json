@@ -1,0 +1,73 @@
+{
+  "conversation": {
+    "id": 10335620,
+    "start_time": 1786028701361,
+    "end_time": 1786028754620,
+    "summary": "Release chatter.",
+    "short_summary": "Release chatter",
+    "state": "COMPLETED",
+    "created_at": 1786028701456,
+    "updated_at": 1786028889181,
+    "transcriptions": [
+      {
+        "id": 14159923,
+        "realtime": false,
+        "utterances": [
+          {
+            "id": 3625424876,
+            "realtime": false,
+            "start": 1.64,
+            "end": 5.1,
+            "spoken_at": 1786028703000,
+            "text": "4.12 went out to production about an hour ago.",
+            "speaker": "Unknown",
+            "created_at": 1786028883201
+          },
+          {
+            "id": 3625424877,
+            "realtime": false,
+            "start": 13.64,
+            "end": 15.74,
+            "spoken_at": 1786028715000,
+            "text": "Anything in it for us?",
+            "speaker": "Unknown",
+            "created_at": 1786028883205
+          },
+          {
+            "id": 3625424878,
+            "realtime": false,
+            "start": 20.64,
+            "end": 24.1,
+            "spoken_at": 1786028722000,
+            "text": "Mostly the ledger change, nothing on the queue side.",
+            "speaker": "Unknown",
+            "created_at": 1786028883210
+          },
+          {
+            "id": 3625424879,
+            "realtime": false,
+            "start": 34.64,
+            "end": 38.1,
+            "spoken_at": 1786028736000,
+            "text": "The checkout service is running 4.12 in production now.",
+            "speaker": "Unknown",
+            "created_at": 1786028883216
+          },
+          {
+            "id": 3625424880,
+            "realtime": false,
+            "start": 47.64,
+            "end": 50.76,
+            "spoken_at": 1786028749000,
+            "text": "I will watch the error rate this afternoon.",
+            "speaker": "Unknown",
+            "created_at": 1786028883223
+          }
+        ]
+      }
+    ],
+    "suggested_links": [],
+    "primary_location": null
+  },
+  "timezone": "Europe/Paris"
+}

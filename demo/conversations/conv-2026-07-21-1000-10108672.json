@@ -1,0 +1,93 @@
+{
+  "conversation": {
+    "id": 10108672,
+    "start_time": 1784628301236,
+    "end_time": 1784628381512,
+    "summary": "Pairing on the events pipeline.",
+    "short_summary": "Pairing on the events pipeline",
+    "state": "COMPLETED",
+    "created_at": 1784628301310,
+    "updated_at": 1784628493106,
+    "transcriptions": [
+      {
+        "id": 13849352,
+        "realtime": false,
+        "utterances": [
+          {
+            "id": 3593215790,
+            "realtime": false,
+            "start": 1.76,
+            "end": 5.56,
+            "spoken_at": 1784628303000,
+            "text": "So the events table is where every order event lands.",
+            "speaker": "Unknown",
+            "created_at": 1784628487283
+          },
+          {
+            "id": 3593215792,
+            "realtime": false,
+            "start": 14.76,
+            "end": 17.2,
+            "spoken_at": 1784628316000,
+            "text": "And analytics reads from that directly?",
+            "speaker": "Unknown",
+            "created_at": 1784628487286
+          },
+          {
+            "id": 3593215794,
+            "realtime": false,
+            "start": 22.76,
+            "end": 25.54,
+            "spoken_at": 1784628324000,
+            "text": "Through the warehouse job, every fifteen minutes.",
+            "speaker": "Unknown",
+            "created_at": 1784628487291
+          },
+          {
+            "id": 3593215795,
+            "realtime": false,
+            "start": 36.76,
+            "end": 40.56,
+            "spoken_at": 1784628338000,
+            "text": "The events table does not store the source IP yet.",
+            "speaker": "Unknown",
+            "created_at": 1784628487298
+          },
+          {
+            "id": 3593215796,
+            "realtime": false,
+            "start": 48.76,
+            "end": 51.88,
+            "spoken_at": 1784628350000,
+            "text": "Fraud asked for that in the last review.",
+            "speaker": "Unknown",
+            "created_at": 1784628487301
+          },
+          {
+            "id": 3593215797,
+            "realtime": false,
+            "start": 59.76,
+            "end": 63.9,
+            "spoken_at": 1784628361000,
+            "text": "It is on the list. Someone has to write the migration.",
+            "speaker": "Unknown",
+            "created_at": 1784628487305
+          },
+          {
+            "id": 3593215798,
+            "realtime": false,
+            "start": 73.76,
+            "end": 78.24,
+            "spoken_at": 1784628375000,
+            "text": "The order events are keyed by order id, so backfilling is fine.",
+            "speaker": "Unknown",
+            "created_at": 1784628487310
+          }
+        ]
+      }
+    ],
+    "suggested_links": [],
+    "primary_location": null
+  },
+  "timezone": "Europe/Paris"
+}

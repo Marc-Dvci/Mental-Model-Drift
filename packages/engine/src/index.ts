@@ -13,6 +13,7 @@ export * from './store/dynamo-store.ts';
 export * from './recurrence.ts';
 export * from './pipeline.ts';
 export * from './reconcile.ts';
+export * from './live.ts';
 export * from './capture.ts';
 export * from './docs-pr.ts';
 export * from './config.ts';

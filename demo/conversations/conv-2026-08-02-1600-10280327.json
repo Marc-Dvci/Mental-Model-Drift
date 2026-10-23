@@ -1,0 +1,73 @@
+{
+  "conversation": {
+    "id": 10280327,
+    "start_time": 1785687721653,
+    "end_time": 1785687775047,
+    "summary": "Reviewing the source IP migration.",
+    "short_summary": "Reviewing the source IP migration",
+    "state": "COMPLETED",
+    "created_at": 1785687722058,
+    "updated_at": 1785687910031,
+    "transcriptions": [
+      {
+        "id": 14084483,
+        "realtime": false,
+        "utterances": [
+          {
+            "id": 3617582355,
+            "realtime": false,
+            "start": 1.35,
+            "end": 4.13,
+            "spoken_at": 1785687723000,
+            "text": "The fraud column went in this afternoon.",
+            "speaker": "Unknown",
+            "created_at": 1785687904756
+          },
+          {
+            "id": 3617582356,
+            "realtime": false,
+            "start": 13.35,
+            "end": 16.47,
+            "spoken_at": 1785687735000,
+            "text": "The events table stores the source IP now.",
+            "speaker": "Unknown",
+            "created_at": 1785687904759
+          },
+          {
+            "id": 3617582360,
+            "realtime": false,
+            "start": 26.35,
+            "end": 28.11,
+            "spoken_at": 1785687748000,
+            "text": "Nice. Is it backfilled?",
+            "speaker": "Unknown",
+            "created_at": 1785687904763
+          },
+          {
+            "id": 3617582361,
+            "realtime": false,
+            "start": 34.35,
+            "end": 37.13,
+            "spoken_at": 1785687756000,
+            "text": "Only forward, we agreed not to backfill.",
+            "speaker": "Unknown",
+            "created_at": 1785687904766
+          },
+          {
+            "id": 3617582364,
+            "realtime": false,
+            "start": 47.35,
+            "end": 51.83,
+            "spoken_at": 1785687769000,
+            "text": "The migration tool is Flyway, so it is in the usual place.",
+            "speaker": "Unknown",
+            "created_at": 1785687904770
+          }
+        ]
+      }
+    ],
+    "suggested_links": [],
+    "primary_location": null
+  },
+  "timezone": "Europe/Paris"
+}

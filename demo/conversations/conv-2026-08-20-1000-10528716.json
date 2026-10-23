@@ -1,0 +1,103 @@
+{
+  "conversation": {
+    "id": 10528716,
+    "start_time": 1787220900742,
+    "end_time": 1787220993427,
+    "summary": "Incident review for the duplicate charges.",
+    "short_summary": "Incident review for the duplicate charges",
+    "state": "COMPLETED",
+    "created_at": 1787220900841,
+    "updated_at": 1787221081833,
+    "transcriptions": [
+      {
+        "id": 14424668,
+        "realtime": false,
+        "utterances": [
+          {
+            "id": 3652845299,
+            "realtime": false,
+            "start": 3.26,
+            "end": 6.04,
+            "spoken_at": 1787220904000,
+            "text": "So the duplicate charges. What actually happened?",
+            "speaker": "Unknown",
+            "created_at": 1787221076672
+          },
+          {
+            "id": 3652845300,
+            "realtime": false,
+            "start": 15.26,
+            "end": 18.72,
+            "spoken_at": 1787220916000,
+            "text": "The provider timed out but the charge went through.",
+            "speaker": "Unknown",
+            "created_at": 1787221076679
+          },
+          {
+            "id": 3652845301,
+            "realtime": false,
+            "start": 29.26,
+            "end": 32.72,
+            "spoken_at": 1787220930000,
+            "text": "Then we retried, and the customer was charged again.",
+            "speaker": "Unknown",
+            "created_at": 1787221076682
+          },
+          {
+            "id": 3652845303,
+            "realtime": false,
+            "start": 43.26,
+            "end": 45.7,
+            "spoken_at": 1787220944000,
+            "text": "How many times did we retry?",
+            "speaker": "Unknown",
+            "created_at": 1787221076686
+          },
+          {
+            "id": 3652845304,
+            "realtime": false,
+            "start": 51.26,
+            "end": 53.36,
+            "spoken_at": 1787220952000,
+            "text": "Three, on the checkout worker.",
+            "speaker": "Unknown",
+            "created_at": 1787221076692
+          },
+          {
+            "id": 3652845305,
+            "realtime": false,
+            "start": 61.26,
+            "end": 65.06,
+            "spoken_at": 1787220962000,
+            "text": "Then the fix is to stop retrying on that path.",
+            "speaker": "Unknown",
+            "created_at": 1787221076699
+          },
+          {
+            "id": 3652845308,
+            "realtime": false,
+            "start": 72.26,
+            "end": 74.7,
+            "spoken_at": 1787220973000,
+            "text": "Agreed. Someone raise the config change.",
+            "speaker": "Unknown",
+            "created_at": 1787221076702
+          },
+          {
+            "id": 3652845309,
+            "realtime": false,
+            "start": 83.26,
+            "end": 89.1,
+            "spoken_at": 1787220984000,
+            "text": "The checkout service is still running 4.12, so this is in scope for the next release.",
+            "speaker": "Unknown",
+            "created_at": 1787221076708
+          }
+        ]
+      }
+    ],
+    "suggested_links": [],
+    "primary_location": null
+  },
+  "timezone": "Europe/Paris"
+}

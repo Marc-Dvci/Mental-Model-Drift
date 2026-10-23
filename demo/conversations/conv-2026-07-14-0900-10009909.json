@@ -1,0 +1,103 @@
+{
+  "conversation": {
+    "id": 10009909,
+    "start_time": 1784020320978,
+    "end_time": 1784020415615,
+    "summary": "Kick-off for the checkout queue work.",
+    "short_summary": "Kick-off for the checkout queue work",
+    "state": "COMPLETED",
+    "created_at": 1784020321374,
+    "updated_at": 1784020464263,
+    "transcriptions": [
+      {
+        "id": 13713723,
+        "realtime": false,
+        "utterances": [
+          {
+            "id": 3579231090,
+            "realtime": false,
+            "start": 3.02,
+            "end": 6.14,
+            "spoken_at": 1784020324000,
+            "text": "Right, first day on the checkout queue work.",
+            "speaker": "Unknown",
+            "created_at": 1784020458537
+          },
+          {
+            "id": 3579231093,
+            "realtime": false,
+            "start": 14.02,
+            "end": 18.16,
+            "spoken_at": 1784020335000,
+            "text": "The worker pulls off SQS and writes to the orders table.",
+            "speaker": "Unknown",
+            "created_at": 1784020458540
+          },
+          {
+            "id": 3579231096,
+            "realtime": false,
+            "start": 27.02,
+            "end": 29.8,
+            "spoken_at": 1784020348000,
+            "text": "Do we have a runbook for it?",
+            "speaker": "Unknown",
+            "created_at": 1784020458546
+          },
+          {
+            "id": 3579231097,
+            "realtime": false,
+            "start": 34.02,
+            "end": 38.16,
+            "spoken_at": 1784020355000,
+            "text": "There is one, it has not been touched since the migration.",
+            "speaker": "Unknown",
+            "created_at": 1784020458550
+          },
+          {
+            "id": 3579231098,
+            "realtime": false,
+            "start": 48.02,
+            "end": 51.48,
+            "spoken_at": 1784020369000,
+            "text": "I will read the config before I change anything.",
+            "speaker": "Unknown",
+            "created_at": 1784020458555
+          },
+          {
+            "id": 3579231099,
+            "realtime": false,
+            "start": 61.02,
+            "end": 65.16,
+            "spoken_at": 1784020382000,
+            "text": "The checkout worker retries three times before the dead letter queue.",
+            "speaker": "Unknown",
+            "created_at": 1784020458561
+          },
+          {
+            "id": 3579231100,
+            "realtime": false,
+            "start": 73.02,
+            "end": 75.8,
+            "spoken_at": 1784020394000,
+            "text": "That seems reasonable for a payment path.",
+            "speaker": "Unknown",
+            "created_at": 1784020458568
+          },
+          {
+            "id": 3579231101,
+            "realtime": false,
+            "start": 87.02,
+            "end": 90.48,
+            "spoken_at": 1784020408000,
+            "text": "I will add a queue depth dashboard this week.",
+            "speaker": "Unknown",
+            "created_at": 1784020458571
+          }
+        ]
+      }
+    ],
+    "suggested_links": [],
+    "primary_location": null
+  },
+  "timezone": "Europe/Paris"
+}

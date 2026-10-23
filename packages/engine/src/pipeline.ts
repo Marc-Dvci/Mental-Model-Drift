@@ -128,11 +128,13 @@ export class DriftEngine {
 
   async ingestUtterance(input: UtteranceInput): Promise<IngestOutcome> {
     const at = input.capturedAt ?? new Date().toISOString();
-    const ref = input.conversationUuid ?? input.conversationId;
 
     // The live stream and the reconciliation pass will both deliver the same
-    // sentence. Keying on content plus conversation is what makes that safe.
-    const key = contentKey(ref, input.text);
+    // sentence. Keying on content plus conversation is what makes that safe,
+    // and the conversation has to be named the same way on both paths: by its
+    // numeric id, which is all a reconciled read has. A live frame's uuid is
+    // resolved to that id before it gets here.
+    const key = contentKey(input.conversationId, input.text);
     if (await this.o.store.markProcessed(key, { origin: input.origin, at })) {
       this.emit({ type: 'duplicate', at, conversationId: input.conversationId, because: `already processed via a previous path` });
       await this.o.store.incrementMetric('BeeEventsDeduplicated');
@@ -450,10 +452,13 @@ export class DriftEngine {
 /**
  * Speaker labels are diarisation, not identity.
  *
- * A multi-speaker conversation cannot be attributed to the wearer without
- * asking, so it is marked UNKNOWN and the UI says "heard in your conversation"
- * rather than "you said". Evaluating a colleague's sentence as the wearer's
- * belief would be both wrong and, in a workplace, genuinely harmful.
+ * A sentence can be attributed to the wearer without asking only when the
+ * labels say one person spoke. Bee labels every utterance "Unknown", which
+ * says nothing (see `labelledSpeakerCount`), and a multi-speaker conversation
+ * says someone else may have spoken. Either way the claim is UNKNOWN and the
+ * UI says "heard in your conversation" rather than "you said". Evaluating a
+ * colleague's sentence as the wearer's belief would be both wrong and, in a
+ * workplace, genuinely harmful.
  */
 export function inferOwnership(speakerCount?: number): Ownership {
   if (speakerCount === 1) return 'LIKELY_USER';

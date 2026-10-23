@@ -1,0 +1,53 @@
+{
+  "conversation": {
+    "id": 10491322,
+    "start_time": 1786991401244,
+    "end_time": 1786991429002,
+    "summary": "Evening, nothing technical.",
+    "short_summary": "Evening, nothing technical",
+    "state": "COMPLETED",
+    "created_at": 1786991401502,
+    "updated_at": 1786991550689,
+    "transcriptions": [
+      {
+        "id": 14373413,
+        "realtime": false,
+        "utterances": [
+          {
+            "id": 3647566079,
+            "realtime": false,
+            "start": 0.76,
+            "end": 4.9,
+            "spoken_at": 1786991402000,
+            "text": "Remind me to book the trains before the prices go up.",
+            "speaker": "Unknown",
+            "created_at": 1786991545892
+          },
+          {
+            "id": 3647566083,
+            "realtime": false,
+            "start": 11.76,
+            "end": 15.22,
+            "spoken_at": 1786991413000,
+            "text": "The direct one is usually cheaper on a Tuesday.",
+            "speaker": "Unknown",
+            "created_at": 1786991545899
+          },
+          {
+            "id": 3647566084,
+            "realtime": false,
+            "start": 22.76,
+            "end": 24.52,
+            "spoken_at": 1786991424000,
+            "text": "I will look tonight.",
+            "speaker": "Unknown",
+            "created_at": 1786991545905
+          }
+        ]
+      }
+    ],
+    "suggested_links": [],
+    "primary_location": null
+  },
+  "timezone": "Europe/Paris"
+}

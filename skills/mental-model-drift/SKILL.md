@@ -122,8 +122,9 @@ Bee data is owner-encrypted and intensely personal: what comes back here are exc
 private conversations. Quote at most the one sentence that carries the belief, never a surrounding
 transcript, and never repeat a conversation excerpt into a file, a commit message or a pull request.
 
-If a statement cannot be attributed to the wearer — more than one speaker, no diarisation match —
-the result is marked `UNKNOWN` ownership. Do not act on a belief that may be somebody else's, and
+If a statement cannot be attributed to the wearer — more than one speaker, or no real speaker
+labels, which is every Bee transcript today, since Bee labels each speaker "Unknown" — the result
+is marked `UNKNOWN` ownership. Do not act on a belief that may be somebody else's, and
 never write a correction back to Bee memory on their behalf.
 
 ## Setup

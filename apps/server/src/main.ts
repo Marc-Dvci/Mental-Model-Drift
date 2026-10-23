@@ -87,10 +87,9 @@ async function handle(req: IncomingMessage, res: ServerResponse): Promise<void> 
   // ------------------------------------------------------------------- write
   if (path === '/api/ingest' && method === 'POST') {
     // Accepts a raw Bee stream frame, so `bee stream --webhook-endpoint` can
-    // point straight at it. Prefer the envelope form, which preserves the event
-    // name the SSE frame carried and is the frame's authoritative type:
+    // point straight at it with a bare '{{raw}}' body: a live frame carries its
+    // own `type`. The envelope form is accepted too, and its `event` wins:
     //   --webhook-body '{"event":"{{event}}","data":{{{raw}}}}'
-    // A bare '{{raw}}' body still works, and falls back to shape inference.
     const body = await readJson<BeeStreamFrame>(req);
     const enveloped = typeof body.event === 'string' && typeof body.data === 'object' && body.data !== null;
     const frame = enveloped ? (body.data as BeeStreamFrame) : body;
@@ -280,7 +279,7 @@ if (process.env.MMD_STREAM === '1') {
     onConnect: (isReconnect) => console.log(`  bee stream ${isReconnect ? 'restored' : 'connected'}`),
     onDisconnect: (reason) => console.log(`  bee stream lost (${reason}); reconciling`),
     onUtterance: async (event) => {
-      await ingestBeeFrame(ctx, event.raw);
+      await ingestBeeFrame(ctx, event.raw, 'realtime', event.nameWasInferred ? undefined : event.name);
     },
     onReconciled: (report, why) => {
       if (report.utterancesNew > 0) {

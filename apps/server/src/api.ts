@@ -13,6 +13,7 @@ import {
   beeCoverageSource,
   buildEngine,
   GitHubPullRequestWriter,
+  liveUtteranceInput,
   preparePatch,
   Reconciler,
   renderPullRequestBody,
@@ -239,34 +240,7 @@ export async function ingestBeeFrame(
 ) {
   const event = classifyEvent(frame, eventName);
   if (event.kind !== 'new-utterance') return { ignored: event.kind };
-  const ref = event.conversationId ?? event.conversationUuid ?? 'unknown';
-  const conversationId = await ctx.built.bee.resolveConversationId(ref).catch(() => ref);
-
-  // A live frame is one sentence with no history attached, so the window and the
-  // speaker count are read back from Bee. If Bee is unreachable at that instant
-  // the utterance is still processed -- with an unknown speaker count, which
-  // makes the claim UNKNOWN-ownership rather than dropping it.
-  let window: string[] = [];
-  let speakerCount: number | undefined;
-  try {
-    const utterances = await ctx.built.bee.transcript(conversationId);
-    const idx = utterances.findIndex((u) => u.text === event.utterance.text);
-    const upto = idx === -1 ? utterances.length : idx;
-    window = utterances.slice(Math.max(0, upto - 3), upto).map((u) => u.text ?? '');
-    speakerCount = new Set(utterances.map((u) => u.speaker ?? 'unknown')).size;
-  } catch {
-    /* the window is an optimisation, not a requirement */
-  }
-
-  return ctx.built.engine.ingestUtterance({
-    text: event.utterance.text,
-    conversationId,
-    ...(event.conversationUuid ? { conversationUuid: event.conversationUuid } : {}),
-    ...(event.utterance.speaker ? { speaker: event.utterance.speaker } : {}),
-    window,
-    ...(speakerCount !== undefined ? { speakerCount } : {}),
-    origin,
-  });
+  return ctx.built.engine.ingestUtterance(await liveUtteranceInput(ctx.built.bee, event, origin));
 }
 
 export async function confirmDrift(ctx: ApiContext, id: string) {

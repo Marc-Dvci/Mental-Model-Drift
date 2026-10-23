@@ -15,14 +15,14 @@
  * same code answers the question for a live account (`beeCoverageSource`) and
  * for a fixture directory, which is what the tests and the offline CLI use.
  */
-import type { BeeClient, BeeConversation } from '#bee';
+import { pickTranscript, toIso, type BeeClient, type BeeConversation, type BeeUtterance } from '#bee';
 import type { Extractor } from './extract/index.ts';
 
 export interface CoverageConversation {
   id: string;
   summary?: string;
   startedAt?: string;
-  utterances: { text: string; speaker?: string; createdAt?: string }[];
+  utterances: { text: string; speaker?: string; spokenAt?: string }[];
 }
 
 export type CoverageSource = (limit: number) => Promise<CoverageConversation[]>;
@@ -41,6 +41,11 @@ export interface CoverageHit {
 export interface CoverageReport {
   conversations: number;
   utterances: number;
+  /**
+   * Distinct diarisation labels. Bee labels every utterance "Unknown", which is
+   * not a speaker, so this is 0 for a Bee transcript today and the dashboard
+   * leaves it out rather than print "1 distinct speaker".
+   */
   speakers: number;
   /** Utterances that produced at least one grounded candidate. */
   checkable: number;
@@ -55,26 +60,33 @@ export interface CoverageReport {
 /** Read recorded conversations from a Bee account, newest first. */
 export function beeCoverageSource(bee: BeeClient): CoverageSource {
   return async (limit) => {
+    // The list carries neither transcriptions nor the short summary, so each
+    // conversation is read once in full.
     const conversations = await bee.listConversations({ limit });
     const out: CoverageConversation[] = [];
     for (const c of conversations) {
-      const utterances = c.utterances?.length ? c.utterances : await bee.transcript(String(c.id)).catch(() => []);
-      out.push(toCoverageConversation(c, utterances));
+      const full = await bee.getConversation(String(c.id)).catch(() => c);
+      out.push(toCoverageConversation(full));
     }
     return out;
   };
 }
 
-function toCoverageConversation(c: BeeConversation, utterances: { text: string; speaker?: string; created_at?: string }[]): CoverageConversation {
+/** One Bee conversation as the survey reads it; `utterances` defaults to its own transcript. */
+export function toCoverageConversation(c: BeeConversation, utterances: BeeUtterance[] = pickTranscript(c)): CoverageConversation {
+  const startedAt = toIso(c.start_time);
   return {
     id: String(c.id),
     ...(c.short_summary ? { summary: c.short_summary } : {}),
-    ...(c.start_time ? { startedAt: c.start_time } : {}),
-    utterances: utterances.map((u) => ({
-      text: u.text,
-      ...(u.speaker ? { speaker: u.speaker } : {}),
-      ...(u.created_at ? { createdAt: u.created_at } : {}),
-    })),
+    ...(startedAt ? { startedAt } : {}),
+    utterances: utterances.map((u) => {
+      const spokenAt = toIso(u.spoken_at);
+      return {
+        text: u.text,
+        ...(u.speaker ? { speaker: u.speaker } : {}),
+        ...(spokenAt ? { spokenAt } : {}),
+      };
+    }),
   };
 }
 
@@ -87,7 +99,7 @@ export async function surveyCoverage(
     String(a.startedAt ?? '').localeCompare(String(b.startedAt ?? '')),
   );
 
-  const speakers = new Set<string>();
+  const labels = new Set<string>();
   const perProperty = new Map<string, number>();
   const hits: CoverageHit[] = [];
   let utterances = 0;
@@ -100,8 +112,8 @@ export async function surveyCoverage(
     for (let i = 0; i < convo.utterances.length; i++) {
       const u = convo.utterances[i]!;
       utterances++;
-      speakers.add(u.speaker ?? 'unknown');
-      const at = u.createdAt ?? convo.startedAt ?? '';
+      if (u.speaker && u.speaker.toLowerCase() !== 'unknown') labels.add(u.speaker);
+      const at = u.spokenAt ?? convo.startedAt ?? '';
       if (at) {
         if (!earliest || at < earliest) earliest = at;
         if (!latest || at > latest) latest = at;
@@ -135,7 +147,7 @@ export async function surveyCoverage(
   return {
     conversations: conversations.length,
     utterances,
-    speakers: speakers.size,
+    speakers: labels.size,
     checkable,
     ignored: utterances - checkable,
     ...(earliest ? { earliest } : {}),

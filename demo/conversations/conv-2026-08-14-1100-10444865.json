@@ -1,0 +1,93 @@
+{
+  "conversation": {
+    "id": 10444865,
+    "start_time": 1786705321481,
+    "end_time": 1786705402511,
+    "summary": "Architecture review.",
+    "short_summary": "Architecture review",
+    "state": "COMPLETED",
+    "created_at": 1786705321704,
+    "updated_at": 1786705540621,
+    "transcriptions": [
+      {
+        "id": 14310199,
+        "realtime": false,
+        "utterances": [
+          {
+            "id": 3640987871,
+            "realtime": false,
+            "start": 1.52,
+            "end": 4.64,
+            "spoken_at": 1786705323000,
+            "text": "Walk us through the failure path once more.",
+            "speaker": "Unknown",
+            "created_at": 1786705535962
+          },
+          {
+            "id": 3640987872,
+            "realtime": false,
+            "start": 11.52,
+            "end": 15.32,
+            "spoken_at": 1786705333000,
+            "text": "Message comes off the queue, worker tries the payment provider.",
+            "speaker": "Unknown",
+            "created_at": 1786705535966
+          },
+          {
+            "id": 3640987873,
+            "realtime": false,
+            "start": 26.52,
+            "end": 31,
+            "spoken_at": 1786705348000,
+            "text": "If the provider 500s, it retries three times and then parks it.",
+            "speaker": "Unknown",
+            "created_at": 1786705535971
+          },
+          {
+            "id": 3640987874,
+            "realtime": false,
+            "start": 42.52,
+            "end": 46.66,
+            "spoken_at": 1786705364000,
+            "text": "And the payment provider rate limits us at 200 a second?",
+            "speaker": "Unknown",
+            "created_at": 1786705535977
+          },
+          {
+            "id": 3640987875,
+            "realtime": false,
+            "start": 53.52,
+            "end": 54.94,
+            "spoken_at": 1786705375000,
+            "text": "Around that, yes.",
+            "speaker": "Unknown",
+            "created_at": 1786705535984
+          },
+          {
+            "id": 3640987876,
+            "realtime": false,
+            "start": 65.52,
+            "end": 69.32,
+            "spoken_at": 1786705387000,
+            "text": "Should we be retrying at all on a payment path?",
+            "speaker": "Unknown",
+            "created_at": 1786705535987
+          },
+          {
+            "id": 3640987877,
+            "realtime": false,
+            "start": 74.52,
+            "end": 77.98,
+            "spoken_at": 1786705396000,
+            "text": "That is a fair question for the incident review.",
+            "speaker": "Unknown",
+            "created_at": 1786705535991
+          }
+        ]
+      }
+    ],
+    "suggested_links": [],
+    "primary_location": null
+  },
+  "timezone": "Europe/Paris"
+}

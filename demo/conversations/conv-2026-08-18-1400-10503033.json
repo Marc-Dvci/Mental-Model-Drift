@@ -1,0 +1,63 @@
+{
+  "conversation": {
+    "id": 10503033,
+    "start_time": 1787061721792,
+    "end_time": 1787061770093,
+    "summary": "Onboarding walkthrough of the queue design.",
+    "short_summary": "Onboarding walkthrough of the queue design",
+    "state": "COMPLETED",
+    "created_at": 1787061722004,
+    "updated_at": 1787061811814,
+    "transcriptions": [
+      {
+        "id": 14389307,
+        "realtime": false,
+        "utterances": [
+          {
+            "id": 3649182105,
+            "realtime": false,
+            "start": 1.21,
+            "end": 4.33,
+            "spoken_at": 1787061723000,
+            "text": "Walking the new starter through the queue design.",
+            "speaker": "Unknown",
+            "created_at": 1787061806597
+          },
+          {
+            "id": 3649182106,
+            "realtime": false,
+            "start": 17.21,
+            "end": 22.37,
+            "spoken_at": 1787061739000,
+            "text": "The checkout worker retries three times, then the dead letter queue picks it up.",
+            "speaker": "Unknown",
+            "created_at": 1787061806600
+          },
+          {
+            "id": 3649182107,
+            "realtime": false,
+            "start": 28.21,
+            "end": 32.35,
+            "spoken_at": 1787061750000,
+            "text": "That is why the alert threshold is set where it is.",
+            "speaker": "Unknown",
+            "created_at": 1787061806604
+          },
+          {
+            "id": 3649182108,
+            "realtime": false,
+            "start": 43.21,
+            "end": 46.33,
+            "spoken_at": 1787061765000,
+            "text": "Everything downstream assumes the order events are idempotent.",
+            "speaker": "Unknown",
+            "created_at": 1787061806609
+          }
+        ]
+      }
+    ],
+    "suggested_links": [],
+    "primary_location": null
+  },
+  "timezone": "Europe/Paris"
+}

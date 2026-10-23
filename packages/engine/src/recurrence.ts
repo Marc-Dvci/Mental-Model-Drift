@@ -69,7 +69,7 @@ export class RecurrenceFinder {
     try {
       hits = await this.bee.search(query, { neural: true, limit: 25 });
       if (hits.length === 0) {
-        hits = await this.bee.search(query, { limit: 20, filter: 'conversations', sort: 'mostRecent', since });
+        hits = await this.bee.search(query, { limit: 20, filter: 'conversations', sortBy: 'mostRecent', since });
         searchMode = 'keyword';
       }
     } catch (err) {
@@ -105,7 +105,7 @@ export class RecurrenceFinder {
           window: texts.slice(Math.max(0, i - 3), i),
           conversationId,
           utteranceIndex: i,
-          capturedAt: hit.created_at ?? hit.start_time ?? new Date().toISOString(),
+          capturedAt: normaliseTime(hit.started_at ?? hit.created_at) ?? new Date().toISOString(),
         });
         const match = proposals.find(
           (p) =>
@@ -133,7 +133,7 @@ export class RecurrenceFinder {
         });
         if (!g.passed) continue;
 
-        const at = normaliseTime(hit.created_at ?? hit.start_time) ?? new Date().toISOString();
+        const at = normaliseTime(hit.started_at ?? hit.created_at) ?? new Date().toISOString();
         occurrences.push({
           conversationId,
           at,

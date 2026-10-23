@@ -1,0 +1,103 @@
+{
+  "conversation": {
+    "id": 10695705,
+    "start_time": 1788253320532,
+    "end_time": 1788253414355,
+    "summary": "Looking at a checkout worker alert.",
+    "short_summary": "Looking at a checkout worker alert",
+    "state": "COMPLETED",
+    "created_at": 1788253320882,
+    "updated_at": 1788253499367,
+    "transcriptions": [
+      {
+        "id": 14653537,
+        "realtime": false,
+        "utterances": [
+          {
+            "id": 3676590929,
+            "realtime": false,
+            "start": 3.47,
+            "end": 6.25,
+            "spoken_at": 1788253324000,
+            "text": "Right, the checkout worker is throwing again.",
+            "speaker": "Unknown",
+            "created_at": 1788253493758
+          },
+          {
+            "id": 3676590930,
+            "realtime": false,
+            "start": 12.47,
+            "end": 16.27,
+            "spoken_at": 1788253333000,
+            "text": "It's probably fine. Checkout retries failed jobs three times anyway.",
+            "speaker": "Unknown",
+            "created_at": 1788253493765
+          },
+          {
+            "id": 3676590931,
+            "realtime": false,
+            "start": 24.47,
+            "end": 28.27,
+            "spoken_at": 1788253345000,
+            "text": "Does the worker still retry three times on a 5xx?",
+            "speaker": "Unknown",
+            "created_at": 1788253493768
+          },
+          {
+            "id": 3676590932,
+            "realtime": false,
+            "start": 35.47,
+            "end": 39.27,
+            "spoken_at": 1788253356000,
+            "text": "Two retries seems too low for this kind of failure.",
+            "speaker": "Unknown",
+            "created_at": 1788253493772
+          },
+          {
+            "id": 3676590933,
+            "realtime": false,
+            "start": 48.47,
+            "end": 53.29,
+            "spoken_at": 1788253369000,
+            "text": "The events table stores the source IP, so we can trace it back.",
+            "speaker": "Unknown",
+            "created_at": 1788253493777
+          },
+          {
+            "id": 3676590934,
+            "realtime": false,
+            "start": 61.47,
+            "end": 64.93,
+            "spoken_at": 1788253382000,
+            "text": "And the new checkout is still disabled in Europe.",
+            "speaker": "Unknown",
+            "created_at": 1788253493783
+          },
+          {
+            "id": 3676590935,
+            "realtime": false,
+            "start": 74.47,
+            "end": 77.93,
+            "spoken_at": 1788253395000,
+            "text": "The checkout service is still running 4.12 in production.",
+            "speaker": "Unknown",
+            "created_at": 1788253493790
+          },
+          {
+            "id": 3676590936,
+            "realtime": false,
+            "start": 87.47,
+            "end": 91.27,
+            "spoken_at": 1788253408000,
+            "text": "I thought the checkout worker had the DLQ turned off.",
+            "speaker": "Unknown",
+            "created_at": 1788253493793
+          }
+        ]
+      }
+    ],
+    "suggested_links": [],
+    "primary_location": null
+  },
+  "timezone": "Europe/Paris"
+}

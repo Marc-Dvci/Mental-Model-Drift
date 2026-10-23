@@ -102,7 +102,7 @@ startCapture({
   onConnect: (isReconnect) => console.log(`[relay] stream ${isReconnect ? 'restored' : 'connected'}`),
   onDisconnect: (reason) => console.log(`[relay] stream down (${reason}); requesting reconciliation`),
   onUtterance: (event) => {
-    console.log(`[relay] ${event.utterance.speaker ?? 'speaker'}: ${event.utterance.text}`);
+    console.log(`[relay] ${event.utteranceId ? `#${event.utteranceId} ` : ''}${event.utterance.text}`);
     pending.push(event.raw);
     while (pending.length > MAX_BUFFER) pending.shift();
     void flush();

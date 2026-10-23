@@ -1,7 +1,7 @@
 import { BeeSim } from './server.ts';
 
 const port = Number(process.env.BEE_SIM_PORT ?? 8787);
-const live = (process.env.BEE_SIM_LIVE ?? '10743,10744').split(',').map((s) => s.trim()).filter(Boolean);
+const live = (process.env.BEE_SIM_LIVE ?? '10695705,10697402').split(',').map((s) => s.trim()).filter(Boolean);
 
 const sim = new BeeSim({ port, liveConversationIds: live });
 

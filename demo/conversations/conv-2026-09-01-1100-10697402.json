@@ -1,0 +1,53 @@
+{
+  "conversation": {
+    "id": 10697402,
+    "start_time": 1788262801485,
+    "end_time": 1788262834787,
+    "summary": "Corridor conversation after the alert.",
+    "short_summary": "Corridor conversation after the alert",
+    "state": "COMPLETED",
+    "created_at": 1788262801673,
+    "updated_at": 1788262889155,
+    "transcriptions": [
+      {
+        "id": 14656170,
+        "realtime": false,
+        "utterances": [
+          {
+            "id": 3676806876,
+            "realtime": false,
+            "start": 1.51,
+            "end": 4.98,
+            "spoken_at": 1788262803000,
+            "text": "I mentioned the queue thing to the platform team.",
+            "speaker": "Unknown",
+            "created_at": 1788262885248
+          },
+          {
+            "id": 3676806877,
+            "realtime": false,
+            "start": 13.52,
+            "end": 19.36,
+            "spoken_at": 1788262815000,
+            "text": "Told them the checkout worker retries three times, so a slow consumer is not the problem.",
+            "speaker": "Unknown",
+            "created_at": 1788262885252
+          },
+          {
+            "id": 3676806878,
+            "realtime": false,
+            "start": 27.52,
+            "end": 31.31,
+            "spoken_at": 1788262829000,
+            "text": "They are going to look at the broker settings instead.",
+            "speaker": "Unknown",
+            "created_at": 1788262885257
+          }
+        ]
+      }
+    ],
+    "suggested_links": [],
+    "primary_location": null
+  },
+  "timezone": "Europe/Paris"
+}

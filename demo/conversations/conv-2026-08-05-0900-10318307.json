@@ -1,0 +1,83 @@
+{
+  "conversation": {
+    "id": 10318307,
+    "start_time": 1785922201109,
+    "end_time": 1785922265556,
+    "summary": "Standup.",
+    "short_summary": "Standup",
+    "state": "COMPLETED",
+    "created_at": 1785922201475,
+    "updated_at": 1785922306257,
+    "transcriptions": [
+      {
+        "id": 14136477,
+        "realtime": false,
+        "utterances": [
+          {
+            "id": 3622973480,
+            "realtime": false,
+            "start": 1.89,
+            "end": 4.67,
+            "spoken_at": 1785922203000,
+            "text": "Yesterday I finished the source IP column.",
+            "speaker": "Unknown",
+            "created_at": 1785922300703
+          },
+          {
+            "id": 3622973481,
+            "realtime": false,
+            "start": 11.89,
+            "end": 15.01,
+            "spoken_at": 1785922213000,
+            "text": "Today I am on the queue depth dashboard.",
+            "speaker": "Unknown",
+            "created_at": 1785922300706
+          },
+          {
+            "id": 3622973482,
+            "realtime": false,
+            "start": 23.89,
+            "end": 24.97,
+            "spoken_at": 1785922225000,
+            "text": "Any blockers?",
+            "speaker": "Unknown",
+            "created_at": 1785922300710
+          },
+          {
+            "id": 3622973483,
+            "realtime": false,
+            "start": 28.89,
+            "end": 35.07,
+            "spoken_at": 1785922230000,
+            "text": "No. Although the new checkout is still disabled in Europe, so I cannot test the v2 path.",
+            "speaker": "Unknown",
+            "created_at": 1785922300715
+          },
+          {
+            "id": 3622973485,
+            "realtime": false,
+            "start": 45.89,
+            "end": 48.67,
+            "spoken_at": 1785922247000,
+            "text": "That is waiting on the incident review.",
+            "speaker": "Unknown",
+            "created_at": 1785922300721
+          },
+          {
+            "id": 3622973486,
+            "realtime": false,
+            "start": 56.89,
+            "end": 60.35,
+            "spoken_at": 1785922258000,
+            "text": "Fine, I will use the old flow for now.",
+            "speaker": "Unknown",
+            "created_at": 1785922300724
+          }
+        ]
+      }
+    ],
+    "suggested_links": [],
+    "primary_location": null
+  },
+  "timezone": "Europe/Paris"
+}

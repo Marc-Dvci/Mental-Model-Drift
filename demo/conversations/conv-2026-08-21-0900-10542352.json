@@ -1,0 +1,63 @@
+{
+  "conversation": {
+    "id": 10542352,
+    "start_time": 1787304721185,
+    "end_time": 1787304755808,
+    "summary": "Standup.",
+    "short_summary": "Standup",
+    "state": "COMPLETED",
+    "created_at": 1787304721353,
+    "updated_at": 1787304812920,
+    "transcriptions": [
+      {
+        "id": 14443602,
+        "realtime": false,
+        "utterances": [
+          {
+            "id": 3654771131,
+            "realtime": false,
+            "start": 1.81,
+            "end": 3.92,
+            "spoken_at": 1787304723000,
+            "text": "Yesterday was the incident review.",
+            "speaker": "Unknown",
+            "created_at": 1787304808197
+          },
+          {
+            "id": 3654771132,
+            "realtime": false,
+            "start": 10.81,
+            "end": 14.28,
+            "spoken_at": 1787304732000,
+            "text": "Today I am picking the retry change back up.",
+            "speaker": "Unknown",
+            "created_at": 1787304808201
+          },
+          {
+            "id": 3654771136,
+            "realtime": false,
+            "start": 21.82,
+            "end": 24.25,
+            "spoken_at": 1787304743000,
+            "text": "Do you need anything from platform?",
+            "speaker": "Unknown",
+            "created_at": 1787304808206
+          },
+          {
+            "id": 3654771137,
+            "realtime": false,
+            "start": 29.82,
+            "end": 32.59,
+            "spoken_at": 1787304751000,
+            "text": "No, it is a config profile change.",
+            "speaker": "Unknown",
+            "created_at": 1787304808210
+          }
+        ]
+      }
+    ],
+    "suggested_links": [],
+    "primary_location": null
+  },
+  "timezone": "Europe/Paris"
+}

@@ -30,7 +30,7 @@ beforeAll(async () => {
   sim = new BeeSim({
     port: 0,
     fixtureDir: join(REPO_ROOT, 'demo', 'conversations'),
-    liveConversationIds: ['10743', '10744'],
+    liveConversationIds: ['10695705', '10697402'],
     log: () => {},
   });
   port = await sim.listen();
@@ -208,7 +208,7 @@ describe('record_understanding', () => {
 
     await built.engine.ingestUtterance({
       text: 'The checkout worker retries three times.',
-      conversationId: '10743',
+      conversationId: '10695705',
       speakerCount: 3, // a room, so the belief cannot be attributed to the wearer
       window: [],
       origin: 'realtime',

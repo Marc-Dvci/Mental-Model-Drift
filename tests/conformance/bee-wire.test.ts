@@ -20,16 +20,19 @@
  * and produces nothing at all in front of Bee's own parser -- which is exactly the
  * failure this file exists to make impossible.
  *
- * The same applies to the read endpoints: `/v1/conversations/:id/related` is
- * reachable through `bee proxy` because the proxy forwards every `/v1` path
- * upstream rather than exposing a route list, so bee-sim has to answer it
- * too, in the shape the CLI's own reader expects.
+ * The same applies to the read endpoints, whose shapes are pinned to the types
+ * `@beeai/cli` declares for the API's answers: a conversation's words under
+ * `transcriptions[]`, epoch-millisecond times, no uuid on the record, every
+ * speaker "Unknown", and `/v1/changes` with bare ids and its cursor at the top
+ * level. `/v1/conversations/:id/related` is reachable through `bee proxy`
+ * because the proxy forwards every `/v1` path upstream rather than exposing a
+ * route list, so bee-sim has to answer it too.
  */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { connect, type Socket } from 'node:net';
-import { BeeSim } from '../../tools/bee-sim/src/server.ts';
+import { BeeSim, streamUuid } from '../../tools/bee-sim/src/server.ts';
 import { join } from 'node:path';
-import { BEE_STREAM_EVENTS, BeeClient, classifyEvent } from '#bee';
+import { BEE_STREAM_EVENTS, BeeClient, classifyEvent, readChangeBatch } from '#bee';
 import { REPO_ROOT } from '../helpers.ts';
 
 // ---------------------------------------------------------------------------
@@ -157,7 +160,7 @@ function dechunk(raw: string): string {
 describe("bee-sim's stream through Bee's own SSE parser", () => {
   it('names every frame, so Bee\'s parser emits them instead of dropping them', async () => {
     const body = await captureStreamBytes('new-utterance', () => {
-      sim.appendUtterance('10743', 'the checkout worker retries three times');
+      sim.appendUtterance('10695705', 'the checkout worker retries three times');
     });
 
     // The literal bytes carry an `event:` line. This is the assertion that
@@ -173,14 +176,39 @@ describe("bee-sim's stream through Bee's own SSE parser", () => {
     const utterance = parsed.find((e) => e.event === 'new-utterance');
     expect(utterance).toBeDefined();
     const payload = JSON.parse(utterance!.data) as Record<string, unknown>;
-    expect((payload.utterance as { text: string }).text).toBe('the checkout worker retries three times');
-    expect((payload.utterance as { speaker: string }).speaker).toBe('speaker_1');
-    expect(typeof payload.conversation_uuid).toBe('string');
+    const said = payload.utterance as Record<string, unknown>;
+    expect(said.text).toBe('the checkout worker retries three times');
+    // A live frame: its type repeated in the payload, the utterance's own id,
+    // `spoken_at` as ISO 8601, recording offsets in seconds, and no speaker.
+    expect(payload.type).toBe('new-utterance');
+    expect(payload.conversation_uuid).toBe(streamUuid('10695705'));
+    expect(typeof said.id).toBe('number');
+    expect(String(said.id)).toMatch(/^\d{10}$/);
+    expect(typeof said.sample_id).toBe('string');
+    expect(said.spoken_at).toMatch(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.000Z$/);
+    expect(typeof said.start).toBe('number');
+    expect(said).not.toHaveProperty('speaker');
+  });
+
+  it('carries the type in the frame itself, so the CLI\'s --json lines classify without inference', async () => {
+    // `bee stream --json` prints the `data:` line and nothing else. What it
+    // prints is still named, by its own `type`.
+    const body = await captureStreamBytes('new-utterance', () => {
+      sim.appendUtterance('10695705', 'it backs off five seconds between attempts');
+    });
+    const { parsed } = parseSSEBuffer(body);
+    const line = parsed.find((e) => e.event === 'new-utterance')!.data;
+    const event = classifyEvent(JSON.parse(line));
+    expect(event.kind).toBe('new-utterance');
+    expect(event.nameWasInferred).toBeUndefined();
+    if (event.kind !== 'new-utterance') throw new Error('unreachable');
+    expect(event.utteranceId).toMatch(/^\d{10}$/);
+    expect(event.spokenAt).toBeDefined();
   });
 
   it('produces frames the product classifies with no inference at all', async () => {
     const body = await captureStreamBytes('new-utterance', () => {
-      sim.appendUtterance('10743', 'and it backs off five seconds between attempts');
+      sim.appendUtterance('10695705', 'and it backs off five seconds between attempts');
     });
 
     const { parsed } = parseSSEBuffer(body);
@@ -198,14 +226,19 @@ describe("bee-sim's stream through Bee's own SSE parser", () => {
   });
 
   it('round-trips every event type `bee stream` documents', async () => {
-    // Payload shapes taken from `bee stream`'s own formatEvent switch.
+    // Payload shapes taken from `bee stream`'s own formatEvent switch, and for
+    // `new-utterance` the live frame's.
     const samples: Record<string, unknown> = {
       'new-conversation': { conversation: { id: 1, uuid: 'u', state: 'NEW', title: 'Standup' } },
       'update-conversation': { conversation: { id: 1, state: 'PROCESSING', short_summary: 's' } },
       'update-conversation-summary': { conversation_id: 1, short_summary: 'Debugging the queue' },
       'delete-conversation': { conversation: { id: 1, title: 'Standup' } },
       'update-location': { location: { latitude: 48.58, longitude: 7.75, name: 'Office' }, conversation_id: 1 },
-      'new-utterance': { utterance: { text: 'hello', speaker: 'speaker_1' }, conversation_uuid: 'u' },
+      'new-utterance': {
+        type: 'new-utterance',
+        conversation_uuid: 'u',
+        utterance: { id: 3766760407, sample_id: 's', start: 680.16, end: 691.36, text: 'hello', spoken_at: '2026-10-16T18:05:13.000Z' },
+      },
       'todo-created': { todo: { id: 1, text: 'ship it', completed: false } },
       'todo-updated': { todo: { id: 1, text: 'ship it', completed: true } },
       'todo-deleted': { todo: { id: 1, text: 'ship it' } },
@@ -245,7 +278,7 @@ describe("bee-sim's stream through Bee's own SSE parser", () => {
 
 describe('bee-sim\'s read endpoints', () => {
   it('answers /v1/conversations/:id/related, which reaches Bee through the proxy', async () => {
-    const res = await fetch(`http://127.0.0.1:${port}/v1/conversations/10188/related`);
+    const res = await fetch(`http://127.0.0.1:${port}/v1/conversations/10009909/related`);
     expect(res.status).toBe(200);
     const body = (await res.json()) as { conversations: Array<Record<string, unknown>> };
     expect(Array.isArray(body.conversations)).toBe(true);
@@ -254,7 +287,7 @@ describe('bee-sim\'s read endpoints', () => {
     // pinned separately.
     for (const c of body.conversations) {
       expect(c.id).toBeDefined();
-      expect(String(c.id)).not.toBe('10188');
+      expect(String(c.id)).not.toBe('10009909');
     }
   });
 
@@ -263,7 +296,7 @@ describe('bee-sim\'s read endpoints', () => {
     // `bee` binary was absent, so a proxy-only run -- a container, a judge's
     // laptop, the demo -- silently lost the capability rather than failing.
     const client = new BeeClient({ proxyUrl: `http://127.0.0.1:${port}`, allowCli: false });
-    const related = await client.related('10188', 3);
+    const related = await client.related('10009909', 3);
     expect(related.length).toBeGreaterThan(0);
     expect(related.length).toBeLessThanOrEqual(3);
   });
@@ -272,19 +305,116 @@ describe('bee-sim\'s read endpoints', () => {
     const base = `http://127.0.0.1:${port}`;
     const client = new BeeClient({ proxyUrl: base, allowCli: false });
 
-    // RECONCILE: a cursor changefeed with next_cursor in meta.
+    // RECONCILE: a cursor changefeed, read into one batch.
     const changed = await client.changed();
-    expect(typeof changed.meta.next_cursor).toBe('string');
+    expect(changed.nextCursor).toMatch(/^v1-\d{13}$/);
 
-    // RECALL: neural search over conversations, POST with a JSON body.
+    // RECALL: neural search over conversations, POST with a JSON body. Neural
+    // hits are conversations: numeric ids and epoch-ms `started_at`.
     const hits = await client.search('checkout retries', { neural: true, limit: 5 });
     expect(hits.length).toBeGreaterThan(0);
-    expect(hits[0]!.id).toBeDefined();
+    expect(typeof hits[0]!.id).toBe('number');
+    expect(typeof hits[0]!.started_at).toBe('number');
 
-    // CORRECT: facts create, then confirm.
+    // CORRECT: facts create, then confirm. A new fact starts unconfirmed.
     const fact = await client.createFact('Checkout retry attempts is 1 in production');
     expect(fact.id).toBeDefined();
+    expect(fact.confirmed).toBe(false);
     const confirmed = await client.updateFact(String(fact.id), { confirmed: true });
     expect(confirmed.confirmed).toBe(true);
+  });
+
+  it('answers a conversation read in the API\'s shape', async () => {
+    const res = await fetch(`http://127.0.0.1:${port}/v1/conversations/10009909`);
+    const body = (await res.json()) as { conversation: Record<string, unknown>; timezone: string };
+    const c = body.conversation;
+    expect(typeof body.timezone).toBe('string');
+    expect(c.id).toBe(10009909);
+    expect(c).not.toHaveProperty('uuid');
+    expect(c).not.toHaveProperty('utterances');
+    expect(c.state).toBe('COMPLETED');
+    for (const key of ['start_time', 'end_time', 'created_at', 'updated_at']) expect(typeof c[key]).toBe('number');
+    // Not on whole minutes: these are real clock readings, not a schedule.
+    expect((c.start_time as number) % 60_000).not.toBe(0);
+
+    const [transcription] = c.transcriptions as { id: number; realtime: boolean; utterances: Record<string, unknown>[] }[];
+    expect(transcription!.realtime).toBe(false);
+    for (const u of transcription!.utterances) {
+      expect(String(u.id)).toMatch(/^\d{10}$/);
+      expect(u.speaker).toBe('Unknown');
+      expect(typeof u.spoken_at).toBe('number');
+      expect(u.start as number).toBeLessThan(3600); // seconds into the recording
+    }
+  });
+
+  it('reads the transcript out of transcriptions[], not out of a flat list', async () => {
+    const client = new BeeClient({ proxyUrl: `http://127.0.0.1:${port}`, allowCli: false });
+    const words = await client.transcript('10009909');
+    expect(words.length).toBe(8);
+    expect(words[0]!.text).toMatch(/first day on the checkout queue/);
+  });
+
+  it('answers /v1/changes with bare ids and the cursor at the top level', async () => {
+    sim.appendUtterance('10039701', 'and the queue depth alarm fires at five hundred');
+    const body = (await (await fetch(`http://127.0.0.1:${port}/v1/changes`)).json()) as Record<string, unknown>;
+    expect(body).not.toHaveProperty('meta');
+    expect(typeof body.next_cursor).toBe('string');
+    expect(typeof body.since).toBe('number');
+    expect(body.conversations).toContain(10039701);
+    for (const key of ['facts', 'todos', 'dailies', 'journals']) expect(Array.isArray(body[key])).toBe(true);
+  });
+
+  it('reads both changefeed shapes: the API\'s, and the one `bee changed --json` prints', () => {
+    const api = readChangeBatch({
+      facts: [], conversations: [11331219], dailies: [], journals: [], todos: [],
+      next_cursor: 'v1-1760610000000', since: 1760523600000, until: 1760610000000, updated: true, timezone: 'Europe/Paris',
+    });
+    expect(api).toMatchObject({ nextCursor: 'v1-1760610000000', conversationIds: ['11331219'], conversations: [] });
+
+    const cli = readChangeBatch({
+      meta: { cursor: undefined, next_cursor: 'v1-1760610000000', since: 1760523600000, until: 1760610000000, updated: true, timezone: 'Europe/Paris' },
+      facts: [], todos: [], dailies: [], journals: [],
+      conversations: [{ id: 11331219, state: 'CAPTURING', transcriptions: [] }],
+    });
+    expect(cli.nextCursor).toBe('v1-1760610000000');
+    expect(cli.conversationIds).toEqual(['11331219']);
+    expect(cli.conversations).toHaveLength(1);
+  });
+});
+
+describe('joining a live frame to its conversation', () => {
+  it('finds the conversation by the utterance id, since no record carries the uuid', async () => {
+    const body = await captureStreamBytes('new-utterance', () => {
+      sim.appendUtterance('10697402', 'the worker drains the queue before a deploy');
+    });
+    const { parsed } = parseSSEBuffer(body);
+    const event = classifyEvent(JSON.parse(parsed.find((e) => e.event === 'new-utterance')!.data));
+    if (event.kind !== 'new-utterance') throw new Error('unreachable');
+
+    // The record is CAPTURING now, and its realtime transcription holds the
+    // utterance under the id the frame carried.
+    const read = (await (await fetch(`http://127.0.0.1:${port}/v1/conversations/10697402`)).json()) as {
+      conversation: { state: string; transcriptions: { realtime: boolean; utterances: { id: number }[] }[] };
+    };
+    expect(read.conversation.state).toBe('CAPTURING');
+    expect(read.conversation.transcriptions[0]!.realtime).toBe(true);
+    expect(read.conversation.transcriptions[0]!.utterances.map((u) => String(u.id))).toContain(event.utteranceId);
+
+    const client = new BeeClient({ proxyUrl: `http://127.0.0.1:${port}`, allowCli: false });
+    expect(await client.resolveConversationId({ uuid: event.conversationUuid!, utteranceId: event.utteranceId! })).toBe('10697402');
+  });
+
+  it('reads the final transcription once Bee has processed the conversation', async () => {
+    const client = new BeeClient({ proxyUrl: `http://127.0.0.1:${port}`, allowCli: false });
+    const live = await client.transcript('10697402');
+    sim.completeConversation('10697402');
+    const final = await client.transcript('10697402');
+
+    // Same words, new ids: the realtime ids do not survive processing, which
+    // is why dedupe across the two paths keys on content.
+    expect(final.map((u) => u.text)).toEqual(live.map((u) => u.text));
+    expect(final.every((u) => u.realtime === false)).toBe(true);
+    const liveIds = new Set(live.map((u) => u.id));
+    expect(final.some((u) => liveIds.has(u.id))).toBe(false);
   });
 });

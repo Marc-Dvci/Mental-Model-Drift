@@ -4,7 +4,7 @@ The submission's mandatory feedback answers, per tool. The detailed, reproducibl
 "what needs work" column is [`friction-log.md`](friction-log.md); this is the summary a product team
 can read in five minutes.
 
-Written after building one project end to end: 226 tests, a 204-utterance labelled corpus, an MCP
+Written after building one project end to end: 244 tests, a 204-utterance labelled corpus, an MCP
 server, a CDK stack and a working dashboard.
 
 ---
@@ -48,7 +48,7 @@ transport is live, the dashboard shows it, and `pnpm doctor` exercises every cap
 - **`bee proxy` is the right shape for a local integration.** A loopback HTTP surface means an
   integration does not hold the user's token, which for a product that reads someone's whole working
   day is exactly the boundary you want. It also made a wire-conformant test proxy harness for the test suite possible, which is how this
-  project has 226 tests.
+  project has 244 tests.
 - **Neural search over conversations is the feature that makes this product exist.** Without it, the
   best this could say is "you are wrong". With it, it can say "you have said this in five
   conversations since July, and four of them were before the value changed", which is a completely
@@ -56,36 +56,37 @@ transport is live, the dashboard shows it, and `pnpm doctor` exercises every cap
 - **`facts` closes the loop.** Writing a correction back as a confirmed fact means the wearer's own
   assistant is the thing that stops repeating the stale number. That is a much better ending than a
   notification.
-- **Diarisation without identity is the right call**, and it is what let me build ownership handling
-  that asks rather than assumes.
 
 ### What needs work
 
-Full detail with steps and severity in the friction log; five headlines:
+Full detail with steps and severity in the friction log; six headlines:
 
-1. **The stream's event type is the SSE `event:` name, and this is not written down anywhere a
-   client author reads.** It is not in the developer docs, not in `bee-skill`'s SKILL.md, and not in
-   `bee stream --help`; I found it in `@beeai/cli`'s source, after shipping a client that inferred
-   each frame's type from its payload instead. Inference is not merely inelegant, it is wrong:
-   `update-conversation-summary` is flat and has no `conversation` key to look inside,
-   `delete-conversation` is shape-identical to `new-conversation`, and `journal-deleted` carries
-   `journalId` rather than `journal`. And the failure is silent in both directions — `parseSSEBuffer`
-   discards any frame lacking an `event` line, so a client that ignores the name and a server that
-   never sends one agree perfectly and deliver nothing.
-
-   One paragraph in the streaming documentation, listing the thirteen names already present in
-   `SUPPORTED_EVENT_TYPES`, is the highest-value fix on this list. *(friction log B1.)* Relatedly,
-   `bee stream --json` prints the payload alone and drops the name, so the one mode intended for
-   programs is the one mode that cannot say what it received. *(B1b.)* There is still no event **id**,
-   so every client invents its own fingerprint and will get the deduplication window wrong
-   differently.
+1. **The documented payloads leave out the fields a client keys on.** The realtime documentation's
+   `new-utterance` example has no `type`, no utterance `id` and no time, and shows a `speaker`. A
+   live frame is the other way round: `type` in the payload as well as on the SSE `event:` line, an
+   utterance `id`, `spoken_at`, and no speaker. Written to the examples, my client guessed types it
+   did not need to guess, derived a fingerprint where an id exists, and treated `bee stream --json`
+   as a transport that loses the type, which it does not. One real frame per event type in the docs,
+   with the thirteen names in `SUPPORTED_EVENT_TYPES`, is the highest-value fix on this list.
+   *(friction log B1.)*
 2. **The reconnect obligation is not documented, and the wrong implementation looks right.**
    Reconciling on *disconnect* recovers nothing, because the conversation you are about to miss has
    not happened yet. I shipped that version and it passed all my tests. One sentence in the docs —
    "reconcile on reconnect, not on disconnect" — would save every integrator this bug. *(B2)*
-3. **Realtime frames key conversations by `uuid`; read endpoints key by `id`.** Every client needs a
-   resolve step. *(B3)*
-4. **Nothing says `bee proxy` is a full pass-through, and the docs' shape implies it is not.** It
+3. **The read shapes are not documented, and the obvious guesses read nothing.** A conversation's
+   words are under `transcriptions[]`, a realtime pass and then a final one with new ids and new
+   punctuation, so `conversation.utterances` is always empty. `GET /v1/changes` returns bare ids
+   with its cursor at the top level, while `bee changed --json` moves it into `meta`, so a proxy
+   client reading `meta.next_cursor` never advances. Every time is epoch milliseconds except the
+   stream's `spoken_at`. *(B5, B6, B7)*
+4. **A live frame names its conversation by a uuid that no record carries.** The join is the
+   utterance id, which matches the capturing conversation's realtime transcription. It works, but
+   only someone who has compared a frame with a record will find it; `conversation_id` in the frame
+   would remove the step. *(B3)*
+5. **Every speaker is "Unknown".** One distinct label is the absence of diarisation, so a speaker
+   count cannot attribute a sentence to the wearer, and the product asks before every write.
+   bee-cli issue #19 reports the same across 15,578 utterances. *(B8)*
+6. **Nothing says `bee proxy` is a full pass-through, and the docs' shape implies it is not.** It
    forwards every `/v1` path upstream with the token attached; there is no route list because there
    is no routing. But Bee is presented to integrators as a set of *commands*, with `bee proxy` a
    one-line entry under "Utility Commands", so I read `conversations related` as a CLI feature and
@@ -93,24 +94,24 @@ Full detail with steps and severity in the friction log; five headlines:
    proxy exists to remove, and silently losing the capability on any machine without the CLI. One
    sentence would have prevented it, and a published OpenAPI document for `/v1` would prevent the
    whole class. *(B4)*
-5. **Utterance text is re-punctuated between the live frame and the stored transcript.** Content-key
-   deduplication has to normalise punctuation or the same sentence produces two identical cards.
-   Worth a line in the docs. *(B5)*
 
 ### Onboarding
 
 Reading the developer docs to a working mental model of the API took under an hour, which is good.
 The gap between "I understand the endpoints" and "I have a correct client" was much larger, and
-almost all of it is items 1 and 2 above: both are about identity and delivery, both are invisible
-until you build something that has to be exactly-once, and neither is hard to fix in documentation.
+almost all of it is items 1, 3 and 4 above: all three are about what a frame or a record actually
+contains, all three are invisible until you build something that has to be exactly-once, and none
+is hard to fix in documentation.
 
 The one thing I would tell another integrator: **do not trust an integration test against your own
 test double.** It proves your client agrees with your test double, and it is most convincing exactly
-when both share a misconception — which is how items 1 and 4 above survived a full test suite. What
-caught them was copying `parseSSEBuffer` out of `@beeai/cli` and running my own wire bytes through
-Bee's parser ([`conformance.md`](conformance.md)). That the CLI is MIT-licensed and readable is,
-quietly, one of the most useful things about this platform, and it is doing work that documentation
-should be doing instead.
+when both share a misconception — which is how items 1, 3, 4 and 6 above survived a full test suite:
+my test proxy was written from the same examples as my client. What caught them was comparing both
+with what Bee itself does: running my wire bytes through `parseSSEBuffer` copied out of `@beeai/cli`
+([`conformance.md`](conformance.md)), and reading the response types the CLI declares for the API
+against published live frames. That the CLI is MIT-licensed and readable is, quietly, one of the
+most useful things about this platform, and it is doing work that documentation should be doing
+instead.
 
 ### Would I build with it again?
 
@@ -274,7 +275,7 @@ tell the human what changed and when, rather than silently correcting them.
 | tool | used for | verdict |
 |---|---|---|
 | **Node 22 / TypeScript 5.7** | the whole product, strict mode with `noUncheckedIndexedAccess` | Yes. The strictest settings found three real defects the first time `tsc --noEmit` ran. |
-| **Vitest 3** | 226 tests | Yes. Upgrading from 2.1 to 3.2 to clear a critical advisory took one command and broke nothing. |
+| **Vitest 3** | 244 tests | Yes. Upgrading from 2.1 to 3.2 to clear a critical advisory took one command and broke nothing. |
 | **Vite 6 + React 18** | the dashboard | Yes. 15 kB of CSS, 175 kB of JS, a 360 ms build. |
 | **pnpm 9** | workspace | Yes, with one sharp edge: a `package.json` script named `audit` is silently shadowed by pnpm's own command, so the README documented a command that printed a vulnerability report instead of the product's tool. *(friction log P1)* |
 | **Playwright** | recording the demo against the real running product | Yes. One trap: `page.evaluate` awaits a returned promise, so returning the tour's `start()` puts the recording window over the end screen. *(PW1)* |

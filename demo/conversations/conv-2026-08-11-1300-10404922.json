@@ -1,0 +1,73 @@
+{
+  "conversation": {
+    "id": 10404922,
+    "start_time": 1786455840220,
+    "end_time": 1786455884830,
+    "summary": "Gym and weekend.",
+    "short_summary": "Gym and weekend",
+    "state": "COMPLETED",
+    "created_at": 1786455840434,
+    "updated_at": 1786456003347,
+    "transcriptions": [
+      {
+        "id": 14255145,
+        "realtime": false,
+        "utterances": [
+          {
+            "id": 3635248506,
+            "realtime": false,
+            "start": 1.78,
+            "end": 4.22,
+            "spoken_at": 1786455842000,
+            "text": "Did you end up going Saturday?",
+            "speaker": "Unknown",
+            "created_at": 1786455998053
+          },
+          {
+            "id": 3635248508,
+            "realtime": false,
+            "start": 9.78,
+            "end": 12.9,
+            "spoken_at": 1786455850000,
+            "text": "Yes, it was packed. Never again at eleven.",
+            "speaker": "Unknown",
+            "created_at": 1786455998057
+          },
+          {
+            "id": 3635248509,
+            "realtime": false,
+            "start": 20.78,
+            "end": 23.9,
+            "spoken_at": 1786455861000,
+            "text": "I did the earlier one, it was fine.",
+            "speaker": "Unknown",
+            "created_at": 1786455998063
+          },
+          {
+            "id": 3635248510,
+            "realtime": false,
+            "start": 29.78,
+            "end": 32.9,
+            "spoken_at": 1786455870000,
+            "text": "Are you still doing the half marathon thing?",
+            "speaker": "Unknown",
+            "created_at": 1786455998070
+          },
+          {
+            "id": 3635248514,
+            "realtime": false,
+            "start": 37.78,
+            "end": 40.56,
+            "spoken_at": 1786455878000,
+            "text": "In October. I have not trained enough.",
+            "speaker": "Unknown",
+            "created_at": 1786455998073
+          }
+        ]
+      }
+    ],
+    "suggested_links": [],
+    "primary_location": null
+  },
+  "timezone": "Europe/Paris"
+}

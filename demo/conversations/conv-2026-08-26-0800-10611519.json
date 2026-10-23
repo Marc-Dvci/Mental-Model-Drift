@@ -1,0 +1,53 @@
+{
+  "conversation": {
+    "id": 10611519,
+    "start_time": 1787733060790,
+    "end_time": 1787733089809,
+    "summary": "Standup chatter about the EU rollout.",
+    "short_summary": "Standup chatter about the EU rollout",
+    "state": "COMPLETED",
+    "created_at": 1787733060938,
+    "updated_at": 1787733205553,
+    "transcriptions": [
+      {
+        "id": 14537978,
+        "realtime": false,
+        "utterances": [
+          {
+            "id": 3664624148,
+            "realtime": false,
+            "start": 2.21,
+            "end": 6.69,
+            "spoken_at": 1787733063000,
+            "text": "Any idea whether the new checkout is live in the EU yet?",
+            "speaker": "Unknown",
+            "created_at": 1787733201845
+          },
+          {
+            "id": 3664624149,
+            "realtime": false,
+            "start": 10.21,
+            "end": 16.73,
+            "spoken_at": 1787733071000,
+            "text": "Not yet as far as I know, the rollout plan had it going out after the incident review.",
+            "speaker": "Unknown",
+            "created_at": 1787733201851
+          },
+          {
+            "id": 3664624153,
+            "realtime": false,
+            "start": 23.21,
+            "end": 26.67,
+            "spoken_at": 1787733084000,
+            "text": "Fine, I will check the flag before the demo.",
+            "speaker": "Unknown",
+            "created_at": 1787733201858
+          }
+        ]
+      }
+    ],
+    "suggested_links": [],
+    "primary_location": null
+  },
+  "timezone": "Europe/Paris"
+}

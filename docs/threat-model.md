@@ -34,14 +34,15 @@ some buyer would eventually ask for.
 appears telling the wearer they are wrong about something they never said, and — worse — a
 correction is written into their assistant's memory as their belief.
 
-**What is done.** Ownership is diarisation, never identity. One speaker in the window ⇒
-`LIKELY_USER`; more than one ⇒ `UNKNOWN`, `confirmationRequired` is set, and the card asks *"was
-this your understanding?"* before it will unlock any write action. `record_understanding` over MCP
+**What is done.** Ownership is diarisation, never identity. Labels that say one person spoke ⇒
+`LIKELY_USER`; more than one, or no real labels at all ⇒ `UNKNOWN`, `confirmationRequired` is set,
+and the card asks *"was this your understanding?"* before it will unlock any write action. Bee
+labels every speaker `"Unknown"` today, so every claim heard through Bee takes the second branch. `record_understanding` over MCP
 refuses outright a belief not attributed to the wearer. **"No, not my belief"** is a first-class
 button on every card, not buried in a menu.
 
-**Residual.** Diarisation is imperfect, and a single-speaker window during a phone call is still
-someone else's voice. The design answer is that everything destructive is gated behind an explicit
+**Residual.** Diarisation, when Bee provides it, is imperfect, and a single-speaker window during a
+phone call is still someone else's voice. The design answer is that everything destructive is gated behind an explicit
 human confirmation, and the confirmation question is *whose belief was it*, not *is it true*.
 
 ---

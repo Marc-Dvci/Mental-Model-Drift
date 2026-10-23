@@ -26,7 +26,7 @@
  */
 import { spawn } from 'node:child_process';
 import type {
-  BeeChangeFeed,
+  BeeChangeBatch,
   BeeConversation,
   BeeEvent,
   BeeFact,
@@ -37,7 +37,8 @@ import type {
   BeeUtterance,
 } from './types.ts';
 import { launch } from './bin.ts';
-import { classifyEvent } from './events.ts';
+import { classifyEvent, normaliseText } from './events.ts';
+import { pickTranscript, utteranceIds } from './read.ts';
 
 export interface BeeClientConfig {
   /** e.g. http://127.0.0.1:8787 -- the address `bee proxy` is listening on. */
@@ -114,7 +115,8 @@ export class BeeClient {
   async health(): Promise<{ ok: boolean; transport: string; detail: string }> {
     try {
       const me = await this.me();
-      const who = me.name ?? me.email ?? (me.id !== undefined ? `id ${me.id}` : 'authenticated owner');
+      const name = [me.first_name, me.last_name].filter(Boolean).join(' ');
+      const who = name || (me.id !== undefined ? `id ${me.id}` : 'authenticated owner');
       return { ok: true, transport: this.describeTransport(), detail: String(who) };
     } catch (err) {
       return { ok: false, transport: this.describeTransport(), detail: (err as Error).message };
@@ -182,9 +184,10 @@ export class BeeClient {
    * `GET /v1/stream` -- server-sent events from `bee proxy`.
    *
    * The `event:` line is the frame's type and is passed through to the caller.
-   * Dropping it and inferring the type from the payload -- which is what an
-   * SSE reader that filters for `data:` alone ends up doing -- misreads real
-   * event types whose payloads are not disjoint; see `events.ts`.
+   * A live frame repeats it in its own `type` field, so either is enough; the
+   * line is kept because it is what `bee stream`'s own parser keys on, and a
+   * frame without either is read by shape, which misreads event types whose
+   * payloads are not disjoint; see `events.ts`.
    */
   private async consumeSse(
     types: string[],
@@ -240,11 +243,11 @@ export class BeeClient {
   /**
    * `bee stream --json` -- one JSON object per line on stdout.
    *
-   * This transport is lossy in one specific way: `--json` prints the SSE
-   * frame's `data` payload alone and discards the `event:` name that carried
-   * its type, so every frame arriving here has to be classified by shape. That
-   * is why the proxy is the preferred transport, and why `classifyEvent` marks
-   * what it inferred. `describeTransport()` reports which path is live.
+   * `--json` prints the SSE frame's `data:` line alone and drops the `event:`
+   * line. Nothing is lost by that: a live frame carries its type in its own
+   * `type` field, and `classifyEvent` reads it from there. A frame with no
+   * `type` would be classified by shape and marked as inferred.
+   * `describeTransport()` reports which path is live.
    */
   private async consumeCliStream(
     types: string[],
@@ -294,18 +297,23 @@ export class BeeClient {
   // --------------------------------------------------------------- reconcile
 
   /**
-   * `bee changed --cursor` -- the cursor-based changefeed.
+   * `GET /v1/changes` / `bee changed --cursor` -- the cursor-based changefeed.
    *
    * This is the reliability half of the capture design. The stream is
-   * at-most-once; this is not. Persist `meta.next_cursor` only after the batch
-   * has been processed successfully, never on receipt.
+   * at-most-once; this is not. Persist `nextCursor` only after the batch has
+   * been processed successfully, never on receipt.
+   *
+   * The two doors answer in different shapes. The API returns bare ids and puts
+   * `next_cursor` at the top level; the CLI fetches every id itself and moves
+   * the cursor into `meta`. A reader that looks for `meta.next_cursor` on the
+   * API never advances its cursor, and re-reads the same window forever.
    */
-  async changed(cursor?: string): Promise<BeeChangeFeed> {
+  async changed(cursor?: string): Promise<BeeChangeBatch> {
     if (this.proxyUrl) {
       const qs = cursor ? `?cursor=${encodeURIComponent(cursor)}` : '';
-      return this.http<BeeChangeFeed>('GET', `/v1/changes${qs}`);
+      return readChangeBatch(await this.http<unknown>('GET', `/v1/changes${qs}`));
     }
-    return this.cli<BeeChangeFeed>(['changed', ...(cursor ? ['--cursor', cursor] : []), '--json']);
+    return readChangeBatch(await this.cli<unknown>(['changed', ...(cursor ? ['--cursor', cursor] : []), '--json']));
   }
 
   async listConversations(opts: { limit?: number; cursor?: string } = {}): Promise<BeeConversation[]> {
@@ -335,59 +343,64 @@ export class BeeClient {
   }
 
   /**
-   * Resolve whatever reference a caller has into an id the read endpoints accept.
+   * Find the numeric id of the conversation a live frame belongs to.
    *
-   * Realtime frames carry `conversation_uuid`; the read endpoints are keyed by
-   * id. Rather than assume the two are interchangeable, try the reference
-   * directly and fall back to a lookup by uuid over recent conversations. The
-   * mapping is cached because a live conversation produces many utterances and
-   * this would otherwise be a list call per sentence.
+   * A realtime frame names its conversation by `conversation_uuid`. The read
+   * endpoints are keyed by numeric id, and a conversation record carries no
+   * uuid at all, so the two cannot be joined on the conversation. They can be
+   * joined on the utterance: the id a live frame gives its utterance is the id
+   * of the same utterance in the capturing conversation's realtime
+   * transcription. So the conversations still being captured are read, and the
+   * one holding that utterance id is the one.
+   *
+   * A frame without an utterance id falls back to its text, matched against
+   * the newest conversations' transcripts. The mapping is cached by uuid: a
+   * live conversation produces many utterances, and this would otherwise be
+   * several reads per sentence. Undefined means not found, and the caller says
+   * so rather than inventing an id.
    */
   private conversationIdCache = new Map<string, string>();
 
-  async resolveConversationId(ref: string): Promise<string> {
-    const cached = this.conversationIdCache.get(ref);
+  async resolveConversationId(ref: { uuid?: string; id?: string; utteranceId?: string; text?: string }): Promise<string | undefined> {
+    if (ref.id) return ref.id;
+    const cached = ref.uuid ? this.conversationIdCache.get(ref.uuid) : undefined;
     if (cached) return cached;
-    try {
-      const convo = await this.getConversation(ref);
-      if (convo && convo.id !== undefined) {
-        const id = String(convo.id);
-        this.conversationIdCache.set(ref, id);
-        if (convo.uuid) this.conversationIdCache.set(convo.uuid, id);
-        return id;
+
+    const recent = await this.listConversations({ limit: 10 }).catch(() => [] as BeeConversation[]);
+    const remember = (id: string): string => {
+      if (ref.uuid) this.conversationIdCache.set(ref.uuid, id);
+      return id;
+    };
+
+    if (ref.utteranceId) {
+      for (const c of recent.filter((x) => String(x.state ?? '').toUpperCase() !== 'COMPLETED')) {
+        const full = await this.getConversation(String(c.id)).catch(() => undefined);
+        if (full && utteranceIds(full).has(ref.utteranceId)) return remember(String(c.id));
       }
-    } catch {
-      /* not an id, or not readable by that key */
     }
-    const recent = await this.listConversations({ limit: 50 }).catch(() => []);
-    const match = recent.find((c) => c.uuid === ref || String(c.id) === ref);
-    const id = match ? String(match.id) : ref;
-    this.conversationIdCache.set(ref, id);
-    return id;
+    if (ref.text) {
+      const needle = normaliseText(ref.text);
+      for (const c of recent) {
+        const words = await this.transcript(String(c.id)).catch(() => [] as BeeUtterance[]);
+        if (words.some((u) => normaliseText(u.text ?? '') === needle)) return remember(String(c.id));
+      }
+    }
+    return undefined;
   }
 
   /**
-   * Verbatim utterances. Preferred over summaries: summaries are generated.
+   * Verbatim utterances, in spoken order. Preferred over summaries: summaries
+   * are generated.
    *
-   * There is no server-side time filter here. `bee conversations transcript`
-   * takes an id and `--json` and nothing else, and `/v1/conversations/:id`
-   * returns the whole utterance array, so "since" is a caller-side concern; the
-   * reconciler slices by utterance index, which is stable, rather than by a
-   * timestamp the transcript is not obliged to carry.
+   * Read from the conversation record and not from `bee conversations
+   * transcript`, because that command flattens every transcription into one
+   * list: a conversation still being processed would come back with each
+   * sentence twice. `pickTranscript` chooses the final transcription, or the
+   * realtime one while there is no final one yet, as `bee conversations get`
+   * does.
    */
   async transcript(id: string): Promise<BeeUtterance[]> {
-    if (this.proxyUrl) return (await this.getConversation(id)).utterances ?? [];
-    if (this.allowCli) {
-      try {
-        const body = await this.cli<unknown>(['conversations', 'transcript', id, '--json']);
-        const arr = asArray<BeeUtterance>(body, 'utterances');
-        if (arr.length) return arr;
-      } catch {
-        /* fall through to the conversation read */
-      }
-    }
-    const convo = await this.getConversation(id);
-    return convo.utterances ?? [];
+    return pickTranscript(await this.getConversation(id));
   }
 
   /**
@@ -431,23 +444,25 @@ export class BeeClient {
     if (this.proxyUrl) {
       const path = opts.neural ? '/v1/search/conversations/neural' : '/v1/search/conversations';
       const payload: Record<string, unknown> = { query, limit: opts.limit ?? 20 };
+      if (opts.since) payload.since = opts.since;
+      if (opts.until) payload.until = opts.until;
+      // `filter` and `sortBy` are keyword-only; neural search is conversations only.
       if (!opts.neural) {
-        if (opts.since) payload.since = opts.since;
-        if (opts.until) payload.until = opts.until;
-        if (opts.sort) payload.sort = opts.sort;
+        if (opts.filter) payload.filter = opts.filter;
+        if (opts.sortBy) payload.sortBy = opts.sortBy;
       }
       const body = await this.http<unknown>('POST', path, payload);
-      return asArray<BeeSearchHit>(body, 'results', 'hits', 'conversations');
+      return asArray<BeeSearchHit>(body, 'results');
     }
     const args = ['search', '--query', query, '--limit', String(opts.limit ?? 20)];
     if (opts.neural) args.push('--neural');
-    if (opts.filter) args.push('--filter', opts.filter);
-    if (opts.sort) args.push('--sort', opts.sort);
+    if (!opts.neural && opts.filter) args.push('--filter', opts.filter);
+    if (!opts.neural && opts.sortBy) args.push('--sortBy', opts.sortBy);
     if (opts.since) args.push('--since', String(opts.since));
     if (opts.until) args.push('--until', String(opts.until));
     args.push('--json');
     const body = await this.cli<unknown>(args);
-    return asArray<BeeSearchHit>(body, 'results', 'hits', 'conversations');
+    return asArray<BeeSearchHit>(body, 'results');
   }
 
   // ----------------------------------------------------------------- correct
@@ -456,7 +471,8 @@ export class BeeClient {
     if (this.proxyUrl) {
       const qs = new URLSearchParams();
       if (opts.limit) qs.set('limit', String(opts.limit));
-      if (opts.unconfirmed) qs.set('unconfirmed', 'true');
+      // The API filters on `confirmed`; omitted, it returns both kinds.
+      if (opts.unconfirmed) qs.set('confirmed', 'false');
       const body = await this.http<unknown>('GET', `/v1/facts${qs.size ? `?${qs}` : ''}`);
       return asArray<BeeFact>(body, 'facts');
     }
@@ -586,6 +602,35 @@ function asArray<T>(body: unknown, ...keys: string[]): T[] {
     }
   }
   return [];
+}
+
+/**
+ * Either shape of the changefeed, as one batch.
+ *
+ * `GET /v1/changes`: `{ conversations: [11331219], …, next_cursor, since, until }`.
+ * `bee changed --json`: `{ meta: { next_cursor, since, until }, conversations: [{ id, … }] }`.
+ * Ids may be numbers or strings; objects are kept whole so the reconciler does
+ * not read them a second time.
+ */
+export function readChangeBatch(body: unknown): BeeChangeBatch {
+  const record = (body && typeof body === 'object' ? body : {}) as Record<string, unknown>;
+  const meta = (record.meta && typeof record.meta === 'object' ? record.meta : record) as Record<string, unknown>;
+  const conversationIds: string[] = [];
+  const conversations: BeeConversation[] = [];
+  for (const item of Array.isArray(record.conversations) ? record.conversations : []) {
+    if (typeof item === 'number' || typeof item === 'string') conversationIds.push(String(item));
+    else if (item && typeof item === 'object' && 'id' in item) {
+      conversationIds.push(String((item as BeeConversation).id));
+      conversations.push(item as BeeConversation);
+    }
+  }
+  return {
+    ...(typeof meta.next_cursor === 'string' && meta.next_cursor ? { nextCursor: meta.next_cursor } : {}),
+    ...(typeof meta.since === 'number' ? { since: meta.since } : {}),
+    ...(typeof meta.until === 'number' ? { until: meta.until } : {}),
+    conversationIds,
+    conversations,
+  };
 }
 
 function unwrap<T>(body: unknown, ...keys: string[]): T {

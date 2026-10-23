@@ -15,7 +15,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { join } from 'node:path';
 import { BeeClient } from '#bee';
-import { BeeSim } from '../../tools/bee-sim/src/server.ts';
+import { BeeSim, streamUuid } from '../../tools/bee-sim/src/server.ts';
 import { buildEngine, Reconciler, type BuiltEngine } from '#engine';
 import { REPO_ROOT, tempStore } from '../helpers.ts';
 import type { DriftEvent } from '#spec';
@@ -34,7 +34,7 @@ beforeAll(async () => {
   sim = new BeeSim({
     port: 0,
     fixtureDir: join(REPO_ROOT, 'demo', 'conversations'),
-    liveConversationIds: ['10743', '10744'],
+    liveConversationIds: ['10695705', '10697402'],
     log: () => {},
   });
   port = await sim.listen();
@@ -73,20 +73,19 @@ interface Spoken {
   capturedAt?: string;
 }
 
-/** The uuid a live Bee frame would carry for each demo conversation. */
-const UUIDS: Record<string, string> = {
-  '10743': '9a41c2fe-52b8-4d77-b0e3-6f18cd4a2b55',
-  '10744': '0d7e51ab-4c39-4a16-8e52-b3f7290ac641',
-};
-
+/**
+ * One live utterance, already resolved to its conversation. No speaker count
+ * unless a scenario gives one: Bee labels every speaker "Unknown", so a live
+ * sentence arrives unattributed, as it does here.
+ */
 async function say(s: Spoken) {
-  const conversationId = s.conversationId ?? '10743';
+  const conversationId = s.conversationId ?? '10695705';
   return built.engine.ingestUtterance({
     text: s.text,
     conversationId,
-    ...(UUIDS[conversationId] ? { conversationUuid: UUIDS[conversationId]! } : {}),
+    conversationUuid: streamUuid(conversationId),
     window: s.window ?? [],
-    speakerCount: s.speakerCount ?? 1,
+    ...(s.speakerCount !== undefined ? { speakerCount: s.speakerCount } : {}),
     ...(s.capturedAt ? { capturedAt: s.capturedAt } : {}),
     origin: 'realtime',
   });
@@ -196,6 +195,17 @@ describe('08 teammate statement, unknown ownership', () => {
     expect(drift!.confirmationRequired).toBe(true);
   });
 
+  it('asks too when Bee does not say who was speaking, which is every Bee transcript today', async () => {
+    const out = await say({ text: 'The checkout worker retries three times.' });
+    expect(out.claims[0]!.claim.ownership).toBe('UNKNOWN');
+    expect((await drifts())[0]!.confirmationRequired).toBe(true);
+  });
+
+  it('attributes a sentence without asking only when the labels say one person spoke', async () => {
+    const out = await say({ text: 'The checkout worker retries three times.', speakerCount: 1 });
+    expect(out.claims[0]!.claim.ownership).toBe('LIKELY_USER');
+  });
+
   it('unlocks write actions only once the wearer confirms the belief is theirs', async () => {
     await say({ text: 'The checkout worker retries three times.', speakerCount: 3 });
     const [drift] = await drifts();
@@ -219,7 +229,7 @@ describe('09 realtime event lost, recovered by cursor reconciliation', () => {
     await fetch(`http://127.0.0.1:${port}/_sim/play`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ conversationId: '10743', speedMs: 0 }),
+      body: JSON.stringify({ conversationId: '10695705', speedMs: 0 }),
     });
 
     // The stream drops. The changefeed does not: this is the whole point of
@@ -232,7 +242,7 @@ describe('09 realtime event lost, recovered by cursor reconciliation', () => {
     await fetch(`http://127.0.0.1:${port}/_sim/play`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ conversationId: '10744', speedMs: 0 }),
+      body: JSON.stringify({ conversationId: '10697402', speedMs: 0 }),
     });
     await fetch(`http://127.0.0.1:${port}/_sim/network`, {
       method: 'POST',
@@ -262,13 +272,12 @@ describe('09 realtime event lost, recovered by cursor reconciliation', () => {
   });
 
   it('processes an utterance exactly once when both paths deliver it', async () => {
-    await say({ text: 'The checkout worker retries three times.', conversationId: '10412', capturedAt: '2026-08-12T09:14:11.000Z' });
+    await say({ text: 'The checkout worker retries three times.', conversationId: '10415931', capturedAt: '2026-08-12T09:14:11.000Z' });
     const again = await built.engine.ingestUtterance({
       text: 'The checkout worker retries three times.',
-      conversationId: '10412',
+      conversationId: '10415931',
       utteranceIndex: 1,
       window: [],
-      speakerCount: 1,
       origin: 'reconciled',
     });
     expect(again.duplicate).toBe(true);
@@ -287,9 +296,8 @@ describe('10 GitHub unavailable', () => {
     const broken = buildEngineWithBrokenGitHub();
     const out = await broken.engine.ingestUtterance({
       text: 'The events table stores the user agent.',
-      conversationId: '10743',
+      conversationId: '10695705',
       window: [],
-      speakerCount: 1,
       origin: 'realtime',
     });
     expect(out.claims[0]!.verdict).toBe('INCONCLUSIVE');
@@ -301,9 +309,8 @@ describe('10 GitHub unavailable', () => {
     const broken = buildEngineWithBrokenGitHub();
     const out = await broken.engine.ingestUtterance({
       text: 'The events table stores the user agent.',
-      conversationId: '10743',
+      conversationId: '10695705',
       window: [],
-      speakerCount: 1,
       origin: 'realtime',
     });
     const evidence = await broken.store.listEvidence(out.claims[0]!.claim.id);
@@ -318,9 +325,8 @@ describe('11 AppConfig unavailable', () => {
     const broken = buildEngineWithBrokenAppConfig();
     const out = await broken.engine.ingestUtterance({
       text: "It's probably fine. Checkout retries failed jobs three times anyway.",
-      conversationId: '10743',
+      conversationId: '10695705',
       window: [],
-      speakerCount: 1,
       origin: 'realtime',
     });
     expect(out.claims[0]!.verdict).toBe('INCONCLUSIVE');
@@ -340,7 +346,7 @@ describe('12 the same drift repeated across conversations', () => {
 
     await say({
       text: 'Told them the checkout worker retries three times, so a slow consumer is not the problem.',
-      conversationId: '10744',
+      conversationId: '10697402',
     });
 
     const after = await drifts();

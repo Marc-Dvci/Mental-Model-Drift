@@ -118,22 +118,35 @@ pass recovers anything.
 apart, and `tests/e2e/capture.test.ts` genuinely cuts the stream, plays a conversation into the void
 and asserts the claim is found anyway.
 
-### Identity, since Bee frames carry none
+### Identity across the two paths
 
-Realtime frames have no event id, so one is derived:
+The two paths do not name things the same way, and every identity rule here follows from that:
 
-- `realtimeFingerprint` — conversation + speaker + normalised text + a **coarse 10-second bucket**,
-  so the same physical utterance arriving twice collapses while two genuinely repeated sentences
-  minutes apart stay distinct;
+| | live frame | conversation read |
+|---|---|---|
+| conversation | `conversation_uuid` | numeric `id`, no uuid on the record |
+| utterance | `utterance.id`, the realtime transcription's id | the realtime id while capturing, a new final id once processed |
+| time | `spoken_at`, ISO 8601 | `spoken_at`, epoch ms; `start`/`end` in seconds into the recording |
+| speaker | absent | `"Unknown"` |
+
+- **The conversation is joined on the utterance.** `resolveConversationId` reads the conversations
+  still being captured and returns the one whose realtime transcription holds the frame's utterance
+  id, falling back to the sentence's text. Every claim is filed under the numeric id, the only name
+  the reconciler has (`packages/engine/src/live.ts`).
+- `realtimeFingerprint` — the frame's utterance id when it has one; for a frame without, conversation
+  + normalised text + a **coarse 10-second bucket**, so the same utterance arriving twice collapses
+  while two genuinely repeated sentences minutes apart stay distinct;
 - `reconciledFingerprint` — conversation + utterance index + normalised text, because a transcript
   read has a stable index and no arrival time at all;
-- `contentKey` — conversation + normalised text, which is what deduplicates **across** the two
-  paths, and is the reason an utterance streamed live and then re-read during reconciliation is
-  processed exactly once.
+- `contentKey` — the conversation's numeric id + normalised text, which is what deduplicates
+  **across** the two paths. Utterance ids cannot: processing replaces the realtime transcription
+  with a final one under new ids. This is the reason an utterance streamed live and then re-read
+  during reconciliation is processed exactly once.
 
 Normalisation keeps a period between digits (`4.12` is a value) and drops it everywhere else,
-because Bee re-punctuates an utterance between the live frame and the stored transcript. Found by a
-test, not by luck.
+because the final transcription punctuates sentences its own way.
+`tests/e2e/capture.test.ts` finishes processing after a live run and requires the reconciliation
+pass to find nothing new.
 
 ---
 
@@ -181,12 +194,13 @@ against the EU value and produced a confident, wrong card.
 
 ## 6. Ownership is diarisation, not identity
 
-Bee gives speaker labels (`speaker_1`), not identities, and this product never tries to turn one
-into the other.
+Speaker labels are diarisation, not identities, and this product never tries to turn one into the
+other. Today Bee labels every utterance `"Unknown"` and a live frame carries no speaker, so in
+practice every claim heard through Bee asks first.
 
-- one speaker in the window ⇒ `LIKELY_USER`;
-- more than one ⇒ `UNKNOWN`, and the card asks *"was this your understanding?"* before it will
-  unlock any write action.
+- labels that say one person spoke ⇒ `LIKELY_USER`;
+- more than one, or no real labels at all (every speaker `"Unknown"`) ⇒ `UNKNOWN`, and the card
+  asks *"was this your understanding?"* before it will unlock any write action.
 
 `record_understanding` over MCP refuses outright a belief that could not be attributed to the
 wearer. The failure this guards against is correcting someone for something a colleague said in the

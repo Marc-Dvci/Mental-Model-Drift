@@ -1,0 +1,83 @@
+{
+  "conversation": {
+    "id": 10682244,
+    "start_time": 1788168480350,
+    "end_time": 1788168537352,
+    "summary": "Standup.",
+    "short_summary": "Standup",
+    "state": "COMPLETED",
+    "created_at": 1788168480548,
+    "updated_at": 1788168587910,
+    "transcriptions": [
+      {
+        "id": 14635209,
+        "realtime": false,
+        "utterances": [
+          {
+            "id": 3674637956,
+            "realtime": false,
+            "start": 2.65,
+            "end": 5.77,
+            "spoken_at": 1788168483000,
+            "text": "Demo prep yesterday, more of the same today.",
+            "speaker": "Unknown",
+            "created_at": 1788168581963
+          },
+          {
+            "id": 3674637957,
+            "realtime": false,
+            "start": 13.65,
+            "end": 15.41,
+            "spoken_at": 1788168494000,
+            "text": "Is the release out?",
+            "speaker": "Unknown",
+            "created_at": 1788168581967
+          },
+          {
+            "id": 3674637958,
+            "realtime": false,
+            "start": 19.65,
+            "end": 23.11,
+            "spoken_at": 1788168500000,
+            "text": "The checkout service is still running 4.12 in production.",
+            "speaker": "Unknown",
+            "created_at": 1788168581972
+          },
+          {
+            "id": 3674637959,
+            "realtime": false,
+            "start": 31.65,
+            "end": 34.43,
+            "spoken_at": 1788168512000,
+            "text": "I thought 4.13 went out on Saturday.",
+            "speaker": "Unknown",
+            "created_at": 1788168581978
+          },
+          {
+            "id": 3674637960,
+            "realtime": false,
+            "start": 40.65,
+            "end": 44.11,
+            "spoken_at": 1788168521000,
+            "text": "Maybe it did. I have not looked since Friday.",
+            "speaker": "Unknown",
+            "created_at": 1788168581985
+          },
+          {
+            "id": 3674637961,
+            "realtime": false,
+            "start": 52.65,
+            "end": 55.09,
+            "spoken_at": 1788168533000,
+            "text": "I will check before the demo.",
+            "speaker": "Unknown",
+            "created_at": 1788168581988
+          }
+        ]
+      }
+    ],
+    "suggested_links": [],
+    "primary_location": null
+  },
+  "timezone": "Europe/Paris"
+}

@@ -10,7 +10,7 @@ The automated integration tests in this repository run against `tools/bee-sim`, 
 implementing the documented `/v1` surface. When building client tooling, the failure mode to avoid
 is a test staying green while both sides share the same misconception.
 
-That is not hypothetical here. It happened twice, and both times the tests passed:
+That is not hypothetical here. It happened three times, and every time the tests passed:
 
 1. **The test fixture wrote frames with no SSE `event:` line**, and the client read only `data:` lines
    and guessed each frame's type from its payload. Both halves agreed, and the product was guessing
@@ -18,9 +18,16 @@ That is not hypothetical here. It happened twice, and both times the tests passe
 2. **A unit test asserted that `{conversation: {short_summary}}` is an
    `update-conversation-summary` frame.** Bee does not send that shape for that event — the real
    payload is flat, `{conversation_id, short_summary}`. The test was green and meaningless.
+3. **The test fixture and the client were both written from the documentation's examples.** Frames
+   with a `speaker` and no `type`, utterance id or `spoken_at`; conversation records with a uuid and
+   a flat `utterances` list; ISO times; a changefeed cursor under `meta`. Every test agreed. Against
+   an account, the same client would have read every transcript as empty, never advanced its
+   cursor, and never matched a live sentence to its conversation. The API's real shapes are the
+   ones `@beeai/cli` declares for its answers (`sources/resources/conversations/index.ts`,
+   `sources/commands/changed/index.ts`) and the ones published live frames show.
 
-Neither would have been caught by writing more tests of the same kind. Both were caught by asking a
-different question: *would the real thing accept this?*
+None would have been caught by writing more tests of the same kind. All three were caught by asking a
+different question: *would the real thing accept this, and is this what the real thing sends?*
 
 ---
 
@@ -52,6 +59,12 @@ in that state deliberately to confirm it can fail.
 | | |
 |---|---|
 | the `event:` line is present on every frame, including `connected` | asserted on the literal bytes |
+| a `new-utterance` frame carries `type`, `conversation_uuid`, the utterance's `id`, `sample_id`, `start`/`end` and an ISO `spoken_at`, and no `speaker` | asserted on the parsed frame |
+| a `--json` line (the `data:` line alone) classifies by its own `type`, with nothing inferred | through `classifyEvent` |
+| a conversation read is `{conversation, timezone}`: numeric id, no uuid, epoch-ms times, words under `transcriptions[]`, every speaker `"Unknown"` | asserted on the response body |
+| a live frame joins its conversation through the utterance id in the realtime transcription | resolved by the client, uuid never read from a record |
+| processing replaces the realtime transcription with a final one under new ids | and the reconciler still finds nothing new (`capture.test.ts`) |
+| `/v1/changes` returns bare ids with `next_cursor` at the top level; `bee changed --json`'s `meta` shape reads the same | both shapes through `readChangeBatch` |
 | all 13 event types in `SUPPORTED_EVENT_TYPES` round-trip | emitted, parsed, and classified back to themselves |
 | payload shapes per type | taken from `bee stream`'s own `formatEvent` switch |
 | the three non-disjoint payloads | `update-conversation-summary`, `delete-conversation`, `journal-deleted` |
@@ -67,7 +80,7 @@ in that state deliberately to confirm it can fail.
 
 Conformance is about **format**, not behaviour. What is claimed is checkable: the client adheres strictly to the wire format Bee expects.
 
-`pnpm doctor` is the end-to-end check: it runs the client over whichever Bee transport is configured and reports each capability, including whether the last realtime frame arrived carrying its event name.
+`pnpm doctor` is the end-to-end check: it runs the client over whichever Bee transport is configured and reports each capability, including whether the last realtime frame arrived named and carrying its utterance id, and whether a transcript read returns any utterances at all.
 
 ---
 
@@ -79,4 +92,5 @@ pnpm doctor                     # the same capabilities, against Bee
 ```
 
 Upstream source used, for anyone reproducing this:
-[`bee-computer/bee-cli`](https://github.com/bee-computer/bee-cli) at `e67032d`, MIT.
+[`bee-computer/bee-cli`](https://github.com/bee-computer/bee-cli), MIT: `parseSSEBuffer` from
+`e67032d` (0.7.3), and the API response types from `fa9580d` (21 October 2026).

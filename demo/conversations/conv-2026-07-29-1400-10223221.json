@@ -1,0 +1,103 @@
+{
+  "conversation": {
+    "id": 10223221,
+    "start_time": 1785334680392,
+    "end_time": 1785334778486,
+    "summary": "Explaining the queue to the new starter.",
+    "short_summary": "Explaining the queue to the new starter",
+    "state": "COMPLETED",
+    "created_at": 1785334680529,
+    "updated_at": 1785334911696,
+    "transcriptions": [
+      {
+        "id": 14006260,
+        "realtime": false,
+        "utterances": [
+          {
+            "id": 3609463404,
+            "realtime": false,
+            "start": 3.61,
+            "end": 6.73,
+            "spoken_at": 1785334684000,
+            "text": "Okay, walking you through how checkout handles failures.",
+            "speaker": "Unknown",
+            "created_at": 1785334906202
+          },
+          {
+            "id": 3609463405,
+            "realtime": false,
+            "start": 17.61,
+            "end": 22.77,
+            "spoken_at": 1785334698000,
+            "text": "The checkout worker retries three times, then the dead letter queue picks it up.",
+            "speaker": "Unknown",
+            "created_at": 1785334906209
+          },
+          {
+            "id": 3609463407,
+            "realtime": false,
+            "start": 32.61,
+            "end": 35.39,
+            "spoken_at": 1785334713000,
+            "text": "And someone watches the dead letter queue?",
+            "speaker": "Unknown",
+            "created_at": 1785334906212
+          },
+          {
+            "id": 3609463408,
+            "realtime": false,
+            "start": 40.61,
+            "end": 44.75,
+            "spoken_at": 1785334721000,
+            "text": "There is an alarm on depth, it pages the on-call engineer.",
+            "speaker": "Unknown",
+            "created_at": 1785334906217
+          },
+          {
+            "id": 3609463409,
+            "realtime": false,
+            "start": 55.61,
+            "end": 60.43,
+            "spoken_at": 1785334736000,
+            "text": "The DLQ on the checkout worker is enabled, so nothing is silently dropped.",
+            "speaker": "Unknown",
+            "created_at": 1785334906223
+          },
+          {
+            "id": 3609463410,
+            "realtime": false,
+            "start": 69.61,
+            "end": 72.05,
+            "spoken_at": 1785334750000,
+            "text": "How often does that actually fire?",
+            "speaker": "Unknown",
+            "created_at": 1785334906230
+          },
+          {
+            "id": 3609463411,
+            "realtime": false,
+            "start": 77.61,
+            "end": 80.73,
+            "spoken_at": 1785334758000,
+            "text": "Maybe twice a month, usually a bad payload.",
+            "speaker": "Unknown",
+            "created_at": 1785334906233
+          },
+          {
+            "id": 3609463412,
+            "realtime": false,
+            "start": 91.61,
+            "end": 96.43,
+            "spoken_at": 1785334772000,
+            "text": "The retry logic lives in the shared messaging library, not in our code.",
+            "speaker": "Unknown",
+            "created_at": 1785334906237
+          }
+        ]
+      }
+    ],
+    "suggested_links": [],
+    "primary_location": null
+  },
+  "timezone": "Europe/Paris"
+}

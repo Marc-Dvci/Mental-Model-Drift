@@ -12,36 +12,37 @@ Severity is what it cost *this* project: **high** means it silently produced wro
 
 ## Bee
 
-### B1 — The event type is the SSE `event:` line, and nothing in the docs says so
+### B1 — The documented stream payloads leave out the fields a client keys on
 
-**Severity: high** (I built the wrong thing, believed it, and caught it only by reading Bee's source)
+**Severity: high** (two conclusions I built on were wrong, because of what the examples leave out)
 
-**Task.** Subscribe to `new-utterance` and process each frame exactly once.
+**Task.** Subscribe to `new-utterance`, tie each frame to its conversation, and process each one once.
 
-**Steps.** Connected to `GET /v1/stream?types=new-utterance` on `bee proxy`, read the SSE frames,
-looked in the JSON payload for a discriminator and did not find one. The payload really is
-`{ utterance: {…}, conversation_uuid: "…" }`, with no type field anywhere in it. So I concluded
-there was no discriminator, wrote a classifier that guesses the event type from which keys are
-present, put it in one tested module, and moved on.
+**Steps.** Wrote the reader from the realtime documentation's example payload,
+`{"utterance":{"text":"…","speaker":"speaker_1"},"conversation_uuid":"…"}`. It has no type field, no
+utterance id and no time, so I concluded that a frame carries no discriminator and no identity of
+its own. Reading `@beeai/cli`, `sources/commands/stream/index.ts`, then showed that `bee stream`
+keys on the SSE `event:` line: its `parseSSEBuffer` drops any frame without one, and `formatEvent`
+switches on the name across a fixed list of thirteen types. So I made the `event:` line the only
+authority, treated `bee stream --json` (which prints the `data:` line alone) as a transport that
+loses the type, and derived a fingerprint for identity.
 
-**Expected.** Either a `type` field in the payload, or a documented statement that there is none.
+**Expected.** Example payloads that show what a frame contains.
 
-**Actual.** Both wrong. The discriminator exists and it is the SSE frame's own `event:` line:
+**Actual.** A live frame carries what the examples leave out, and lacks what they show:
 
 ```
 event: new-utterance
-data: {"utterance":{"text":"…","speaker":"speaker_1"},"conversation_uuid":"…"}
+data: {"type":"new-utterance","conversation_uuid":"…","utterance":{"id":3676590930,"sample_id":"…",
+       "start":12.47,"end":16.27,"text":"…","spoken_at":"2026-09-01T09:02:13.000Z"}}
 ```
 
-I found it only by reading `@beeai/cli` 0.7.3, `sources/commands/stream/index.ts`. Its
-`parseSSEBuffer` requires **both** an `event` field and a `data` field before it emits anything, and
-`formatEvent` switches on the name across a fixed list of thirteen types. So the name is not
-incidental — it is how Bee's own client reads Bee's own stream. I could not find it stated in the
-developer documentation, in `bee-skill`'s SKILL.md, or in `bee stream --help`; the Skill's
-capability map does not mention `bee stream` at all.
+The type is in the payload as well as on the `event:` line, so `--json` loses nothing. The utterance
+has an id and a `spoken_at`. There is no `speaker`. Each of my three conclusions was an artefact of
+the examples, not of Bee.
 
-Guessing from the payload is not merely inelegant, it is **wrong**, because the payloads are not
-disjoint. Three real cases:
+Guessing a type from a payload's shape is still wrong where a frame arrives with no name at all,
+because the payloads are not disjoint:
 
 | event | payload | what a shape-guesser does |
 |---|---|---|
@@ -49,49 +50,16 @@ disjoint. Three real cases:
 | `delete-conversation` | `{conversation:{…}}` | indistinguishable from `new-conversation` |
 | `journal-deleted` | `{journalId, reason}` | does not match the other journal events, which carry `journal` |
 
-**Workaround.** `packages/bee/src/events.ts` now reads the `event:` line and treats it as
-authoritative; the structural reader survives only as a fallback for transports that drop the name,
-and anything it produces is marked `nameWasInferred`, so a guess is never mistaken downstream for
-something Bee actually said. `tests/conformance/bee-wire.test.ts` pins it by copying Bee's own
-`parseSSEBuffer` verbatim and running literal wire socket bytes through it.
-Reintroducing the bug makes that parser return **zero** events, which is the whole danger: a client
-that drops the name and a server that never sends it agree perfectly with each other, and produce
-nothing at all in front of Bee's own parser.
+**Workaround.** `packages/bee/src/events.ts` reads the name from the `event:` line, then from the
+frame's own `type`, and only then from the shape, marking a shape guess `nameWasInferred` so it is
+never mistaken downstream for something Bee said. It reads the utterance id and `spoken_at` off every
+frame; the id is what joins a frame to its conversation (B3). `tests/conformance/bee-wire.test.ts`
+runs the test proxy's literal socket bytes through Bee's own `parseSSEBuffer`, copied verbatim, and
+pins every field of the frame.
 
-There is still no event **id**, so identity stays derived: a fingerprint over conversation + speaker
-+ normalised text + a coarse 10-second bucket, so the same utterance arriving twice collapses while
-two genuinely repeated sentences minutes apart stay distinct.
-
-**Suggestion.** Two things, in order. (1) State in the streaming documentation that the event type
-is the SSE event name, and list the thirteen names — `SUPPORTED_EVENT_TYPES` is already in the CLI
-source, it is just not in anything a client author reads. This is the single highest-value paragraph
-Bee could add for integrators. (2) Add a stable `event_id`; without one, every serious client
-re-implements the same fingerprint, differently.
-
----
-
-### B1b — `bee stream --json` discards the event name
-
-**Severity: medium** (the machine-readable mode is the one that cannot tell you what it received)
-
-**Task.** Support the CLI as a transport on a machine with no proxy running.
-
-**Steps.** Piped `bee stream --json --types new-utterance` and parsed one JSON object per line.
-
-**Expected.** The same information the SSE stream carries.
-
-**Actual.** `--json` prints `event.data` and nothing else, so the `event:` name — the frame's type,
-per B1 — is dropped. `--agent` keeps the name, but only inside English prose
-(`"Event new-utterance: …"`), and `pretty` colourises it for a human. The one mode meant for
-programs is the one mode that loses the type.
-
-**Workaround.** The proxy is now the preferred transport and the CLI is the fallback. Frames
-arriving through the CLI are marked `nameWasInferred`, and `pnpm doctor` reports which transport is
-live and whether the last frame arrived named.
-
-**Suggestion.** Have `--json` emit the envelope — `{"event":"new-utterance","data":{…}}` — or add a
-`--json-envelope` flag. It is a small change in `handleEvent` and it makes the mode usable for the
-purpose it exists for.
+**Suggestion.** Publish one real frame per event type in the realtime documentation, with `type`,
+the utterance `id` and `spoken_at` in it, and say that `speaker` is absent. The thirteen names in
+`SUPPORTED_EVENT_TYPES` belong there too.
 
 ---
 
@@ -122,27 +90,32 @@ is invisible in testing because a test that plays events *before* cutting the st
 
 ---
 
-### B3 — Realtime frames key conversations by `uuid`, read endpoints key by `id`
+### B3 — A live frame names its conversation by a uuid no read endpoint knows
 
-**Severity: medium**
+**Severity: high** (the live and the recovered copy of a sentence never met, so a card could be raised twice)
 
-**Task.** Fetch the transcript of the conversation an incoming utterance belongs to, to get the
-preceding sentences and the speaker count.
+**Task.** Fetch the conversation an incoming utterance belongs to, for the preceding sentences, and
+file the claim under the same conversation the reconciliation pass will later read.
 
-**Steps.** Took `conversation_uuid` from the frame and called
-`GET /v1/conversations/{conversation_uuid}`.
+**Steps.** Took `conversation_uuid` from the frame and looked for it among the recent conversation
+records, falling back to using the uuid itself as the conversation's name.
 
-**Expected.** The conversation.
+**Expected.** A conversation record with that uuid on it.
 
-**Actual.** Not found. The read endpoints are keyed by the numeric `id`; the stream carries the
-`uuid`.
+**Actual.** A conversation record has no uuid field. `@beeai/cli` declares what
+`GET /v1/conversations/:id` returns — a numeric `id`, times, state, summaries, `transcriptions` — and
+a uuid is not among them. So the lookup could never match, and the fallback filed every live claim
+under a name the reconciler never uses. The content-key dedupe saw two different conversations, and
+the card's own conversation came back from the history search as an earlier statement of itself.
 
-**Workaround.** `BeeClient.resolveConversationId()` tries the reference directly, falls back to a
-lookup by uuid across recent conversations, and caches the mapping — a live conversation produces
-many utterances and this would otherwise be a list call per sentence.
+**Workaround.** The utterance joins them. The id a live frame gives its utterance is the id of the
+same utterance in the capturing conversation's realtime transcription. `resolveConversationId()`
+reads the conversations still being captured and returns the one holding that id, falls back to the
+sentence's text, and caches the answer per uuid. Every live claim is filed under the numeric id, and
+dedupe keys on it. `packages/engine/src/live.ts` is the one path the server, the relay's backend and
+the tests take.
 
-**Suggestion.** Accept either key on the read endpoints, or include both identifiers in stream
-frames.
+**Suggestion.** Put `conversation_id` in `new-utterance` frames, or `uuid` on conversation records.
 
 ---
 
@@ -172,10 +145,6 @@ The cost was real and silent: a proxy-only deployment (a container, a judge's la
 lost Bee's related-conversations capability entirely, and returned an empty list rather than an
 error, so nothing looked broken.
 
-The `transcript --since` half of my original assumption was wrong in a different way: that flag does
-not exist on the CLI either. `bee conversations transcript` takes an id and `--json`, nothing else.
-I had invented it.
-
 **Workaround.** The client is now proxy-only whenever a proxy is configured, and shells out to the
 binary only when there is no proxy at all. One transport, one code path, no capability that
 disappears depending on how the process was started. `pnpm doctor` exercises every endpoint over
@@ -189,28 +158,104 @@ boundary, and a published OpenAPI document for `/v1` would have prevented all of
 
 ---
 
-### B5 — Utterance text is re-punctuated between the live frame and the stored transcript
+### B5 — Neither the utterance id nor the exact text survives processing
 
-**Severity: medium** (found by a test, would have been a duplicate card in production)
+**Severity: medium** (would have been a duplicate card in production)
 
 **Task.** Process an utterance exactly once when the live stream and the reconciliation pass both
 deliver it.
 
-**Steps.** Keyed deduplication on conversation plus normalised text, since the two paths share
-nothing else — the live frame has an arrival time and no index, the reconciled read has an index and
-no arrival time.
+**Steps.** Looked for something the live frame and the reconciled read of the same sentence share.
 
-**Expected.** The same sentence to normalise to the same key.
+**Expected.** The utterance id, now that the frame carries one (B1).
 
-**Actual.** Sentence-final punctuation differs between the two, so `"It retries three times."` and
-`"It retries three times"` produced different keys, and the wearer would have seen the same drift
-card twice.
+**Actual.** While a conversation is being captured, its words sit in a `realtime: true`
+transcription under the ids the stream sent. Once Bee has processed it, a `realtime: false`
+transcription replaces it, with new ids and its own sentence punctuation. A sentence streamed live
+and read back after processing can carry two different ids and end in two different ways.
 
-**Workaround.** Normalisation strips punctuation but keeps a period between digits, so `4.12` still
-survives as a value. Pinned by a test.
+**Workaround.** Deduplication keys on the conversation's numeric id plus normalised text.
+Normalisation strips sentence punctuation but keeps a period between digits, so `4.12` survives as a
+value. `tests/e2e/capture.test.ts` completes the conversations after the live run and requires the
+reconciliation pass to find nothing new.
 
-**Suggestion.** Document that transcript text is normalised after a conversation completes, so
-clients key on content rather than assuming byte equality.
+**Suggestion.** Document the two transcriptions, and whether a realtime utterance id maps to a final
+one. A `realtime_id` on final utterances would let clients key on ids.
+
+---
+
+### B6 — A conversation's words are under `transcriptions[]`, not a flat list
+
+**Severity: high** (every transcript read came back empty, and an empty transcript looks like a quiet conversation)
+
+**Task.** Read the verbatim utterances of one conversation.
+
+**Steps.** Read `conversation.utterances`, the shape the documentation's `bee now` example shows:
+each conversation with its `utterances` directly underneath.
+
+**Expected.** The utterances.
+
+**Actual.** `GET /v1/conversations/:id` returns `{conversation, timezone}`, and the words are in
+`conversation.transcriptions[].utterances`, one transcription per pass (B5). `bee now` is the CLI's
+own rendering, not the API's shape. Every time on the record is epoch milliseconds; an utterance's
+`start` and `end` are seconds into the recording; `spoken_at` is the wall-clock time; and the API
+does not return utterances in spoken order. `bee conversations transcript --json` is no shortcut:
+it returns `{conversationId, transcript, note}` with every transcription flattened into one list,
+so a conversation still being processed comes back with each sentence twice.
+
+**Workaround.** `pickTranscript()` (`packages/bee/src/read.ts`) takes the final transcription, else
+the realtime one, sorted by `spoken_at`, then offset, then id — the rule `bee conversations get`
+applies. `pnpm doctor` fails its transcript row on zero utterances.
+
+**Suggestion.** Document the conversation response, field by field, with the units of each time.
+
+---
+
+### B7 — `/v1/changes` and `bee changed --json` answer in different shapes
+
+**Severity: high** (on the proxy the cursor would never have advanced)
+
+**Task.** Persist the changefeed cursor after each processed batch.
+
+**Steps.** Read `meta.next_cursor` and a list of conversation objects, the shape `bee changed --json`
+prints.
+
+**Expected.** The same answer from the API, which the CLI command wraps.
+
+**Actual.** The API returns bare ids — `{conversations:[…], facts:[], …, next_cursor, since, until,
+updated, timezone}` — with the cursor at the top level. It is the CLI that fetches each id and moves
+the cursor into a `meta` object (`sources/commands/changed/index.ts`). A client on `bee proxy`
+reading `meta.next_cursor` never stores a cursor, and re-reads the same 24-hour window on every pass.
+
+**Workaround.** `readChangeBatch()` reads either shape into one batch of ids, with the fetched
+records when the CLI already has them; the reconciler reads each conversation by id, and holds the
+cursor back if any read fails. The conformance test pins both shapes.
+
+**Suggestion.** Document the API's shape, and say the CLI reshapes it.
+
+---
+
+### B8 — Every speaker is "Unknown"
+
+**Severity: medium** (forced a design change in how a sentence is attributed to the wearer)
+
+**Task.** Act on a belief without asking only when it is the wearer's own.
+
+**Steps.** Counted the distinct speaker labels in the conversation: one label meant one speaker,
+and one speaker meant the wearer.
+
+**Expected.** Diarisation labels that tell people apart.
+
+**Actual.** Every utterance is `"speaker": "Unknown"` (bee-cli issue #19 reports 15,578 utterances
+across 133 conversations, all "Unknown", with the wearer's voice enrolled), and a live frame has no
+speaker at all. One distinct label is the absence of diarisation, not a monologue. Counted as one
+speaker, it would have attributed every sentence in a meeting to the wearer.
+
+**Workaround.** `labelledSpeakerCount()` counts real labels only, and none means the count is
+unknown. The claim is then UNKNOWN-ownership, and the card asks "Was this your understanding?"
+before any write to Bee is possible.
+
+**Suggestion.** A stable label per speaker, and a flag on the wearer's own utterances.
 
 ---
 
@@ -503,19 +548,22 @@ Kept here because a friction log that only blames tooling is not a useful docume
   cards and no trace of the reasoning that produced them — which is the half of the interface that
   justifies the other half. The server now keeps the last 250 events and replays them, marked as
   history.
-- **I documented two limitations of Bee that were not real** (B1 and B4 above), and built around
-  both. Each began the same way: I looked for something, did not find it, and wrote down that it
-  does not exist. Neither conclusion survived twenty minutes with `@beeai/cli`'s source, which is
-  MIT-licensed and one `gh repo clone` away. The stream *does* carry an event discriminator; the
-  proxy *is* a full pass-through. Both of my workarounds were real code, shipped, with tests
-  asserting the wrong behaviour — and one of those tests asserted a payload shape
-  (`{conversation: {short_summary}}` for a summary update) that Bee never sends, so it was green and
-  meaningless.
+- **I documented limitations of Bee that were not real** (B1, B3 and B4 above), and built around
+  them. Each began the same way: I looked for something in the documentation's examples, did not
+  find it, and wrote down that it does not exist. The stream *does* carry its type in the payload,
+  an utterance id and a time; the proxy *is* a full pass-through. My test proxy was written from the
+  same examples, so it agreed with every one of those conclusions, and with a flat transcript list,
+  a uuid on every record and a cursor under `meta`, none of which the API has. All of it was real
+  code, shipped, with tests asserting the wrong behaviour — and one of those tests asserted a
+  payload shape (`{conversation: {short_summary}}` for a summary update) that Bee never sends, so it
+  was green and meaningless.
 
   The general lesson, and the reason this entry is here rather than in the Bee section: **an
   integration test against your own test double proves your client agrees with your test double.** It
   says nothing about the real service, and it is at its most convincing exactly when both sides
-  share a misconception. What fixed it was `tests/conformance/bee-wire.test.ts`, which runs
-  literal wire socket bytes through Bee's own SSE parser, copied verbatim. That test is worth
-  more than the other 219 combined for the one question that matters here, because it is the only
-  one whose failure mode is "the real thing would not accept this".
+  share a misconception. What fixed it was holding the test double to Bee itself:
+  `tests/conformance/bee-wire.test.ts` runs literal wire socket bytes through Bee's own SSE parser,
+  copied verbatim, and pins every field of a frame, a conversation read and the changefeed to the
+  response types `@beeai/cli` declares and to published live frames. Those tests are worth more
+  than the rest combined for the one question that matters here, because they are the only ones
+  whose failure mode is "the real thing would not send or accept this".

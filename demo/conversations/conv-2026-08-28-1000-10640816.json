@@ -1,0 +1,83 @@
+{
+  "conversation": {
+    "id": 10640816,
+    "start_time": 1787912400770,
+    "end_time": 1787912469797,
+    "summary": "Prep for the customer demo.",
+    "short_summary": "Prep for the customer demo",
+    "state": "COMPLETED",
+    "created_at": 1787912401117,
+    "updated_at": 1787912569504,
+    "transcriptions": [
+      {
+        "id": 14578666,
+        "realtime": false,
+        "utterances": [
+          {
+            "id": 3668749527,
+            "realtime": false,
+            "start": 1.23,
+            "end": 4.01,
+            "spoken_at": 1787912402000,
+            "text": "I am doing the walkthrough on Wednesday.",
+            "speaker": "Unknown",
+            "created_at": 1787912563984
+          },
+          {
+            "id": 3668749528,
+            "realtime": false,
+            "start": 13.23,
+            "end": 19.07,
+            "spoken_at": 1787912414000,
+            "text": "I will show the old checkout flow, since the new checkout is still disabled in Europe.",
+            "speaker": "Unknown",
+            "created_at": 1787912563989
+          },
+          {
+            "id": 3668749529,
+            "realtime": false,
+            "start": 29.23,
+            "end": 32.01,
+            "spoken_at": 1787912430000,
+            "text": "Is that what they asked to see?",
+            "speaker": "Unknown",
+            "created_at": 1787912563995
+          },
+          {
+            "id": 3668749532,
+            "realtime": false,
+            "start": 37.23,
+            "end": 40.69,
+            "spoken_at": 1787912438000,
+            "text": "They asked for the payment path end to end.",
+            "speaker": "Unknown",
+            "created_at": 1787912564002
+          },
+          {
+            "id": 3668749533,
+            "realtime": false,
+            "start": 50.23,
+            "end": 55.73,
+            "spoken_at": 1787912451000,
+            "text": "The events table stores the source IP, so I can show the fraud view too.",
+            "speaker": "Unknown",
+            "created_at": 1787912564007
+          },
+          {
+            "id": 3668749534,
+            "realtime": false,
+            "start": 64.23,
+            "end": 66.33,
+            "spoken_at": 1787912465000,
+            "text": "That part is genuinely nice.",
+            "speaker": "Unknown",
+            "created_at": 1787912564013
+          }
+        ]
+      }
+    ],
+    "suggested_links": [],
+    "primary_location": null
+  },
+  "timezone": "Europe/Paris"
+}

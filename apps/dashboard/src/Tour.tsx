@@ -65,7 +65,7 @@ const BEATS: Beat[] = [
     caption: 'A checkout alert fires. The engineer remembers three retries, and decides it is probably fine.',
     ms: 6500,
     focus: '.feed',
-    run: async (t) => { t.play('10743', 650); },
+    run: async (t) => { t.play('10695705', 650); },
   },
   {
     phase: '02 / THE MISMATCH',
@@ -130,7 +130,7 @@ const BEATS: Beat[] = [
     run: async (t) => {
       await t.network(false);
       await t.sleep(500);
-      t.play('10744', 350);
+      t.play('10697402', 350);
       await t.sleep(2800);
       await t.network(true);
       await t.waitFor('.feed li[data-kind="reconciled"]', 20000);

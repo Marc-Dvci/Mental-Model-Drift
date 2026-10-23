@@ -4,22 +4,31 @@
  * Mental Model Drift talks to Bee through one client, over `/v1/*` on the
  * proxy: the SSE stream, the cursor changefeed, conversation reads, neural
  * search and facts. This test proxy implements that same surface over the
- * conversations in `demo/conversations`, so the test suite can run deterministically on any machine
- * with nothing else up -- and so the reliability behaviour that matters can be
- * tested on demand rather than waited for.
+ * conversations in `demo/conversations`, so the test suite can run
+ * deterministically on any machine with nothing else up -- and so the
+ * reliability behaviour that matters can be tested on demand rather than
+ * waited for.
  *
  * It is not a reimplementation of Bee. It has no transcription, no diarisation,
  * no fact extraction, and its "neural" search is token overlap with IDF
  * weighting rather than an embedding model. Nothing in the product depends on
- * any of that; it depends only on the wire format and the response shapes.
+ * any of that; it depends only on the wire format and the response shapes,
+ * and those are Bee's:
  *
- * Which is why those are not merely believed. `tests/conformance/bee-wire.test.ts`
- * reads this server's literal socket bytes and parses them with `parseSSEBuffer`
- * copied verbatim out of `@beeai/cli`, so the format is checked against Bee's
- * own code rather than against a careful reading of the documentation. That test
- * has already caught two defects here that every other test agreed with: frames
- * written with no `event:` line, which Bee's parser silently discards, and the
- * `all` wildcard treated as a literal event name.
+ *   - every time is epoch milliseconds, except a live frame's `spoken_at`;
+ *   - a conversation's words sit under `transcriptions[]`, a realtime one while
+ *     it is being captured and a final one once it is processed, each with its
+ *     own utterance ids, and every speaker is "Unknown";
+ *   - a conversation record has a numeric id and no uuid; the uuid exists only
+ *     on the stream, and the utterance id is what joins the two;
+ *   - `/v1/changes` returns bare ids with `next_cursor` at the top level;
+ *   - a live frame names its type twice, in the SSE `event:` line and in its
+ *     own `type` field, and carries the utterance's id and `spoken_at`.
+ *
+ * `tests/conformance/bee-wire.test.ts` reads this server's literal socket bytes
+ * and parses them with `parseSSEBuffer` copied verbatim out of `@beeai/cli`, so
+ * the framing is checked against Bee's own code rather than against a careful
+ * reading of the documentation.
  *
  * Point BEE_PROXY_URL at a real `bee proxy` instead and every code path is the
  * same one.
@@ -30,36 +39,71 @@
  *   POST /_sim/network   cut the stream while leaving the changefeed intact,
  *                        which is exactly Bee's documented at-most-once failure
  *   POST /_sim/append    add an utterance, optionally without streaming it
+ *   POST /_sim/complete  finish processing: the final transcription replaces
+ *                        the realtime one
  */
+import { createHash } from 'node:crypto';
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 interface SimUtterance {
-  speaker?: string;
   text: string;
-  created_at?: string;
+  speaker: string;
+  /** Seconds from the start of the recording. */
+  start: number;
+  end: number;
+  /** Epoch ms. */
+  spokenAt: number;
+  /** Its id in the realtime transcription, the one a live frame carries. */
+  realtimeId?: number;
+  /** Its id in the final transcription, once the conversation is processed. */
+  finalId?: number;
+  createdAt: number;
+}
+
+/** A conversation as `GET /v1/conversations/:id` returns it, before transcriptions are attached. */
+interface ConversationRecord {
+  id: number;
+  start_time: number;
+  end_time: number | null;
+  summary: string | null;
+  short_summary: string | null;
+  state: string;
+  created_at: number;
+  updated_at: number;
+  suggested_links: unknown[];
+  primary_location: unknown;
 }
 
 interface SimConversation {
-  id: number | string;
-  uuid?: string;
-  short_summary?: string;
-  state?: string;
-  start_time?: string;
-  end_time?: string;
-  created_at?: string;
+  record: ConversationRecord;
+  /** Known only to the stream, never to a read endpoint. */
+  uuid: string;
   utterances: SimUtterance[];
+  realtimeTranscriptionId: number;
+  finalTranscriptionId: number;
   /** How many utterances currently exist as far as any API is concerned. */
   revealed: number;
+  /** Played into the stream rather than loaded as history. */
+  live: boolean;
   changedAt: number;
 }
 
 interface SimFact {
-  id: number | string;
+  id: number;
   text: string;
-  confirmed?: boolean;
-  created_at?: string;
+  tags: string[];
+  created_at: number;
+  confirmed: boolean;
+}
+
+/** What a demo conversation file holds: a `GET /v1/conversations/:id` body. */
+interface FixtureFile {
+  conversation: ConversationRecord & {
+    transcriptions: { id: number; realtime: boolean; utterances: { id: number; start: number; end: number; spoken_at: number; text: string; speaker: string; created_at: number }[] }[];
+  };
+  timezone: string;
 }
 
 export interface BeeSimOptions {
@@ -71,12 +115,26 @@ export interface BeeSimOptions {
   log?: (line: string) => void;
 }
 
+const TIMEZONE = 'Europe/Paris';
+
+/**
+ * The uuid a live frame carries for a conversation. Derived from the id, so a
+ * test can name it without asking the server; nothing else can learn it,
+ * because no read endpoint returns it.
+ */
+export function streamUuid(conversationId: string | number): string {
+  return uuidFrom(`conversation:${conversationId}`);
+}
+
 export class BeeSim {
   private conversations = new Map<string, SimConversation>();
   private facts: SimFact[] = [];
   private clients = new Set<ServerResponse>();
   private networkUp = true;
-  private nextFactId = 9000;
+  private nextFactId = 1_841_200;
+  // Utterance ids are global and grow with time; this starts where a live id
+  // would be now (3766760407 was live at 2026-10-16T18:05:13Z).
+  private nextUtteranceId = Math.round(3_766_760_407 + ((Date.now() - Date.parse('2026-10-16T18:05:13Z')) / 1000) * 23);
   private server?: Server;
   private readonly log: (line: string) => void;
 
@@ -94,12 +152,27 @@ export class BeeSim {
         this.facts = raw as SimFact[];
         continue;
       }
-      const c = raw as SimConversation;
+      const { conversation: c } = raw as FixtureFile;
+      const final = c.transcriptions.find((t) => !t.realtime) ?? c.transcriptions[0]!;
+      const { transcriptions: _omit, ...record } = c;
       const isLive = live.has(String(c.id));
       this.conversations.set(String(c.id), {
-        ...c,
-        revealed: isLive ? 0 : c.utterances.length,
-        changedAt: Date.parse(c.created_at ?? c.start_time ?? '') || Date.now(),
+        record: { ...record },
+        uuid: streamUuid(c.id),
+        utterances: final.utterances.map((u) => ({
+          text: u.text,
+          speaker: u.speaker,
+          start: u.start,
+          end: u.end,
+          spokenAt: u.spoken_at,
+          ...(isLive ? {} : { finalId: u.id }),
+          createdAt: u.created_at,
+        })),
+        realtimeTranscriptionId: final.id - 1,
+        finalTranscriptionId: final.id,
+        revealed: isLive ? 0 : final.utterances.length,
+        live: isLive,
+        changedAt: c.updated_at,
       });
     }
   }
@@ -141,17 +214,21 @@ export class BeeSim {
       }
     }
 
-    if (path === '/v1/me') return json(res, 200, this.me());
+    if (path === '/v1/me') return json(res, 200, { id: 48211, first_name: 'Bee', last_name: 'Owner', timezone: TIMEZONE });
     if (path === '/v1/changes') return json(res, 200, this.changes(url.searchParams.get('cursor')));
     if (path === '/v1/conversations' && method === 'GET') {
-      const limit = Number(url.searchParams.get('limit') ?? 50);
-      return json(res, 200, { conversations: this.listConversations().slice(0, limit).map((c) => publicConversation(c)) });
+      const limit = Number(url.searchParams.get('limit') ?? 20);
+      return json(res, 200, {
+        conversations: this.listConversations().slice(0, limit).map((c) => listRecord(c)),
+        next_cursor: null,
+        timezone: TIMEZONE,
+      });
     }
     const convoMatch = /^\/v1\/conversations\/([^/]+)$/.exec(path);
     if (convoMatch && method === 'GET') {
       const c = this.conversations.get(convoMatch[1]!);
       if (!c || c.revealed === 0) return json(res, 404, { error: 'not found' });
-      return json(res, 200, publicConversation(c, true));
+      return json(res, 200, { conversation: this.fullRecord(c), timezone: TIMEZONE });
     }
     // Reachable through `bee proxy` as well as through `bee conversations
     // related`: the proxy forwards every /v1 path rather than exposing a route
@@ -160,23 +237,28 @@ export class BeeSim {
     if (relatedMatch && method === 'GET') {
       const c = this.conversations.get(relatedMatch[1]!);
       if (!c || c.revealed === 0) return json(res, 404, { error: 'not found' });
-      return json(res, 200, { conversations: this.relatedTo(c) });
+      return json(res, 200, { conversations: this.relatedTo(c), timezone: TIMEZONE });
     }
     if (path === '/v1/search/conversations' && method === 'POST') {
-      const body = await readJson<{ query: string; limit?: number; since?: number }>(req);
-      return json(res, 200, { results: this.search(body.query, body.limit ?? 20, false, body.since) });
+      const body = await readJson<{ query: string; limit?: number; since?: number; until?: number }>(req);
+      return json(res, 200, this.keywordSearch(body.query, body.limit ?? 20, body.since, body.until));
     }
     if (path === '/v1/search/conversations/neural' && method === 'POST') {
-      const body = await readJson<{ query: string; limit?: number }>(req);
-      return json(res, 200, { results: this.search(body.query, body.limit ?? 20, true) });
+      const body = await readJson<{ query: string; limit?: number; since?: number; until?: number }>(req);
+      return json(res, 200, this.neuralSearch(body.query, body.limit ?? 20, body.since, body.until));
     }
-    if (path === '/v1/facts' && method === 'GET') return json(res, 200, { facts: this.facts });
+    if (path === '/v1/facts' && method === 'GET') {
+      // `confirmed=true|false` filters; omitted, both kinds come back.
+      const confirmed = url.searchParams.get('confirmed');
+      const facts = confirmed === null ? this.facts : this.facts.filter((f) => f.confirmed === (confirmed === 'true'));
+      return json(res, 200, { facts, next_cursor: null, timezone: TIMEZONE });
+    }
     if (path === '/v1/facts' && method === 'POST') {
       const body = await readJson<{ text: string }>(req);
-      const fact: SimFact = { id: this.nextFactId++, text: body.text, confirmed: false, created_at: new Date().toISOString() };
+      const fact: SimFact = { id: this.nextFactId++, text: body.text, tags: [], created_at: Date.now(), confirmed: false };
       this.facts.push(fact);
       this.log(`[bee-sim] fact created: ${body.text}`);
-      return json(res, 201, { fact });
+      return json(res, 200, fact);
     }
     const factMatch = /^\/v1\/facts\/([^/]+)$/.exec(path);
     if (factMatch && method === 'PUT') {
@@ -186,7 +268,7 @@ export class BeeSim {
       if (body.text !== undefined) fact.text = body.text;
       if (body.confirmed !== undefined) fact.confirmed = body.confirmed;
       this.log(`[bee-sim] fact ${fact.id} updated (confirmed=${fact.confirmed})`);
-      return json(res, 200, { fact });
+      return json(res, 200, fact);
     }
     if (path === '/v1/stream') return this.stream(req, res, (url.searchParams.get('types') ?? '').split(',').filter(Boolean));
 
@@ -196,7 +278,7 @@ export class BeeSim {
         networkUp: this.networkUp,
         subscribers: this.clients.size,
         conversations: [...this.conversations.values()].map((c) => ({
-          id: c.id, revealed: c.revealed, total: c.utterances.length, changedAt: new Date(c.changedAt).toISOString(),
+          id: c.record.id, state: c.record.state, revealed: c.revealed, total: c.utterances.length, changedAt: new Date(c.changedAt).toISOString(),
         })),
         facts: this.facts.length,
       });
@@ -217,8 +299,13 @@ export class BeeSim {
       return json(res, 200, { played });
     }
     if (path === '/_sim/append' && method === 'POST') {
-      const body = await readJson<{ conversationId: string; text: string; speaker?: string; stream?: boolean }>(req);
-      const ok = this.append(body.conversationId, body.text, body.speaker ?? 'speaker_1', body.stream ?? true);
+      const body = await readJson<{ conversationId: string; text: string; stream?: boolean }>(req);
+      const ok = this.append(body.conversationId, body.text, body.stream ?? true);
+      return json(res, ok ? 200 : 404, { ok });
+    }
+    if (path === '/_sim/complete' && method === 'POST') {
+      const body = await readJson<{ conversationId: string }>(req);
+      const ok = this.complete(body.conversationId);
       return json(res, ok ? 200 : 404, { ok });
     }
 
@@ -227,14 +314,35 @@ export class BeeSim {
 
   // -------------------------------------------------------------------- data
 
-  private me() {
-    return { id: 1, name: 'Bee owner', email: 'owner@example.invalid', timezone: 'Europe/Paris' };
-  }
-
+  /** Newest first, by start time, as the API lists them. */
   private listConversations(): SimConversation[] {
     return [...this.conversations.values()]
       .filter((c) => c.revealed > 0)
-      .sort((a, b) => b.changedAt - a.changedAt);
+      .sort((a, b) => b.record.start_time - a.record.start_time);
+  }
+
+  /**
+   * The record with its transcription: the realtime one while the
+   * conversation is being captured, the final one once it is processed.
+   */
+  private fullRecord(c: SimConversation) {
+    const capturing = c.record.state !== 'COMPLETED';
+    const utterances = c.utterances.slice(0, c.revealed).map((u) => ({
+      id: (capturing ? u.realtimeId : u.finalId)!,
+      realtime: capturing,
+      start: u.start,
+      end: u.end,
+      spoken_at: u.spokenAt,
+      text: u.text,
+      speaker: u.speaker,
+      created_at: u.createdAt,
+    }));
+    return {
+      ...c.record,
+      transcriptions: [
+        { id: capturing ? c.realtimeTranscriptionId : c.finalTranscriptionId, realtime: capturing, utterances },
+      ],
+    };
   }
 
   /**
@@ -243,38 +351,68 @@ export class BeeSim {
    * Note what this deliberately does *not* consult: whether the stream was up.
    * The changefeed is the source of record and returns everything that changed
    * in the window regardless of what any subscriber saw, which is the property
-   * the reconciliation worker depends on.
+   * the reconciliation worker depends on. With no cursor it opens a 24-hour
+   * window, and the next cursor is the end of this one.
    */
   private changes(cursor: string | null) {
-    const now = Date.now();
-    const since = cursor ? Number(cursor.replace(/^v1-/, '')) : now - 24 * 3600 * 1000;
+    const until = Date.now();
+    const since = cursor ? Number(cursor.replace(/^v1-/, '')) : until - 24 * 3600 * 1000;
     const changed = [...this.conversations.values()].filter((c) => c.revealed > 0 && c.changedAt > since);
     return {
-      meta: {
-        next_cursor: `v1-${now}`,
-        since,
-        until: now,
-        updated: changed.length > 0,
-        timezone: 'Europe/Paris',
-      },
       facts: [],
-      todos: [],
+      conversations: changed.map((c) => c.record.id),
       dailies: [],
       journals: [],
-      conversations: changed.map((c) => publicConversation(c, true)),
+      todos: [],
+      next_cursor: `v1-${until}`,
+      since,
+      until,
+      updated: changed.length > 0,
+      timezone: TIMEZONE,
     };
   }
 
   /**
-   * Search.
-   *
-   * `neural: true` here is IDF-weighted token overlap, not an embedding model.
-   * It is enough to exercise the caller's behaviour -- a query built from
-   * registry vocabulary finds conversations phrased differently -- and it is
-   * named honestly rather than dressed up.
+   * Neural search: conversations only, ranked by IDF-weighted token overlap
+   * rather than an embedding model. It is enough to exercise the caller's
+   * behaviour -- a query built from registry vocabulary finds conversations
+   * phrased differently -- and it is named honestly rather than dressed up.
    */
-  private search(query: string, limit: number, neural: boolean, since?: number) {
-    const convos = this.listConversations().filter((c) => (since ? c.changedAt >= since : true));
+  private neuralSearch(query: string, limit: number, since?: number, until?: number) {
+    const results = this.rank(query, true, since, until)
+      .slice(0, limit)
+      .map(({ c }) => ({
+        id: c.record.id,
+        started_at: c.record.start_time,
+        stopped_at: c.record.end_time,
+        locations: [],
+        short_summary: c.record.short_summary,
+        detailed_summary: c.record.summary,
+      }));
+    return { results, total: results.length, timezone: TIMEZONE };
+  }
+
+  /** Keyword search: string ids, a `type` per hit, and `created_at`. */
+  private keywordSearch(query: string, limit: number, since?: number, until?: number) {
+    const results = this.rank(query, false, since, until)
+      .slice(0, limit)
+      .map(({ c, score }) => ({
+        id: String(c.record.id),
+        type: 'conversation',
+        score: Number(score.toFixed(3)),
+        summary: c.record.summary,
+        snippet: c.record.short_summary,
+        title_snippet: c.record.short_summary,
+        created_at: c.record.created_at,
+        corrections: [],
+      }));
+    return { results, next_cursor: null, timezone: TIMEZONE };
+  }
+
+  private rank(query: string, weighted: boolean, since?: number, until?: number): { c: SimConversation; score: number }[] {
+    const convos = this.listConversations().filter(
+      (c) => (since ? c.record.start_time >= since : true) && (until ? c.record.start_time <= until : true),
+    );
     const qTokens = tokens(query);
     if (qTokens.length === 0) return [];
 
@@ -284,28 +422,18 @@ export class BeeSim {
     }
     const n = Math.max(1, convos.length);
 
-    const scored = convos.map((c) => {
-      const docTokens = new Set(tokens(conversationText(c)));
-      let score = 0;
-      for (const t of new Set(qTokens)) {
-        if (!docTokens.has(t)) continue;
-        score += neural ? Math.log(1 + n / (1 + (df.get(t) ?? 0))) : 1;
-      }
-      return { c, score };
-    });
-
-    return scored
+    return convos
+      .map((c) => {
+        const docTokens = new Set(tokens(conversationText(c)));
+        let score = 0;
+        for (const t of new Set(qTokens)) {
+          if (!docTokens.has(t)) continue;
+          score += weighted ? Math.log(1 + n / (1 + (df.get(t) ?? 0))) : 1;
+        }
+        return { c, score };
+      })
       .filter((s) => s.score > 0)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, limit)
-      .map(({ c, score }) => ({
-        id: c.id,
-        type: 'conversation',
-        score: Number(score.toFixed(3)),
-        short_summary: c.short_summary,
-        created_at: c.created_at,
-        start_time: c.start_time,
-      }));
+      .sort((a, b) => b.score - a.score);
   }
 
   /**
@@ -315,11 +443,11 @@ export class BeeSim {
    * them; this ranks other conversations by IDF-weighted overlap with the
    * subject's own text, which produces the same *shape* of answer -- a ranked
    * `conversations` array -- from the same input. Note it returns conversation
-   * records, not the `{id, score}` hits `/v1/search/*` returns; that difference
-   * is real and the client has to handle both.
+   * records, not the hits `/v1/search/*` returns; that difference is real and
+   * the client has to handle both.
    */
   private relatedTo(subject: SimConversation) {
-    const others = this.listConversations().filter((c) => String(c.id) !== String(subject.id));
+    const others = this.listConversations().filter((c) => c !== subject);
     const seed = new Set(tokens(conversationText(subject)));
     if (seed.size === 0) return [];
 
@@ -341,7 +469,7 @@ export class BeeSim {
       .filter((s) => s.score > 0)
       .sort((a, b) => b.score - a.score)
       .slice(0, 10)
-      .map(({ c }) => publicConversation(c));
+      .map(({ c }) => listRecord(c));
   }
 
   // ------------------------------------------------------------------ stream
@@ -358,7 +486,7 @@ export class BeeSim {
       connection: 'keep-alive',
     });
     (res as ServerResponse & { simTypes?: string[] }).simTypes = types;
-    this.emitTo(res, { connected: true, types }, 'connected');
+    this.emitTo(res, { timestamp: Date.now() }, 'connected');
     this.clients.add(res);
     this.log(`[bee-sim] subscriber connected (${this.clients.size} total)`);
     req.on('close', () => {
@@ -370,11 +498,11 @@ export class BeeSim {
   /**
    * Write one frame in Bee's wire format.
    *
-   * The `event:` line is the frame's type and is not optional: `bee stream`'s
-   * SSE parser only emits an event once it has seen both an `event` field and a
-   * `data` field, so a frame written as `data:` alone is silently dropped by
-   * Bee's own client. Emitting it here is what lets `tests/conformance` run
-   * this server's bytes through that parser and get the frames back.
+   * The `event:` line is not optional: `bee stream`'s SSE parser only emits an
+   * event once it has seen both an `event` field and a `data` field, so a frame
+   * written as `data:` alone is silently dropped by Bee's own client. Emitting
+   * it here is what lets `tests/conformance` run this server's bytes through
+   * that parser and get the frames back.
    */
   private emitTo(client: ServerResponse, frame: unknown, type: string): void {
     client.write(`event: ${type}\ndata: ${JSON.stringify(frame)}\n\n`);
@@ -392,27 +520,109 @@ export class BeeSim {
     }
   }
 
-  private append(conversationId: string, text: string, speaker: string, stream: boolean): boolean {
-    const c = this.conversations.get(conversationId);
-    if (!c) return false;
-    c.utterances.splice(c.revealed, 0, { speaker, text, created_at: new Date().toISOString() });
+  /**
+   * The conversation starts (or resumes) being captured: it is listed as
+   * CAPTURING, its words are served from a realtime transcription, and every
+   * utterance in it has a realtime id. A conversation played into the stream
+   * is happening now, so its clock starts now.
+   */
+  private beginCapture(c: SimConversation): void {
+    const now = Date.now();
+    if (c.live && c.revealed === 0) {
+      const startTime = now - 1200;
+      c.record = { ...c.record, start_time: startTime, created_at: startTime + 180 };
+    }
+    for (const u of c.utterances) u.realtimeId ??= this.utteranceId();
+    c.record = { ...c.record, state: 'CAPTURING', end_time: null, updated_at: now };
+  }
+
+  /** Reveal the next utterance, as spoken now, and stream it. */
+  private speak(c: SimConversation, u: SimUtterance, stream: boolean): void {
+    this.beginCapture(c);
+    if (c.live) {
+      const spokenAt = Math.floor(Date.now() / 1000) * 1000;
+      const length = u.end - u.start;
+      u.start = Number(Math.max(0, (spokenAt - c.record.start_time) / 1000).toFixed(2));
+      u.end = Number((u.start + length).toFixed(2));
+      u.spokenAt = spokenAt;
+      u.createdAt = spokenAt + 1400;
+    }
     c.revealed++;
     c.changedAt = Date.now();
-    if (stream) this.emitUtterance(c, { speaker, text });
+    if (stream) this.emitUtterance(c, u);
+  }
+
+  private append(conversationId: string, text: string, stream: boolean): boolean {
+    const c = this.conversations.get(conversationId);
+    if (!c) return false;
+    const spokenAt = Math.floor(Date.now() / 1000) * 1000;
+    const start = Number(Math.max(0, (spokenAt - c.record.start_time) / 1000).toFixed(2));
+    const u: SimUtterance = {
+      text,
+      speaker: 'Unknown',
+      start,
+      end: Number((start + text.split(/\s+/).length * 0.34 + 0.4).toFixed(2)),
+      spokenAt,
+      createdAt: spokenAt + 1400,
+    };
+    c.utterances.splice(c.revealed, 0, u);
+    this.speak(c, u, stream);
     return true;
   }
 
+  /**
+   * Bee has processed the conversation: the final transcription replaces the
+   * realtime one, with ids of its own, and the record is COMPLETED.
+   */
+  private complete(conversationId: string): boolean {
+    const c = this.conversations.get(conversationId);
+    if (!c || c.revealed === 0) return false;
+    const now = Date.now();
+    for (const u of c.utterances.slice(0, c.revealed)) {
+      u.finalId = this.utteranceId();
+      u.createdAt = now;
+    }
+    const last = c.utterances[c.revealed - 1]!;
+    c.record = {
+      ...c.record,
+      state: 'COMPLETED',
+      end_time: c.record.start_time + Math.round(last.end * 1000) + 1800,
+      updated_at: now,
+    };
+    c.changedAt = now;
+    return true;
+  }
+
+  private utteranceId(): number {
+    this.nextUtteranceId += 1 + Math.floor(Math.random() * 40);
+    return this.nextUtteranceId;
+  }
+
+  /**
+   * A live `new-utterance` frame. Its type is in the frame as well as on the
+   * SSE line, the utterance carries its realtime id and `spoken_at` as ISO
+   * 8601, and there is no speaker.
+   */
   private emitUtterance(c: SimConversation, u: SimUtterance): void {
-    // The payload `bee stream` reads for this event type: an `utterance` object
-    // carrying `text` and `speaker`, and a top-level `conversation_uuid`.
     this.emit(
-      { utterance: { text: u.text, speaker: u.speaker ?? 'speaker_1' }, conversation_uuid: c.uuid ?? String(c.id) },
+      {
+        type: 'new-utterance',
+        conversation_uuid: c.uuid,
+        utterance: {
+          id: u.realtimeId,
+          sample_id: uuidFrom(`sample:${u.realtimeId}`),
+          start: u.start,
+          end: u.end,
+          text: u.text,
+          spoken_at: new Date(u.spokenAt).toISOString(),
+        },
+      },
       'new-utterance',
     );
   }
 
   /**
-   * The other event types, in the shapes `bee stream`'s formatter reads them.
+   * The other event types, written exactly as given.
    *
    * Nothing in the product subscribes to these -- it asks for `new-utterance`
    * and nothing else -- but this server emits them on demand so the
@@ -425,8 +635,13 @@ export class BeeSim {
   }
 
   /** Speak one utterance into a conversation, as `POST /_sim/append` does. */
-  appendUtterance(conversationId: string, text: string, speaker = 'speaker_1'): boolean {
-    return this.append(conversationId, text, speaker, true);
+  appendUtterance(conversationId: string, text: string): boolean {
+    return this.append(conversationId, text, true);
+  }
+
+  /** Finish processing a conversation, as `POST /_sim/complete` does. */
+  completeConversation(conversationId: string): boolean {
+    return this.complete(conversationId);
   }
 
   private async play(conversationId: string, speedMs: number, count?: number): Promise<number> {
@@ -436,9 +651,7 @@ export class BeeSim {
     let played = 0;
     while (c.revealed < target) {
       const u = c.utterances[c.revealed]!;
-      c.revealed++;
-      c.changedAt = Date.now();
-      this.emitUtterance(c, u);
+      this.speak(c, u, true);
       this.log(`[bee-sim] ${this.networkUp ? 'streamed' : 'recorded (stream down)'}: ${u.text}`);
       played++;
       if (c.revealed < target) await sleep(speedMs);
@@ -449,21 +662,19 @@ export class BeeSim {
 
 // -------------------------------------------------------------------- helpers
 
-function publicConversation(c: SimConversation, withUtterances = false) {
-  const base = {
-    id: c.id,
-    uuid: c.uuid,
-    short_summary: c.short_summary,
-    state: c.state,
-    start_time: c.start_time,
-    end_time: c.end_time,
-    created_at: c.created_at,
-  };
-  return withUtterances ? { ...base, utterances: c.utterances.slice(0, c.revealed) } : base;
+/** The fields `GET /v1/conversations` lists: no transcriptions, no short summary. */
+function listRecord(c: SimConversation) {
+  const { id, start_time, end_time, created_at, summary, state } = c.record;
+  return { id, start_time, end_time, created_at, summary, state };
 }
 
 function conversationText(c: SimConversation): string {
-  return [c.short_summary ?? '', ...c.utterances.slice(0, c.revealed).map((u) => u.text)].join(' ');
+  return [c.record.short_summary ?? '', ...c.utterances.slice(0, c.revealed).map((u) => u.text)].join(' ');
+}
+
+function uuidFrom(seed: string): string {
+  const h = createHash('sha256').update(seed).digest('hex');
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-4${h.slice(13, 16)}-${'89ab'[parseInt(h[16]!, 16) % 4]}${h.slice(17, 20)}-${h.slice(20, 32)}`;
 }
 
 const STOPWORDS = new Set(['the', 'a', 'an', 'is', 'it', 'to', 'of', 'and', 'in', 'on', 'for', 'that', 'this', 'we', 'i', 'so', 'was', 'are']);

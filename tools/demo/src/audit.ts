@@ -17,41 +17,28 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { BeeClient } from '#bee';
+import { BeeClient, type BeeConversation } from '#bee';
 import { Extractor, GrammarProposer } from '#engine/extract/index';
-import { beeCoverageSource, surveyCoverage, type CoverageConversation, type CoverageSource } from '#engine/coverage';
+import { beeCoverageSource, surveyCoverage, toCoverageConversation, type CoverageSource } from '#engine/coverage';
 import { Registry } from '#engine/registry';
 
 const ROOT = resolve(fileURLToPath(new URL('../../..', import.meta.url)));
 const showAll = process.argv.includes('--all');
 const fromBee = process.argv.includes('--bee');
 
-interface FixtureConversation {
-  id: number | string;
-  short_summary?: string;
-  start_time?: string;
-  utterances?: { text: string; speaker?: string; created_at?: string }[];
-}
-
 const registry = Registry.fromFile(join(ROOT, 'demo', 'source-registry.yaml'));
 const extractor = new Extractor(registry, [new GrammarProposer(registry)]);
 
-/** The recorded conversations, read straight off disk so this runs with nothing else up. */
+/**
+ * The demo conversations, read straight off disk so this runs with nothing else
+ * up. Each file is a `GET /v1/conversations/:id` body: `{ conversation, timezone }`.
+ */
 const fixtureSource: CoverageSource = async () => {
   const dir = join(ROOT, 'demo', 'conversations');
   return readdirSync(dir)
     .filter((f) => f.endsWith('.json') && f !== 'demo-facts.json')
-    .map((f) => JSON.parse(readFileSync(join(dir, f), 'utf8')) as FixtureConversation)
-    .map((c): CoverageConversation => ({
-      id: String(c.id),
-      ...(c.short_summary ? { summary: c.short_summary } : {}),
-      ...(c.start_time ? { startedAt: c.start_time } : {}),
-      utterances: (c.utterances ?? []).map((u) => ({
-        text: u.text,
-        ...(u.speaker ? { speaker: u.speaker } : {}),
-        ...(u.created_at ? { createdAt: u.created_at } : {}),
-      })),
-    }));
+    .map((f) => (JSON.parse(readFileSync(join(dir, f), 'utf8')) as { conversation: BeeConversation }).conversation)
+    .map((c) => toCoverageConversation(c));
 };
 
 const source = fromBee ? beeCoverageSource(BeeClient.fromEnv()) : fixtureSource;
@@ -76,7 +63,8 @@ if (showAll) {
 }
 
 console.log(
-  `\n${report.conversations} conversations, ${report.utterances} utterances, ${report.speakers} distinct speakers` +
+  `\n${report.conversations} conversations, ${report.utterances} utterances` +
+    (report.speakers > 0 ? `, ${report.speakers} distinct speakers` : '') +
     ` (${fromBee ? 'read from Bee' : 'demo/conversations'})`,
 );
 console.log(

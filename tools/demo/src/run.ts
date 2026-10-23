@@ -160,7 +160,7 @@ async function main(): Promise<void> {
   await refuseIfInUse(SIM_PORT, 'local bee');
   await refuseIfInUse(PORT, 'server');
 
-  background('bee-sim', ['tools/bee-sim/src/cli.ts'], { BEE_SIM_PORT: String(SIM_PORT), BEE_SIM_LIVE: '10743,10744' });
+  background('bee-sim', ['tools/bee-sim/src/cli.ts'], { BEE_SIM_PORT: String(SIM_PORT), BEE_SIM_LIVE: '10695705,10697402' });
   await waitFor(`http://127.0.0.1:${SIM_PORT}/v1/me`);
   console.log(`  bee on :${SIM_PORT}  ${c.dim('(the documented /v1 surface: stream, changes, search, facts)')}`);
 
@@ -216,7 +216,7 @@ async function main(): Promise<void> {
 async function play(): Promise<void> {
   beat('09:02 — the conversation, as Bee hears it');
   console.log(c.dim('  eight sentences. Half of them the product will not have an opinion about.\n'));
-  await post(`http://127.0.0.1:${SIM_PORT}/_sim/play`, { conversationId: '10743', speedMs: SPEED });
+  await post(`http://127.0.0.1:${SIM_PORT}/_sim/play`, { conversationId: '10695705', speedMs: SPEED });
   await sleep(2500);
   await report();
 
@@ -226,7 +226,7 @@ async function play(): Promise<void> {
   await post(`http://127.0.0.1:${SIM_PORT}/_sim/network`, { up: false });
   console.log(`  ${c.red('stream cut')}`);
   await sleep(1200);
-  await post(`http://127.0.0.1:${SIM_PORT}/_sim/play`, { conversationId: '10744', speedMs: 400 });
+  await post(`http://127.0.0.1:${SIM_PORT}/_sim/play`, { conversationId: '10697402', speedMs: 400 });
   console.log(c.dim('  the corridor conversation is recorded by Bee with nobody listening'));
   await sleep(1200);
   await post(`http://127.0.0.1:${SIM_PORT}/_sim/network`, { up: true });

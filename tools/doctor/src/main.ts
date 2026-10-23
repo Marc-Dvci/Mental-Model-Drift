@@ -13,10 +13,11 @@
  *
  * Two things it deliberately checks that a simpler health check would not:
  *
- *   - whether the realtime stream delivered a frame carrying its SSE `event:`
- *     name. That name is the frame's type, and a transport that drops it
- *     downgrades the product to guessing from the payload's shape. It is
- *     invisible in every other symptom, so it is asserted here by name.
+ *   - whether the realtime stream delivered a frame that names its type, in
+ *     the SSE `event:` line or its own `type` field, and carries the utterance
+ *     id that joins it to a conversation. A frame with neither downgrades the
+ *     product to guessing from the payload's shape. It is invisible in every
+ *     other symptom, so it is asserted here by name.
  *   - whether `conversations related` is reachable over the configured
  *     transport, since the endpoint behind it is a `/v1` path the proxy
  *     forwards, not a CLI-only feature.
@@ -54,7 +55,7 @@ async function main(): Promise<void> {
   let owner = '';
   try {
     const me = await client.me();
-    owner = String(me.name ?? me.email ?? me.id ?? 'authenticated owner');
+    owner = [me.first_name, me.last_name].filter(Boolean).join(' ') || String(me.id ?? 'authenticated owner');
     line({ capability: 'IDENTITY', name: 'GET /v1/me', detail: owner, status: 'ok', required: true });
   } catch (err) {
     line({ capability: 'IDENTITY', name: 'GET /v1/me', detail: msg(err), status: 'fail', required: true });
@@ -85,18 +86,26 @@ async function main(): Promise<void> {
     } else if (heard.event.nameWasInferred) {
       line({
         capability: 'CAPTURE',
-        name: 'SSE event name',
-        detail: 'frame arrived WITHOUT an event name; type was guessed from the payload',
+        name: 'event name',
+        detail: 'frame arrived WITHOUT an event name or `type`; type was guessed from the payload',
         status: 'fail',
         required: false,
       });
     } else {
       line({
         capability: 'CAPTURE',
-        name: 'SSE event name',
-        detail: `${heard.event.name} (authoritative, not inferred)`,
+        name: 'event name',
+        detail: `${heard.event.name} (named, not inferred)`,
         status: 'ok',
         required: true,
+      });
+      const id = heard.event.kind === 'new-utterance' ? heard.event.utteranceId : undefined;
+      line({
+        capability: 'CAPTURE',
+        name: 'utterance id',
+        detail: id ? `#${id} (joins the frame to its conversation)` : 'MISSING; the conversation is matched by text instead',
+        status: id ? 'ok' : 'fail',
+        required: false,
       });
     }
   }
@@ -105,13 +114,13 @@ async function main(): Promise<void> {
   let conversationId: string | undefined;
   try {
     const feed = await client.changed();
-    const n = feed.conversations?.length ?? 0;
-    conversationId = n ? String(feed.conversations![0]!.id) : undefined;
+    const n = feed.conversationIds.length;
+    conversationId = feed.conversationIds[0];
     line({
       capability: 'RECONCILE',
       name: 'GET /v1/changes (cursor)',
-      detail: `${n} conversation(s), next_cursor ${feed.meta.next_cursor ? 'present' : 'MISSING'}`,
-      status: feed.meta.next_cursor ? 'ok' : 'fail',
+      detail: `${n} conversation(s), next_cursor ${feed.nextCursor ? 'present' : 'MISSING'}`,
+      status: feed.nextCursor ? 'ok' : 'fail',
       required: true,
     });
   } catch (err) {

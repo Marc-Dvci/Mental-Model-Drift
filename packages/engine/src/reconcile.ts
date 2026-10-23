@@ -11,7 +11,7 @@
  * crash mid-batch replays rather than skips, and the content-key dedupe in the
  * pipeline makes that replay harmless.
  */
-import type { BeeClient } from '#bee';
+import { labelledSpeakerCount, pickTranscript, toIso, type BeeClient, type BeeConversation, type BeeUtterance } from '#bee';
 import type { DriftEngine } from './pipeline.ts';
 import type { Store } from './store/types.ts';
 
@@ -54,35 +54,39 @@ export class Reconciler {
       return { ...report, ran: false, error: (err as Error).message };
     }
 
-    const conversations = feed.conversations ?? [];
-    report.conversationsChanged = conversations.length;
+    report.conversationsChanged = feed.conversationIds.length;
+    const fetched = new Map(feed.conversations.map((c) => [String(c.id), c]));
+    let unread = 0;
 
-    for (const convo of conversations) {
-      const id = String(convo.id);
-      let utterances = convo.utterances ?? [];
-      if (utterances.length === 0) {
-        try {
-          utterances = await this.bee.transcript(id);
-        } catch {
-          continue;
-        }
+    for (const id of feed.conversationIds) {
+      let utterances: BeeUtterance[];
+      let convo: BeeConversation | undefined = fetched.get(id);
+      try {
+        convo ??= await this.bee.getConversation(id);
+        utterances = pickTranscript(convo);
+      } catch {
+        // The cursor is held back below, so the next pass reads it again.
+        unread++;
+        continue;
       }
       const texts = utterances.map((u) => u.text ?? '');
-      const speakers = new Set(utterances.map((u) => u.speaker ?? 'unknown'));
+      const speakerCount = labelledSpeakerCount(utterances);
+      const startedAt = toIso(convo.start_time ?? convo.created_at);
 
       for (let i = 0; i < utterances.length; i++) {
         const text = texts[i]!;
         if (!text.trim()) continue;
         report.utterancesSeen++;
+        const u = utterances[i]!;
+        const capturedAt = toIso(u.spoken_at) ?? startedAt;
         const outcome = await this.engine.ingestUtterance({
           text,
           conversationId: id,
-          ...(convo.uuid ? { conversationUuid: convo.uuid } : {}),
           utteranceIndex: i,
-          ...(utterances[i]?.speaker ? { speaker: utterances[i]!.speaker! } : {}),
+          ...(u.speaker ? { speaker: u.speaker } : {}),
           window: texts.slice(Math.max(0, i - 3), i),
-          speakerCount: speakers.size,
-          ...(convo.start_time || convo.created_at ? { capturedAt: normalise(convo.start_time ?? convo.created_at) } : {}),
+          ...(speakerCount !== undefined ? { speakerCount } : {}),
+          ...(capturedAt ? { capturedAt } : {}),
           origin: 'reconciled',
         });
         if (outcome.duplicate) continue;
@@ -92,10 +96,14 @@ export class Reconciler {
       }
     }
 
-    // Only now, after every conversation in the batch has been processed.
-    if (feed.meta?.next_cursor) {
-      await this.store.setCursor(this.cursorName, feed.meta.next_cursor);
-      report.cursorAfter = feed.meta.next_cursor;
+    // Only now, after every conversation in the batch has been processed. A
+    // conversation that could not be read keeps the cursor where it was; the
+    // replay is harmless, because the content-key dedupe skips what was done.
+    if (unread > 0) {
+      report.error = `${unread} changed conversation(s) could not be read; the cursor was not advanced`;
+    } else if (feed.nextCursor) {
+      await this.store.setCursor(this.cursorName, feed.nextCursor);
+      report.cursorAfter = feed.nextCursor;
     }
     return report;
   }
@@ -123,10 +131,4 @@ export class Reconciler {
     void loop();
     return { stop: () => { stopped = true; }, runNow };
   }
-}
-
-function normalise(v: unknown): string {
-  if (typeof v === 'number') return new Date(v).toISOString();
-  const t = Date.parse(String(v));
-  return Number.isNaN(t) ? new Date().toISOString() : new Date(t).toISOString();
 }

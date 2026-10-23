@@ -55,7 +55,8 @@ describe('coverage survey', () => {
 
     expect(report.conversations).toBe(21);
     expect(report.utterances).toBe(115);
-    expect(report.speakers).toBe(3);
+    // Bee labels every speaker "Unknown", which is no speaker at all.
+    expect(report.speakers).toBe(0);
     expect(report.checkable).toBe(17);
     expect(report.ignored).toBe(report.utterances - report.checkable);
     // The headline the product makes: most of what a person says is not about

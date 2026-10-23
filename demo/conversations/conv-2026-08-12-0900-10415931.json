@@ -1,0 +1,63 @@
+{
+  "conversation": {
+    "id": 10415931,
+    "start_time": 1786526040540,
+    "end_time": 1786526076049,
+    "summary": "Debugging a backed-up checkout queue.",
+    "short_summary": "Debugging a backed-up checkout queue",
+    "state": "COMPLETED",
+    "created_at": 1786526040814,
+    "updated_at": 1786526198307,
+    "transcriptions": [
+      {
+        "id": 14270016,
+        "realtime": false,
+        "utterances": [
+          {
+            "id": 3636862989,
+            "realtime": false,
+            "start": 1.46,
+            "end": 4.58,
+            "spoken_at": 1786526042000,
+            "text": "Okay, the checkout worker is backing up again.",
+            "speaker": "Unknown",
+            "created_at": 1786526193626
+          },
+          {
+            "id": 3636862990,
+            "realtime": false,
+            "start": 10.46,
+            "end": 14.26,
+            "spoken_at": 1786526051000,
+            "text": "It retries three times before anything lands in the DLQ.",
+            "speaker": "Unknown",
+            "created_at": 1786526193633
+          },
+          {
+            "id": 3636862991,
+            "realtime": false,
+            "start": 19.46,
+            "end": 23.6,
+            "spoken_at": 1786526060000,
+            "text": "So a poison message takes a while to actually fail out.",
+            "speaker": "Unknown",
+            "created_at": 1786526193636
+          },
+          {
+            "id": 3636862992,
+            "realtime": false,
+            "start": 30.46,
+            "end": 33.92,
+            "spoken_at": 1786526071000,
+            "text": "I'll add a dashboard for queue depth this afternoon.",
+            "speaker": "Unknown",
+            "created_at": 1786526193640
+          }
+        ]
+      }
+    ],
+    "suggested_links": [],
+    "primary_location": null
+  },
+  "timezone": "Europe/Paris"
+}
